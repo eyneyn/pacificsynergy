@@ -41,7 +41,6 @@ document.addEventListener('DOMContentLoaded', function () {
             dropdown.classList.add('hidden');
         }
     });
-
 const confirmationModal = document.getElementById('delete-confirmation-modal');
 const confirmBtn = document.getElementById('confirm-delete-btn');
 const cancelBtn = document.getElementById('cancel-delete-btn');
@@ -49,58 +48,70 @@ const deleteNameSpan = document.getElementById('item-name-to-delete');
 
 let currentDeleteForm = null;
 
-// 🔧 Function to handle delete form confirmation modals
-function setupDeleteHandler(formId) {
-    const form = document.getElementById(formId);
-    if (!form) return;
+    const updateModal = document.getElementById('update-confirmation-modal');
+    const openUpdateBtn = document.getElementById('open-update-modal-btn');
+    const cancelUpdateBtn = document.getElementById('cancel-update-btn');
+    const confirmUpdateBtn = document.getElementById('confirm-update-btn');
+    const form = document.getElementById('update-report-form'); // Target the update form
 
+    openUpdateBtn.addEventListener('click', () => {
+        updateModal.classList.remove('hidden');
+    });
+
+    cancelUpdateBtn.addEventListener('click', () => {
+        updateModal.classList.add('hidden');
+    });
+
+    confirmUpdateBtn.addEventListener('click', () => {
+        updateModal.classList.add('hidden');
+        form.submit();
+    });
+    
+function setupDeleteHandler(form) {
     form.addEventListener('submit', function (e) {
         e.preventDefault();
 
         const type = form.dataset.deleteType;
-        let nameInput, idInput;
+        let name = '';
+        let id = '';
 
         switch (type) {
-            case 'report':
-                nameInput = document.getElementById('edit_report_date');
-                break;
-            case 'maintenance':
-                nameInput = document.getElementById('edit_maintenance_name');
+            case 'line':
+                id = form.querySelector('#edit_line_id')?.value;
+                name = form.querySelector('#edit_line_number')?.value;
                 break;
             case 'defect':
-                nameInput = document.getElementById('edit_defect_name');
+                id = form.querySelector('#edit_defect_id')?.value;
+                name = form.querySelector('#edit_defect_name')?.value;
                 break;
-            case 'standard':
-                nameInput = document.getElementById('edit_standard_description');
+            case 'maintenance':
+                id = form.querySelector('#edit_maintenance_id')?.value;
+                name = form.querySelector('#edit_maintenance_name')?.value;
                 break;
-            case 'line':
-                nameInput = document.getElementById('edit_line_number');
-                idInput = document.getElementById('edit_line_id');
-                
-                // Replace action URL placeholder with actual line ID
-                const baseAction = form.getAttribute('data-base-action');
-                const actualId = idInput?.value;
-                form.setAttribute('action', baseAction.replace(':id', actualId));
-                break;
+                case 'standard':
+        id = form.getAttribute('action')?.split('/').pop(); // fallback if needed
+        name = form.querySelector('#edit_standard_description')?.value;
+        break;
         }
 
-        const displayName = nameInput?.value || 'this item';
-        deleteNameSpan.textContent = `"${displayName}"`;
+        const baseAction = form.dataset.baseAction;
+        if (baseAction && id) {
+            form.setAttribute('action', baseAction.replace(':id', id));
+        }
+
+        deleteNameSpan.textContent = `"${name || 'this item'}"`;
 
         currentDeleteForm = form;
         confirmationModal.classList.remove('hidden');
     });
 }
 
+// Register all delete forms
+document.querySelectorAll(
+    '.delete-line-form, .delete-defect-form, .delete-maintenance-form,.delete-standard-form'
+).forEach(setupDeleteHandler);
 
-// 📦 Register all supported delete forms
-setupDeleteHandler('icon-delete-maintenance-form');
-setupDeleteHandler('icon-delete-defect-form');
-setupDeleteHandler('icon-delete-standard-form');
-setupDeleteHandler('icon-delete-line-form');
-setupDeleteHandler('icon-delete-report-form');
-
-// ✅ Confirm delete
+// Confirm delete
 confirmBtn.addEventListener('click', () => {
     if (currentDeleteForm) {
         confirmationModal.classList.add('hidden');
@@ -108,7 +119,22 @@ confirmBtn.addEventListener('click', () => {
     }
 });
 
-// ❌ Cancel delete
+// Cancel delete
+cancelBtn.addEventListener('click', () => {
+    confirmationModal.classList.add('hidden');
+    currentDeleteForm = null;
+});
+
+
+// Confirm delete
+confirmBtn.addEventListener('click', () => {
+    if (currentDeleteForm) {
+        confirmationModal.classList.add('hidden');
+        currentDeleteForm.submit();
+    }
+});
+
+// Cancel delete
 cancelBtn.addEventListener('click', () => {
     confirmationModal.classList.add('hidden');
     currentDeleteForm = null;
@@ -167,17 +193,22 @@ document.querySelectorAll('[data-modal-target]').forEach(row => {
         }
 
         if (target === 'edit-line-modal') {
+            const id = row.dataset.id; // ✅ FIXED
             const lineNumber = row.dataset.line_number;
             const status = row.dataset.status;
 
             const form = document.getElementById('edit-line-form');
-            form.action = `/configuration/${id}`;
+            form.action = `/configuration/index/${id}`;
+
             document.getElementById('edit_line_id').value = id;
             document.getElementById('edit_line_number').value = lineNumber;
             document.getElementById('edit_status').value = status;
 
-            document.getElementById('icon-delete-line-form').action = `/configuration/${id}`;
-            deleteNameSpan.textContent = `Line ${lineNumber}`;
+            document.getElementById('icon-delete-line-form').action = `/configuration/index/${id}`;
+            if (typeof deleteNameSpan !== 'undefined') {
+                deleteNameSpan.textContent = `Line ${lineNumber}`;
+            }
+
             currentDeleteForm = document.getElementById('icon-delete-line-form');
 
             document.getElementById('edit-line-modal').classList.remove('hidden');

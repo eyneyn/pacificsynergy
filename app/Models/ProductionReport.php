@@ -34,6 +34,7 @@ class ProductionReport extends Model
         'qa_remarks', 
         'with_label', 
         'without_label',
+        'total_sample',
 
         'total_downtime',
         'bottle_code',
@@ -50,7 +51,7 @@ class ProductionReport extends Model
     }
     public function line()
     {
-        return $this->belongsTo('App\Models\Line', 'line');
+        return $this->belongsTo(Line::class, 'line', 'line_number');
     }
     public function standard()
     {

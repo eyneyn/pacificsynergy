@@ -31,8 +31,8 @@ return new class extends Migration
             $table->integer('manpower_absent')->nullable();
 
             // SKU (FK from standards.description)
-            $table->string('sku')->nullable();
-            $table->foreign('sku')->references('description')->on('standards')->onDelete('set null');
+            $table->string('sku');
+            $table->foreign('sku')->references('description')->on('standards')->onDelete('cascade');
 
             // Production figures
             $table->string('fbo_fco')->nullable();
@@ -57,8 +57,9 @@ return new class extends Migration
             $table->text('qa_remarks')->nullable();
             $table->integer('with_label')->nullable();
             $table->integer('without_label')->nullable();
+            $table->integer('total_sample')->default(0);
 
-            $table->integer('total_downtime');
+            $table->integer('total_downtime')->default(0);
             $table->string('bottle_code');
 
             $table->timestamps();
