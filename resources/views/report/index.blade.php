@@ -22,15 +22,18 @@
                 </div>
             </div>
         </form>
-        {{-- Add Report Button --}}
-        <a href="{{ url('report/add') }}"
-            class="inline-flex items-center gap-2 p-3 py-2 bg-[#323B76] hover:bg-[#444d90] border border-[#323B76] text-white text-sm font-medium rounded-md">
-            <x-icons-plus-circle class="w-4 h-4 text-white" />
-            <span class="text-sm">Production Report</span>
-        </a>
+        @can('report.add')
+            {{-- Add Report Button --}}
+            <a href="{{ url('report/add') }}"
+                class="inline-flex items-center gap-2 p-3 py-2 bg-[#323B76] hover:bg-[#444d90] border border-[#323B76] text-white text-sm font-medium rounded-md">
+                <x-icons-plus-circle class="w-4 h-4 text-white" />
+                <span class="text-sm">Production Report</span>
+            </a>
+        @endcan
     </div>
 
     @php
+        // Sorting logic for table headers
         $currentSort = request('sort');
         $currentDirection = request('direction') === 'asc' ? 'desc' : 'asc';
     @endphp
@@ -44,7 +47,8 @@
                     <a href="{{ route('report.index', ['sort' => 'production_date', 'direction' => ($currentSort === 'production_date' ? $currentDirection : 'asc')]) }}"
                         class="flex items-center gap-1 text-white no-underline">
                         Machine / Others
-                        <svg class="w-4 h-4 {{ $currentSort === 'name' ? 'opacity-100' : 'opacity-50' }}" fill="currentColor" viewBox="0 0 512 512">
+                        {{-- Sort Icon --}}
+                        <svg class="w-4 h-4 {{ $currentSort === 'production_date' ? 'opacity-100' : 'opacity-50' }}" fill="currentColor" viewBox="0 0 512 512">
                             <path d="M304 96h48v320h48l-72 80-72-80h48V96zM64 192h128v32H64v-32zm32 64h96v32H96v-32zm32 64h64v32h-64v-32zm32 64h32v32h-32v-32z"/>
                         </svg>
                     </a>
@@ -53,7 +57,7 @@
                     <a href="{{ route('report.index', ['sort' => 'sku', 'direction' => ($currentSort === 'sku' ? $currentDirection : 'asc')]) }}"
                         class="flex justify-center items-center gap-1 text-white no-underline">
                         SKU
-                        <svg class="w-4 h-4 {{ $currentSort === 'name' ? 'opacity-100' : 'opacity-50' }}" fill="currentColor" viewBox="0 0 512 512">
+                        <svg class="w-4 h-4 {{ $currentSort === 'sku' ? 'opacity-100' : 'opacity-50' }}" fill="currentColor" viewBox="0 0 512 512">
                             <path d="M304 96h48v320h48l-72 80-72-80h48V96zM64 192h128v32H64v-32zm32 64h96v32H96v-32zm32 64h64v32h-64v-32zm32 64h32v32h-32v-32z"/>
                         </svg>
                     </a>
@@ -62,7 +66,7 @@
                     <a href="{{ route('report.index', ['sort' => 'line', 'direction' => ($currentSort === 'line' ? $currentDirection : 'asc')]) }}"
                         class="flex justify-center items-center gap-1 text-white no-underline">
                         Line
-                        <svg class="w-4 h-4 {{ $currentSort === 'name' ? 'opacity-100' : 'opacity-50' }}" fill="currentColor" viewBox="0 0 512 512">
+                        <svg class="w-4 h-4 {{ $currentSort === 'line' ? 'opacity-100' : 'opacity-50' }}" fill="currentColor" viewBox="0 0 512 512">
                             <path d="M304 96h48v320h48l-72 80-72-80h48V96zM64 192h128v32H64v-32zm32 64h96v32H96v-32zm32 64h64v32h-64v-32zm32 64h32v32h-32v-32z"/>
                         </svg>
                     </a>
@@ -71,7 +75,7 @@
                     <a href="{{ route('report.index', ['sort' => 'total_outputCase', 'direction' => ($currentSort === 'total_outputCase' ? $currentDirection : 'asc')]) }}"
                         class="flex justify-center items-center gap-1 text-white no-underline">
                         Total Output Case
-                        <svg class="w-4 h-4 {{ $currentSort === 'name' ? 'opacity-100' : 'opacity-50' }}" fill="currentColor" viewBox="0 0 512 512">
+                        <svg class="w-4 h-4 {{ $currentSort === 'total_outputCase' ? 'opacity-100' : 'opacity-50' }}" fill="currentColor" viewBox="0 0 512 512">
                             <path d="M304 96h48v320h48l-72 80-72-80h48V96zM64 192h128v32H64v-32zm32 64h96v32H96v-32zm32 64h64v32h-64v-32zm32 64h32v32h-32v-32z"/>
                         </svg>
                     </a>
@@ -80,7 +84,7 @@
                     <a href="{{ route('report.index', ['sort' => 'created_at', 'direction' => ($currentSort === 'created_at' ? $currentDirection : 'asc')]) }}"
                         class="flex justify-center items-center gap-1 text-white no-underline">
                         Submitted Date and Time
-                        <svg class="w-4 h-4 {{ $currentSort === 'name' ? 'opacity-100' : 'opacity-50' }}" fill="currentColor" viewBox="0 0 512 512">
+                        <svg class="w-4 h-4 {{ $currentSort === 'created_at' ? 'opacity-100' : 'opacity-50' }}" fill="currentColor" viewBox="0 0 512 512">
                             <path d="M304 96h48v320h48l-72 80-72-80h48V96zM64 192h128v32H64v-32zm32 64h96v32H96v-32zm32 64h64v32h-64v-32zm32 64h32v32h-32v-32z"/>
                         </svg>
                     </a>
@@ -97,7 +101,23 @@
                     <td class="px-6 py-2 border border-[#d9d9d9] text-gray-600 text-center">{{ $report->line }}</td>
                     <td class="px-6 py-2 border border-[#d9d9d9] text-gray-600 text-center">{{ $report->total_outputCase }}</td>
                     <td class="px-6 py-2 border border-[#d9d9d9] text-gray-600 text-center">{{ $report->created_at }}</td>
-                    <td class="px-6 py-2 border border-[#d9d9d9] text-gray-600 text-center"></td>
+                    <td class="px-6 py-2 border border-[#d9d9d9] text-gray-600 text-center">
+                        @php
+                            // Get latest status if exists
+                            $status = $report->statuses->first()?->status;
+                        @endphp
+                        @if ($status)
+                            <span class="inline-block px-3 py-1 rounded-full text-xs font-medium
+                                @if($status === 'Submitted') bg-yellow-100 text-yellow-800
+                                @elseif($status === 'Reviewed') bg-blue-100 text-blue-800
+                                @elseif($status === 'Validated') bg-green-100 text-green-800
+                                @endif">
+                                {{ $status }}
+                            </span>
+                        @else
+                            <span class="text-gray-400 text-xs italic">N/A</span>
+                        @endif
+                    </td>
                 </tr>
             @empty
                 <tr>

@@ -1,36 +1,46 @@
-@props(['name', 'options' => [], 'category'])
+@props(['name', 'options' => [], 'role'])
+
+@php
+    $selectedValue = old($name, $role);
+    $selectedLabel = $options[$selectedValue] ?? 'Select Role';
+@endphp
 
 <div
     x-data="{
         open: false,
-        selected: item.defect,
-        label: '',
+        selected: '{{ $selectedValue }}',
+        label: '{{ $selectedLabel }}',
         selectOption(value, label) {
             this.selected = value;
             this.label = label;
-            item.defect = value;
             this.open = false;
         }
     }"
-    x-init="
-        label = item.defect && {{ Js::from($options) }}[item.defect] 
-            ? {{ Js::from($options) }}[item.defect] 
-            : 'Select defect';
-    "
     class="relative w-full"
 >
+    <!-- Trigger Button -->
     <button
         type="button"
         @click="open = !open"
         class="w-full text-sm rounded border border-gray-300 bg-white px-3 py-[0.375rem] text-left flex justify-between items-center hover:shadow-lg hover:border-[#2d326b] focus:border-[#2d326b] focus:ring focus:ring-[#2d326b] focus:ring-0 transition"
     >
-        <span :class="label === 'Select defect' ? 'text-gray-400' : 'text-[#2d326b]'" x-text="label" class="truncate"></span>
+        <span 
+            class="truncate" 
+            :class="label === 'Select Role' ? 'text-gray-400' : 'text-[#2d326b]'" 
+            x-text="label">
+        </span>
         <svg class="w-4 h-4 ml-2 text-gray-500 transform transition-transform" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
         </svg>
     </button>
 
-    <div x-show="open" @click.away="open = false" x-transition class="absolute z-10 w-full bottom-full mb-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+    <!-- Dropdown Options -->
+    <div
+        x-show="open"
+        @click.away="open = false"
+        x-transition
+        class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
+    >
         @foreach ($options as $value => $label)
             <div
                 @click="selectOption('{{ $value }}', '{{ $label }}')"
@@ -42,5 +52,11 @@
         @endforeach
     </div>
 
-    <input type="hidden" :name="'{{ $name }}'" :value="selected" required>
+    <!-- Hidden Input -->
+    <input type="hidden" name="{{ $name }}" :value="selected" required>
+
+    <!-- Error Message -->
+    @error($name)
+        <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+    @enderror
 </div>

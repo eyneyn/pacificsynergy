@@ -25,6 +25,7 @@
                 </tr>
             </thead>
             <tbody class="text-gray-700 divide-y divide-gray-200">
+                <!-- Defect Name Field -->
                 <tr>
                     <td class="font-medium text-[#2d326b] px-4 py-2">Defect Name</td>
                     <td class="px-4 py-2">
@@ -34,6 +35,7 @@
                         @enderror
                     </td>
                 </tr>
+                <!-- Category Field -->
                 <tr>
                     <td class="font-medium text-[#2d326b] px-4 py-2">Category</td>
                     <td class="px-4 py-2">
@@ -46,6 +48,7 @@
                             ]" />
                     </td>
                 </tr>
+                <!-- Description Field -->
                 <tr>
                     <td class="font-medium text-[#2d326b] px-4 py-2">Description</td>
                     <td class="px-4 py-2">
@@ -55,8 +58,7 @@
                         @enderror
                     </td>
                 </tr>
-            </tbody>
-            <tbody>
+                <!-- Submit Button -->
                 <tr>
                     <td colspan="2" class="p-3">
                         <div class="flex justify-end">

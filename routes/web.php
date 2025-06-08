@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DashboardAdminController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RoleController;
@@ -8,37 +9,39 @@ use App\Http\Controllers\ConfigurationController;
 use App\Http\Controllers\ProductionReportController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\MaterialController;
+use App\Http\Controllers\EmployeeController;
 
 // Redirect root URL to login page
 Route::get('/', function () {
     return redirect()->route('login');
 });
 
-// Dashboard route (requires authentication and verification)
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
 
 // Profile routes (requires authentication)
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
+    Route::patch('/profile/photo', [ProfileController::class, 'updatePhoto'])->name('profile.update.photo');
 });
 
-// Roles routes
-Route::get('/roles', function () {
-    return view('roles.roles_permission');
-})->name('roles.roles_permission');
-Route::get('/roles/create', [RoleController::class, 'create'])->name('roles.create');
+// Production Report routes
+Route::prefix('report')->middleware(['permission:report.index'])->group(function () {
+    Route::get('/index', [ProductionReportController::class, 'index'])->name('report.index');
+    Route::get('/view/{report}', [ProductionReportController::class, 'view'])->middleware('permission:report.index')->name('report.view');
+    Route::get('/add', [ProductionReportController::class, 'add'])->middleware('permission:report.add')->name('report.add');
+    Route::post('/store', [ProductionReportController::class, 'store'])->middleware('permission:report.add')->name('report.store');
+    Route::get('/{report}/edit', [ProductionReportController::class, 'edit'])->middleware('permission:report.edit')->name('report.edit');
+    Route::put('/{report}', [ProductionReportController::class, 'update'])->middleware('permission:report.edit')->name('report.update');
+       Route::get('/{report}/pdf', [ProductionReportController::class, 'viewPDF'])->middleware('permission:report.index')->name('report.pdf');
+Route::patch('/report/{id}/validate', [ProductionReportController::class, 'validateReport'])->middleware('permission:report.validate')->name('report.validate');
 
-// Analytics routes
-Route::get('/analytics/index', [AnalyticsController::class, 'index'])->name('analytics.index');
+    });
 
-// Configuration routes
-Route::get('/configuration/index', [ConfigurationController::class, 'index'])->name('configuration.index');
+// Configuration Routes
+Route::prefix('configuration')->middleware(['permission:configuration.index'])->group(function () {
+    Route::get('/index', [ConfigurationController::class, 'index'])->name('configuration.index');
 
-Route::prefix('configuration')->group(function () {
     // ------ Standard Metric ----
     Route::get('/standard/index', [StandardController::class, 'index'])->name('configuration.standard.index');
     Route::get('/standard/add', [StandardController::class, 'add'])->name('configuration.standard.add');
@@ -70,24 +73,42 @@ Route::prefix('configuration')->group(function () {
     Route::delete('/line/destroy/{line_number}', [ConfigurationController::class, 'line_destroy'])->name('configuration.line.destroy');
 });
 
-// Production Report routes
-Route::prefix('report')->group(function () {
-    Route::get('/index', [ProductionReportController::class, 'index'])->name('report.index');
-    Route::get('/view/{report}', [ProductionReportController::class, 'view'])->name('report.view');
-    Route::get('/add', [ProductionReportController::class, 'add'])->name('report.add');
-    Route::post('/store', [ProductionReportController::class, 'store'])->name('report.store');
-    Route::get('/{report}/edit', [ProductionReportController::class, 'edit'])->name('report.edit');
-    Route::put('/{report}', [ProductionReportController::class, 'update'])->name('report.update');
-    Route::get('/{report}/pdf', [ProductionReportController::class, 'viewPDF'])->name('report.pdf');
+
+
+Route::prefix('roles')->middleware(['permission:roles.index'])->group(function () {
+    Route::get('/', [RoleController::class, 'index'])->name('roles.index');
+    Route::get('/create', [RoleController::class, 'create'])->name('roles.create');
+    Route::post('/store', [RoleController::class, 'store'])->name('roles.store');
+    Route::get('/{role}/edit', [RoleController::class, 'edit'])->name('roles.edit');
+    Route::put('/{role}', [RoleController::class, 'update'])->name('roles.update');
 });
 
-// Material analytics route
-Route::get('/analytics/material/index', [MaterialController::class, 'index'])->name('analytics.materials.index');
+Route::prefix('employees')->middleware(['permission:employees.index'])->group(function () {
+    Route::get('/', [EmployeeController::class, 'index'])->name('employees.index');
+    Route::get('/create', [EmployeeController::class, 'create'])->name('employees.create');
+    Route::post('/store', [EmployeeController::class, 'store'])->name('employees.store');
+    Route::get('/employees/{user}', [EmployeeController::class, 'view'])->name('employees.view');
+    Route::get('/{user}/edit', [EmployeeController::class, 'edit'])->name('employees.edit');
+    Route::put('/employees/{user}', [EmployeeController::class, 'update'])->name('employees.update');
 
-// Analytics dashboard view
-Route::get('/analytics/dashboard', function () {
-    return view('analytics.dashboard');
-})->name('analytics.dashboard');
+
+});
+
+// Group all analytics under a common prefix + middleware if needed
+Route::prefix('analytics')->name('analytics.')->group(function () {
+    
+    // Dashboard view
+    Route::get('/dashboard', function () {
+        return view('analytics.dashboard');
+    })->name('dashboard'); // Permission: analytics.dashboard
+
+    // Analytics index (Reports Overview)
+    Route::get('/index', [AnalyticsController::class, 'index'])->name('index'); // Permission: analytics.index
+
+    // Material Analytics
+    Route::get('/material/index', [MaterialController::class, 'index'])->name('materials.index'); // Permission: analytics.materials.index
+
+});
 
 // Auth routes
 require __DIR__.'/auth.php';

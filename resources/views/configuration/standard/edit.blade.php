@@ -46,6 +46,7 @@
                     <td class="px-4 py-2">
                         <input type="text" name="size" value="{{ old('size', $standard->size) }}"
                             class="w-full border border-gray-300 rounded px-3 py-1 text-sm">
+                        @error('size') <div class="text-red-500 text-sm mt-1">{{ $message }}</div> @enderror
                     </td>
                 </tr>
                 <!-- Bottles per Case & Group -->
@@ -54,6 +55,7 @@
                     <td class="px-4 py-2">
                         <input type="number" name="bottles_per_case" value="{{ old('bottles_per_case', $standard->bottles_per_case) }}"
                             class="w-full border border-gray-300 rounded px-3 py-1 text-sm">
+                        @error('bottles_per_case') <div class="text-red-500 text-sm mt-1">{{ $message }}</div> @enderror
                     </td>
                     <td class="font-medium text-[#2d326b] px-4 py-2">Group</td>
                     <td class="px-4 py-2">
@@ -67,11 +69,13 @@
                     <td class="px-4 py-2">
                         <input type="text" name="mat_no" value="{{ old('mat_no', $standard->mat_no) }}"
                             class="w-full border border-gray-300 rounded px-3 py-1 text-sm">
+                        @error('mat_no') <div class="text-red-500 text-sm mt-1">{{ $message }}</div> @enderror
                     </td>
                     <td class="font-medium text-[#2d326b] px-4 py-2">Preform Weight</td>
                     <td class="px-4 py-2">
                         <input type="text" name="preform_weight" value="{{ old('preform_weight', $standard->preform_weight) }}"
                             class="w-full border border-gray-300 rounded px-3 py-1 text-sm">
+                        @error('preform_weight') <div class="text-red-500 text-sm mt-1">{{ $message }}</div> @enderror
                     </td>
                 </tr>
                 <!-- LDPE Size & Cases per Roll -->
@@ -80,11 +84,13 @@
                     <td class="px-4 py-2">
                         <input type="text" name="ldpe_size" value="{{ old('ldpe_size', $standard->ldpe_size) }}"
                             class="w-full border border-gray-300 rounded px-3 py-1 text-sm">
+                        @error('ldpe_size') <div class="text-red-500 text-sm mt-1">{{ $message }}</div> @enderror
                     </td>
                     <td class="font-medium text-[#2d326b] px-4 py-2">Cases per Roll</td>
                     <td class="px-4 py-2">
                         <input type="number" name="cases_per_roll" value="{{ old('cases_per_roll', $standard->cases_per_roll) }}"
                             class="w-full border border-gray-300 rounded px-3 py-1 text-sm">
+                        @error('cases_per_roll') <div class="text-red-500 text-sm mt-1">{{ $message }}</div> @enderror
                     </td>
                 </tr>
                 <!-- Caps & OPP Label -->
@@ -123,6 +129,7 @@
                         <input type="number" step="0.001" name="alt_preform_for_350ml"
                             value="{{ old('alt_preform_for_350ml', $standard->alt_preform_for_350ml) }}"
                             class="w-full border border-gray-300 rounded px-3 py-1 text-sm">
+                        @error('alt_preform_for_350ml') <div class="text-red-500 text-sm mt-1">{{ $message }}</div> @enderror
                     </td>
                 </tr>
                 <!-- Preform Weight 2 -->
@@ -132,6 +139,7 @@
                         <input type="number" step="0.001" name="preform_weight2"
                             value="{{ old('preform_weight2', $standard->preform_weight2) }}"
                             class="w-full border border-gray-300 rounded px-3 py-1 text-sm">
+                        @error('preform_weight2') <div class="text-red-500 text-sm mt-1">{{ $message }}</div> @enderror
                     </td>
                     <td class="font-medium text-[#2d326b] px-4 py-2"></td>
                     <td class="px-4 py-2"></td>

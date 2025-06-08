@@ -70,4 +70,8 @@ public function lineQcRejects()
     {
         return $this->belongsToMany('App\Models\Maintenance', 'production_report_maintenance', 'production_report_id', 'maintenance_id');
     }
+    public function statuses()
+{
+    return $this->hasMany(Status::class);
+}
 }

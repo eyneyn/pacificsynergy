@@ -21,12 +21,23 @@
 
         <div class="space-y-5">
             <!-- Header -->
-            <div class="mb-6 flex items-center justify-between">
-                <h4 class="text-lg font-semibold text-[#2d326b]">Basic Production Details</h4>
-                <button type="submit"
-                    class="inline-flex items-center gap-2 p-3 py-2 bg-[#323B76] hover:bg-[#444d90] border border-[#323B76] text-white text-sm font-medium rounded-md">
-                    Save Report
-                </button>
+            <div class="mb-6">
+                <div class="flex items-center justify-between">
+                    <h4 class="text-lg font-semibold text-[#2d326b]">Basic Production Details</h4>
+                    <button type="submit"
+                        class="inline-flex items-center gap-2 p-3 py-2 bg-[#323B76] hover:bg-[#444d90] border border-[#323B76] text-white text-sm font-medium rounded-md">
+                        Save Report
+                    </button>
+                </div>
+
+                {{-- Centered Duplicate Error --}}
+                @if ($errors->has('duplicate'))
+                    <div class="text-red-500 text-sm text-center">
+                        {{ $errors->first('duplicate') }}
+                    </div>
+                @else
+                    <div></div> {{-- Maintains alignment when no error --}}
+                @endif
             </div>
 
             <!-- Basic Production Form Table -->
@@ -268,7 +279,7 @@
                     <tbody>
                         <tr>
                             <td colspan="6">
-                                <div class="grid md:grid-cols-4 gap-2">
+                                <div class="grid md:grid-cols-2 gap-2">
                                     @foreach (['Caps', 'Bottle', 'Label', 'Carton'] as $category)
                                         <div class="pl-3 pr-3 p-3 border-l border-r border-gray-200 flex flex-col gap-2">
                                             <!-- Category Header with Add Button -->

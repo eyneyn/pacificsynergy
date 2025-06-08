@@ -265,50 +265,53 @@
                                 <input type="text" name="without_label" value="{{ old('without_label', $report->without_label) }}" placeholder="pcs" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
                             </td>
                         </tr>
-                        <!-- Line QC Rejects Section Header -->
-                        <thead class="bg-gray-100 text-[#2d326b]">
-                            <tr>
-                                <th colspan="6" class="text-left px-4 py-3">Line QC Rejects</th>
-                            </tr>
-                        </thead>
-                        <tr>
-                            <td colspan="6">
-                                <div class="grid md:grid-cols-4 gap-2">
-                                    @foreach (['Caps', 'Bottle', 'Label', 'Carton'] as $category)
-                                        <div class="pl-3 pr-3 p-3 border-l border-r border-gray-200 flex flex-col gap-2">
-                                            <!-- QC Rejects Category Header and Add Button -->
-                                            <div class="flex items-center justify-between">
-                                                <h5 class="text-sm font-bold text-[#2d326b]">{{ $category }}</h5>
-                                                <button type="button"
-                                                    class="text-xs px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700"
-                                                    @click="addQcReject('{{ $category }}')">
-                                                    Add
-                                                </button>
-                                            </div>
-                                            <!-- Dynamic QC Rejects Items -->
-                                            <template x-for="(item, index) in form.qcRejects['{{ $category }}']" :key="index">
-                                                <div class="flex items-center gap-2">
-                                                    <x-select-defect 
-                                                        :name="'qc_' . strtolower($category) . '_defect[]'"
-                                                        :options="$defects->where('category', $category)->pluck('defect_name', 'defect_name')->toArray()"
-                                                        :category="$category"
-                                                    />
-                                                    <input type="text" x-model="item.qty" name="qc_{{ strtolower($category) }}_qty[]"
-                                                        placeholder="pcs"
-                                                        class="w-[50px] text-sm text-center rounded-md border border-gray-300 placeholder-gray-400 shadow-sm focus:ring-[#323B76] focus:border-[#323B76]">
-                                                    <button type="button"
-                                                        @click="removeQcReject('{{ $category }}', index)"
-                                                        :class="form.qcRejects['{{ $category }}'].length > 1 ? 'visible' : 'invisible'"
-                                                        class="w-[32px] h-[20px] text-white bg-red-600 rounded hover:bg-red-700 text-sm flex items-center justify-center">
-                                                        ×
-                                                    </button>
-                                                </div>
-                                            </template>
+                <!-- Line QC Rejects Section Header -->
+                <thead class="bg-gray-100 text-[#2d326b]">
+                    <tr>
+                        <th colspan="6" class="text-left px-4 py-3">Line QC Rejects</th>
+                    </tr>
+                </thead>
+                <tr>
+                    <td colspan="6">
+                        <div class="grid md:grid-cols-2 gap-2">
+                            @foreach (['Caps', 'Bottle', 'Label', 'Carton'] as $category)
+                                <div class="pl-3 pr-3 p-3 border-l border-r border-gray-200 flex flex-col gap-2">
+                                    <!-- QC Rejects Category Header and Add Button -->
+                                    <div class="flex items-center justify-between">
+                                        <h5 class="text-sm font-bold text-[#2d326b]">{{ $category }}</h5>
+                                        <button type="button"
+                                            class="text-xs px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                                            @click="addQcReject('{{ $category }}')">
+                                            Add
+                                        </button>
+                                    </div>
+
+                                    <!-- Dynamic QC Rejects Items -->
+                                    <template x-for="(item, index) in form.qcRejects['{{ $category }}']" :key="index">
+                                        <div class="flex items-center gap-2">
+                                            <x-select-defect
+                                                class="w-[160px]"
+                                                :name="'qc_' . strtolower($category) . '_defect[]'"
+                                                :options="$defects->where('category', $category)->pluck('defect_name', 'defect_name')->toArray()"
+                                                x-init="$watch('item.defect', value => $el.querySelector('select').value = value)"
+                                                @change="item.defect = $event.target.value"
+                                            />
+                                            <input type="text" x-model="item.qty" name="qc_{{ strtolower($category) }}_qty[]"
+                                                placeholder="pcs"
+                                                class="w-[50px] text-sm text-center rounded-md border border-gray-300 placeholder-gray-400 shadow-sm focus:ring-[#323B76] focus:border-[#323B76]">
+                                            <button type="button"
+                                                @click="removeQcReject('{{ $category }}', index)"
+                                                :class="form.qcRejects['{{ $category }}'].length > 1 ? 'visible' : 'invisible'"
+                                                class="w-[32px] h-[20px] text-white bg-red-600 rounded hover:bg-red-700 text-sm flex items-center justify-center">
+                                                ×
+                                            </button>
                                         </div>
-                                    @endforeach
+                                    </template>
                                 </div>
-                            </td>
-                        </tr>
+                            @endforeach
+                        </div>
+                    </td>
+                </tr>
                     </tbody>
                 </table>
 

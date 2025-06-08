@@ -15,6 +15,7 @@ use App\Models\ProductionReport;
 use App\Models\ProductionIssues;
 use App\Models\LineQcReject;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Models\Status;
 
 class ProductionReportController extends Controller
 {
@@ -23,7 +24,14 @@ class ProductionReportController extends Controller
      */
     public function index(Request $request)
     {
-        $query = ProductionReport::with(['line', 'standard']);
+        $query = ProductionReport::with([
+            'line',
+            'standard',
+            'statuses' => function ($q) {
+                $q->whereIn('status', ['Submitted', 'Reviewed', 'Validated'])
+                  ->orderByDesc('id');
+            }
+        ]);
 
         // Search filter
         if ($request->filled('search')) {
@@ -105,6 +113,18 @@ class ProductionReportController extends Controller
             'without_label' => 'nullable|integer',
         ]);
 
+        // Duplicate check: same date + sku + output
+        $duplicate = ProductionReport::where('production_date', $validated['production_date'])
+            ->where('sku', $validated['sku'])
+            ->where('total_outputCase', $validated['total_outputCase'])
+            ->exists();
+
+        if ($duplicate) {
+            return back()->withInput()->withErrors([
+                'duplicate' => 'Duplicate entry: This production report already exists.',
+            ]);
+        }
+
         // Generate bottle code
         $productionDate = Carbon::parse($validated['production_date']);
         $expiryDate = $productionDate->copy()->addYear()->format('d F Y');
@@ -120,6 +140,7 @@ class ProductionReportController extends Controller
             ...$validated,
             'bottle_code' => $bottleCode,
             'total_sample' => $totalSample,
+            'user_id' => Auth::id(),
         ]);
 
         // Sum downtime and create issues
@@ -163,6 +184,13 @@ class ProductionReportController extends Controller
             }
         }
 
+        // Insert Status entry
+        Status::create([
+            'user_id' => Auth::id(),
+            'production_report_id' => $report->id,
+            'status' => 'Submitted',
+        ]);
+
         return redirect()->route('report.index')->with('success', 'Production report saved successfully.');
     }
 
@@ -176,9 +204,37 @@ class ProductionReportController extends Controller
             'lineQcRejects.defect',
             'line',
             'standard',
+            'statuses.user',
+            'user',
         ])->findOrFail($id);
 
-        return view('report.view', ['reports' => $report]);
+        $currentUserId = Auth::id();
+        $reportOwnerId = $report->user_id;
+
+        // Prevent the creator from inserting a "Reviewed" status
+        if ($currentUserId !== $reportOwnerId) {
+            $alreadyReviewed = Status::where('user_id', $currentUserId)
+                ->where('production_report_id', $report->id)
+                ->where('status', 'Reviewed')
+                ->doesntExist();
+
+            if ($alreadyReviewed) {
+                Status::create([
+                    'user_id' => $currentUserId,
+                    'production_report_id' => $report->id,
+                    'status' => 'Reviewed',
+                ]);
+            }
+        }
+
+        $isValidated = Status::where('production_report_id', $report->id)
+            ->where('status', 'Validated')
+            ->exists();
+
+        return view('report.view', [
+            'reports' => $report,
+            'isValidated' => $isValidated,
+        ]);
     }
 
     /**
@@ -258,6 +314,30 @@ class ProductionReportController extends Controller
             'issues' => $issues,
             'qcRejects' => $qcRejects,
         ]);
+    }
+
+    /**
+     * Validate the specified production report.
+     */
+    public function validateReport($id)
+    {
+        $report = ProductionReport::findOrFail($id);
+
+        // Prevent duplicate 'Validated'
+        $alreadyValidated = Status::where('user_id', Auth::id())
+            ->where('production_report_id', $report->id)
+            ->where('status', 'Validated')
+            ->exists();
+
+        if (! $alreadyValidated) {
+            Status::create([
+                'user_id' => Auth::id(),
+                'production_report_id' => $report->id,
+                'status' => 'Validated',
+            ]);
+        }
+
+        return redirect()->route('report.view', $id)->with('success', 'Report successfully validated.');
     }
 
     /**
@@ -346,6 +426,13 @@ class ProductionReportController extends Controller
                 }
             }
         }
+
+        // Log status as Edited
+        Status::create([
+            'user_id' => Auth::id(),
+            'production_report_id' => $report->id,
+            'status' => 'Edited',
+        ]);
 
         return redirect()->route('report.view', $report->id)->with('success', 'Production report updated successfully.');
     }

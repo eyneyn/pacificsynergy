@@ -44,6 +44,7 @@ class StandardController extends Controller
      */
     public function store(Request $request)
     {
+        // Validate request data
         $validated = $request->validate([
             'group' => 'required|string',
             'mat_no' => 'nullable|string',
@@ -87,6 +88,7 @@ class StandardController extends Controller
      */
     public function edit(Request $request, Standard $standard)
     {
+        // Validate request data
         $validated = $request->validate([
             'group' => 'required|string',
             'mat_no' => 'nullable|string',
@@ -116,6 +118,7 @@ class StandardController extends Controller
      */
     public function destroy(Standard $standard)
     {
+        // Check if standard is used in Production Reports
         $isUsed = ProductionReport::where('sku', $standard->description)->exists();
 
         if ($isUsed) {

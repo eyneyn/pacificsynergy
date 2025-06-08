@@ -43,6 +43,8 @@ class ProductionReportSeeder extends Seeder
             
             'total_downtime' => 328,
             'bottle_code' => 'EXP 02 FEB 25',
+        
+            'user_id' => 1,
         ]);
     }
 }

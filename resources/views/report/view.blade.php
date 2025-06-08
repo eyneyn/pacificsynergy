@@ -1,7 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-
 <!-- Back Button -->
 <a href="{{ url('report/index') }}" class="flex items-center text-sm text-gray-500 hover:text-[#2d326b] mb-4">
     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -17,12 +16,26 @@
     <div class="flex items-center justify-between mb-6">
         <h4 class="text-lg font-semibold text-[#2d326b]">Basic Production Details</h4>
         <div class="flex items-center gap-2">
-            <!-- Edit Button -->
-            <a href="{{ route('report.edit', $reports->id) }}"
-                class="inline-flex items-center gap-2 p-3 py-2 bg-[#323B76] hover:bg-[#444d90] border border-[#323B76] text-white text-sm font-medium rounded-md">
-                <x-icons-edit class="w-4 h-4" />
-                <span class="text-sm">Edit</span>
-            </a>
+            @can('report.validate')
+                @if (! $isValidated)
+                    <!-- Validate Report Button -->
+                    <button type="button"
+                        id="open-validate-modal"
+                        class="inline-flex items-center gap-2 p-3 py-2 bg-[#323B76] hover:bg-[#444d90] border border-[#323B76] text-white text-sm font-medium rounded-md">
+                        Validate Report
+                    </button>
+                @endif
+            @endcan
+
+            @can('report.edit')
+                <!-- Edit Button -->
+                <a href="{{ route('report.edit', $reports->id) }}"
+                    class="inline-flex items-center gap-2 p-3 py-2 bg-[#323B76] hover:bg-[#444d90] border border-[#323B76] text-white text-sm font-medium rounded-md">
+                    <x-icons-edit class="w-4 h-4" />
+                    <span class="text-sm">Edit</span>
+                </a>
+            @endcan
+
             <!-- Export PDF Button -->
             <a href="{{ route('report.pdf', $reports->id) }}" target="_blank"
                 class="flex items-center gap-2 px-4 py-2 bg-[#323B76] border border-[#444d90] hover:bg-[#444d90] text-white text-sm font-medium rounded-md shadow-sm transition duration-200">
@@ -274,7 +287,7 @@
             </tr>
             <tr>
                 <td colspan="6">
-                    <div class="grid md:grid-cols-4 gap-2">
+                    <div class="grid md:grid-cols-2 gap-2">
                         @foreach (['Caps', 'Bottle', 'Label', 'Carton'] as $category)
                             <div class="p-3 border border-gray-200 rounded flex flex-col gap-2 bg-white">
                                 <!-- Category Title -->
@@ -297,4 +310,53 @@
         </tbody>
     </table>
 </div>
+
+<!-- Change History Card Container -->
+<div class="bg-white rounded-sm border border-gray-200 p-6 mt-6 shadow-md space-y-5 transition-all duration-300 hover:shadow-xl hover:border-[#E5E7EB]">
+    <h4 class="text-lg font-semibold text-[#2d326b]">Change History</h4>
+    <!-- Change History Details Table -->
+    <table class="min-w-full text-sm border border-gray-200 shadow-sm">
+        <thead class="bg-gray-100 text-[#2d326b]">
+            <tr>
+                <th class="text-left px-4 py-3">Employee Name</th>
+                <th class="text-left px-4 py-3">Position</th>
+                <th class="text-left px-4 py-3">Date and Time</th>
+                <th class="text-left px-4 py-3">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse ($reports->statuses as $status)
+                <tr class="border-t">
+                    <td class="px-4 py-2">
+                        {{ $status->user->first_name ?? 'N/A' }} {{ $status->user->last_name ?? '' }}
+                    </td>
+                    <td class="px-4 py-2">
+                        {{ $status->user->getRoleNames()->first() ?? 'No Position' }}
+                    </td>
+                    <td class="px-4 py-2">
+                        {{ \Carbon\Carbon::parse($status->created_at)->timezone('Asia/Manila')->format('F j, Y g:i A') }}
+                    </td>
+                    <td class="px-4 py-2">
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+                            @if($status->status === 'Submitted') bg-yellow-100 text-yellow-800
+                            @elseif($status->status === 'Reviewed') bg-blue-100 text-blue-800
+                            @elseif($status->status === 'Validated') bg-green-100 text-green-800
+                            @elseif($status->status === 'Edited') bg-purple-100 text-purple-800
+                            @else bg-gray-100 text-gray-800
+                            @endif">
+                            {{ $status->status }}
+                        </span>
+                    </td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="4" class="text-center text-sm text-gray-500 py-4">No history found.</td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>
+
+<!-- Validate Modal Component -->
+<x-validate-modal :reportId="$reports->id" />
 @endsection

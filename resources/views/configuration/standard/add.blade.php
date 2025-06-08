@@ -39,10 +39,12 @@
                         <td class="font-medium text-[#2d326b] px-4 py-2">Description</td>
                         <td class="px-4 py-2">
                             <input type="text" name="description" required class="w-full border border-gray-300 rounded px-3 py-1 text-sm">
+                            @error('description') <div class="text-red-500 text-sm mt-1">{{ $message }}</div> @enderror
                         </td>
                         <td class="font-medium text-[#2d326b] px-4 py-2">Size</td>
                         <td class="px-4 py-2">
                             <input type="text" name="size" required class="w-full border border-gray-300 rounded px-3 py-1 text-sm">
+                            @error('size') <div class="text-red-500 text-sm mt-1">{{ $message }}</div> @enderror
                         </td>
                     </tr>
                     <!-- Row 2 -->
@@ -50,6 +52,7 @@
                         <td class="font-medium text-[#2d326b] px-4 py-2">Bottles per Case</td>
                         <td class="px-4 py-2">
                             <input type="number" name="bottles_per_case" required class="w-full border border-gray-300 rounded px-3 py-1 text-sm">
+                            @error('bottles_per_case') <div class="text-red-500 text-sm mt-1">{{ $message }}</div> @enderror
                         </td>
                         <td class="font-medium text-[#2d326b] px-4 py-2">Group</td>
                         <td class="px-4 py-2">
@@ -61,10 +64,12 @@
                         <td class="font-medium text-[#2d326b] px-4 py-2">Material No.</td>
                         <td class="px-4 py-2">
                             <input type="text" name="mat_no" value="n/a" required class="w-full border border-gray-300 rounded px-3 py-1 text-sm">
+                            @error('mat_no') <div class="text-red-500 text-sm mt-1">{{ $message }}</div> @enderror
                         </td>
                         <td class="font-medium text-[#2d326b] px-4 py-2">Preform Weight</td>
                         <td class="px-4 py-2">
                             <input type="text" name="preform_weight" required class="w-full border border-gray-300 rounded px-3 py-1 text-sm">
+                            @error('preform_weight') <div class="text-red-500 text-sm mt-1">{{ $message }}</div> @enderror
                         </td>
                     </tr>
                     <!-- Row 4 -->
@@ -72,10 +77,12 @@
                         <td class="font-medium text-[#2d326b] px-4 py-2">LDPE Size</td>
                         <td class="px-4 py-2">
                             <input type="text" name="ldpe_size" required class="w-full border border-gray-300 rounded px-3 py-1 text-sm">
+                            @error('ldpe_size') <div class="text-red-500 text-sm mt-1">{{ $message }}</div> @enderror
                         </td>
                         <td class="font-medium text-[#2d326b] px-4 py-2">Cases per Roll</td>
                         <td class="px-4 py-2">
                             <input type="number" name="cases_per_roll" required class="w-full border border-gray-300 rounded px-3 py-1 text-sm">
+                            @error('cases_per_roll') <div class="text-red-500 text-sm mt-1">{{ $message }}</div> @enderror
                         </td>
                     </tr>
                     <!-- Row 5 -->
@@ -90,7 +97,7 @@
                         </td>
                         <td class="font-medium text-[#2d326b] px-4 py-2">OPP Label</td>
                         <td class="px-4 py-2">
-                            <x-select-dropdown name="opp_label" :options="[
+                            <x-select-dropdown name="opp_label" required :options="[
                                 'OPP Label China' => 'OPP Label China',
                                 'Sticker Label' => 'Sticker Label',
                                 'OPP Label Shrinkpack' => 'OPP Label Shrinkpack'
@@ -101,7 +108,7 @@
                     <tr>
                         <td class="font-medium text-[#2d326b] px-4 py-2">Barcode Sticker</td>
                         <td class="px-4 py-2">
-                            <x-select-dropdown name="barcode_sticker" :options="[
+                            <x-select-dropdown name="barcode_sticker" required :options="[
                                 'BC Sticker Double' => 'BC Sticker Double',
                                 'None' => 'None'
                             ]" />
@@ -109,6 +116,7 @@
                         <td class="font-medium text-[#2d326b] px-4 py-2">Alt Preform for 350ml</td>
                         <td class="px-4 py-2">
                             <input type="number" step="0.001" name="alt_preform_for_350ml" required class="w-full border border-gray-300 rounded px-3 py-1 text-sm">
+                            @error('alt_preform_for_350ml') <div class="text-red-500 text-sm mt-1">{{ $message }}</div> @enderror
                         </td>
                     </tr>
                     <!-- Row 7 -->
@@ -116,6 +124,7 @@
                         <td class="font-medium text-[#2d326b] px-4 py-2">Preform Weight 2</td>
                         <td class="px-4 py-2">
                             <input type="number" step="0.001" name="preform_weight2" required class="w-full border border-gray-300 rounded px-3 py-1 text-sm">
+                            @error('preform_weight2') <div class="text-red-500 text-sm mt-1">{{ $message }}</div> @enderror
                         </td>
                         <td class="px-4 py-2"></td>
                         <td class="px-4 py-2"></td>

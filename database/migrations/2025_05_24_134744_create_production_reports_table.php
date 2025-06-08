@@ -14,15 +14,23 @@ return new class extends Migration
         Schema::create('production_reports', function (Blueprint $table) {
             $table->id();
 
-            // Basic info
+            // Foreign key to users table
+            $table->foreignId('user_id')
+                ->nullable()
+                ->constrained()
+                ->onDelete('cascade');
+
             $table->date('production_date');
             $table->string('shift');
 
-            // Line (FK from lines.line_number)
+            // Foreign key to lines table (line_number)
             $table->unsignedInteger('line');
-            $table->foreign('line')->references('line_number')->on('lines')->onDelete('cascade');
+            $table->foreign('line')
+                ->references('line_number')
+                ->on('lines')
+                ->onDelete('cascade');
 
-            // AC and Attendance
+            // Attendance and AC columns
             $table->integer('ac1')->nullable();
             $table->integer('ac2')->nullable();
             $table->integer('ac3')->nullable();
@@ -30,16 +38,19 @@ return new class extends Migration
             $table->integer('manpower_present')->nullable();
             $table->integer('manpower_absent')->nullable();
 
-            // SKU (FK from standards.description)
+            // Foreign key to standards table (description)
             $table->string('sku');
-            $table->foreign('sku')->references('description')->on('standards')->onDelete('cascade');
+            $table->foreign('sku')
+                ->references('description')
+                ->on('standards')
+                ->onDelete('cascade');
 
             // Production figures
             $table->string('fbo_fco')->nullable();
             $table->string('lbo_lco')->nullable();
             $table->integer('total_outputCase')->nullable();
 
-            // Filling line
+            // Filling line data
             $table->integer('filler_speed')->nullable();
             $table->integer('opp_labeler_speed')->nullable();
             $table->integer('opp_labels')->nullable();
@@ -47,18 +58,19 @@ return new class extends Migration
             $table->integer('caps_filling')->nullable();
             $table->integer('bottle_filling')->nullable();
 
-            // Blow molding
+            // Blow molding data
             $table->integer('blow_molding_output')->nullable();
             $table->integer('speed_blow_molding')->nullable();
             $table->integer('preform_blow_molding')->nullable();
             $table->integer('bottles_blow_molding')->nullable();
 
-            // QA
+            // QA data
             $table->text('qa_remarks')->nullable();
             $table->integer('with_label')->nullable();
             $table->integer('without_label')->nullable();
             $table->integer('total_sample')->default(0);
 
+            // Downtime and bottle code
             $table->integer('total_downtime')->default(0);
             $table->string('bottle_code');
 
