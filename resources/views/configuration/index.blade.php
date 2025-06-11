@@ -10,10 +10,10 @@
 <!-- Cards -->
 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
     @foreach([
-        ['title' => 'Line', 'desc' => 'Maintain product formulas and references.', 'route' => route('configuration.line.index')],
+        ['title' => 'Line', 'desc' => 'Manage production lines.', 'route' => route('configuration.line.index')],
         ['title' => 'Defect', 'desc' => 'Manage defect types and severity configurations.', 'route' => route('configuration.defect.index')],
-        ['title' => 'Maintenance', 'desc' => 'Set department codes and responsibilities.', 'route' => route('configuration.maintenance.index')],
-        ['title' => 'Standard', 'desc' => 'Maintain product formulas and references.', 'route' => route('configuration.standard.index')],
+        ['title' => 'Maintenance', 'desc' => 'Manage the maintenance such as machines and others', 'route' => route('configuration.maintenance.index')],
+        ['title' => 'Standard', 'desc' => 'Manage and configure product standards (SKU).', 'route' => route('configuration.standard.index')],
     ] as $item)
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 p-6">
             <h3 class="text-lg font-semibold text-[#323B76] mb-2">{{ $item['title'] }}</h3>

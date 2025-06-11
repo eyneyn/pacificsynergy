@@ -5,21 +5,27 @@
     x-data="{
         step: 1,
         form: {
-            title: '',
-            description: '',
-            job_level: '',
-            role_type: '',
-            salary: '',
-            benefits: '',
-            teams: [],
-            permissions: {}
+            role: '',
+            permissions: {
+                'roles.permission': false,
+                'employees.index': false,
+                'analytics.dashboard': false,
+                'report.index': false,
+                'report.add': false,
+                'report.edit': false,
+                'report.validate': false,
+                'report.delete': false,
+                'report.pdf': false,
+                'analytics.index': false,
+                'configuration.index': false,
+                'user.dashboard': false // ✅ Include this since it's in your x-for
+            }
         },
         get hasAnyPermission() {
             return Object.values(this.form.permissions).some(Boolean);
         }
     }"
 >
-    <!-- Back Button -->
     <a href="{{ route('roles.index') }}" class="flex items-center text-sm text-gray-500 hover:text-[#2d326b] mb-4">
         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
@@ -30,14 +36,12 @@
     <form action="{{ route('roles.store') }}" method="POST">
         @csrf
 
-        <!-- Card Container -->
         <div class="bg-white rounded-sm border border-gray-200 p-6 shadow-md space-y-5 transition-all duration-300 hover:shadow-xl hover:border-[#E5E7EB]">
             <div class="mb-6 flex items-center justify-between">
                 <div>
                     <h2 class="text-2xl font-semibold text-[#2d326b]">Create New Role</h2>
                     <p class="text-sm text-gray-500">Complete the steps to define a new role in your organization.</p>
                 </div>
-                <!-- Save Button -->
                 <button 
                     type="submit"
                     :disabled="!hasAnyPermission"
@@ -51,7 +55,6 @@
             </div>
 
             <div class="space-y-5">
-                <!-- Role Title Form -->
                 <table class="min-w-64 mb-8 text-sm border border-gray-200 shadow-sm">
                     <tbody class="bg-gray-100 text-[#2d326b]">
                         <tr>
@@ -61,6 +64,7 @@
                                     type="text" 
                                     name="role" 
                                     placeholder="position"
+                                    x-model="form.role"
                                     class="w-full border border-gray-300 placeholder-gray-400 rounded px-3 py-1 text-sm text-center"
                                 >
                                 @error('role')
@@ -76,44 +80,58 @@
                 <div class="bg-gray-100 border border-gray-200 rounded-xl p-5 shadow-sm">
                     <div class="flex justify-between items-center mb-4">
                         <h4 class="text-sm font-semibold text-[#2d326b]">Admin Access</h4>
-                        <!-- Enable All Button (Admin) -->
-                        <button 
-                            type="button" 
-                            @click="
-                                form.permissions = {
+                        <div class="space-x-4">
+                            <button 
+                                type="button" 
+                                @click="Object.assign(form.permissions, {
+                                    'roles.permission': true,
+                                    'employees.index': true,
+                                    'user.dashboard': true
+                                })" 
+                                class="text-xs text-[#323B76] hover:underline"
+                            >
+                                Enable all
+                            </button>
+                            <button 
+                                type="button" 
+                                @click="Object.assign(form.permissions, {
                                     'roles.permission': false,
                                     'employees.index': false,
-                                }
-                            " 
-                            class="text-xs text-[#323B76] hover:underline"
-                        >
-                            Enable all
-                        </button>
+                                    'user.dashboard': false
+                                })" 
+                                class="text-xs text-gray-500 hover:underline"
+                            >
+                                Disable all
+                            </button>
+                        </div>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <!-- Admin Permissions List -->
-                        <template x-for="[key, perm] in Object.entries({
+                        <template x-for="entry in Object.entries({
+                            'user.dashboard': {
+                                label: 'Dashboard',
+                                desc: 'Can view the user dashboard.'
+                            },
                             'roles.permission': {
                                 label: 'Roles & Permission Management',
-                                desc: 'Grants the ability to create, edit, and delete user roles, as well as assign or modify access permissions for each role within the system.'
+                                desc: 'Grants the ability to manage user roles and access rights.'
                             },
                             'employees.index': {
                                 label: 'Employee Management',
-                                desc: 'Allows full control over employee records, including adding new users, editing details, updating positions, and removing users from the system.'
+                                desc: 'Manage employee records and account statuses.'
                             }
-                        })" :key="key">
+                        })" :key="entry[0]">
                             <div class="flex items-start justify-between border border-gray-200 bg-white rounded-lg p-4 h-full">
                                 <div class="pr-2">
-                                    <p class="text-sm font-medium text-[#2d326b]" x-text="perm.label"></p>
-                                    <p class="text-xs text-gray-500 mt-1" x-text="perm.desc"></p>
+                                    <p class="text-sm font-medium text-[#2d326b]" x-text="entry[1].label"></p>
+                                    <p class="text-xs text-gray-500 mt-1" x-text="entry[1].desc"></p>
                                 </div>
-                                <input type="hidden" :name="'permissions[' + key + ']'" :value="form.permissions[key] ? 1 : 0">
+                                <input type="hidden" :name="'permissions[' + entry[0] + ']'" :value="form.permissions[entry[0]] ? 1 : 0">
                                 <label class="inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" x-model="form.permissions[key]" class="sr-only peer">
-                                    <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full 
-                                                peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full 
+                                    <input type="checkbox" x-model="form.permissions[entry[0]]" class="sr-only peer">
+                                    <div class="relative w-11 h-6 bg-gray-200 rounded-full 
                                                 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white 
-                                                after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#2D3A8C]">
+                                                after:rounded-full after:h-5 after:w-5 after:transition-all 
+                                                peer-checked:after:translate-x-full peer-checked:bg-[#2D3A8C]">
                                     </div>
                                 </label>
                             </div>
@@ -125,75 +143,84 @@
                 <div class="bg-gray-100 border border-gray-200 rounded-xl p-5 shadow-sm">
                     <div class="flex justify-between items-center mb-4">
                         <h4 class="text-sm font-semibold text-[#2d326b]">Production Access</h4>
-                        <!-- Enable All Button (Production) -->
-                        <button 
-                            type="button" 
-                            @click="
-                                form.permissions = {
+                        <div class="space-x-4">
+                            <button 
+                                type="button" 
+                                @click="Object.assign(form.permissions, {
+                                    'analytics.dashboard': true,
+                                    'report.index': true,
+                                    'report.add': true,
+                                    'report.edit': true,
+                                    'report.validate': true,
+                                    'report.pdf': true,
+                                    'analytics.index': true,
+                                    'configuration.index': true
+                                })"
+                                class="text-xs text-[#323B76] hover:underline"
+                            >
+                                Enable all
+                            </button>
+                            <button 
+                                type="button" 
+                                @click="Object.assign(form.permissions, {
                                     'analytics.dashboard': false,
                                     'report.index': false,
                                     'report.add': false,
                                     'report.edit': false,
                                     'report.validate': false,
-                                    'report.delete': false,
                                     'report.pdf': false,
                                     'analytics.index': false,
-                                    'configuration.index': false,
-                                }
-                            " 
-                            class="text-xs text-[#323B76] hover:underline"
-                        >
-                            Enable all
-                        </button>
+                                    'configuration.index': false
+                                })"
+                                class="text-xs text-gray-500 hover:underline"
+                            >
+                                Disable all
+                            </button>
+                        </div>
                     </div>
                     <div class="grid md:grid-cols-3 gap-4">
-                        <!-- Production Permissions List -->
-                        <template x-for="[key, perm] in Object.entries({
+                        <template x-for="entry in Object.entries({
                             'analytics.dashboard': {
                                 label: 'Dashboard',
-                                desc: 'Can view the summary of production reports.'
+                                desc: 'Can view production KPIs and summaries.'
                             },
                             'report.index': {
-                                label: 'Can view report',
-                                desc: 'This enables general access to view the production report.'
+                                label: 'View Reports',
+                                desc: 'Access to view production reports.'
                             },
                             'report.add': {
-                                label: 'Can add report',
-                                desc: 'This enables general access to add the production report.'
+                                label: 'Add Report',
+                                desc: 'Can submit new production data.'
                             },
                             'report.edit': {
-                                label: 'Can edit report',
-                                desc: 'This enables general access to edit the production report.'
+                                label: 'Edit Report',
+                                desc: 'Modify submitted reports.'
                             },
                             'report.validate': {
-                                label: 'Can validate report',
-                                desc: 'Allows the user to validate and lock the report.'
-                            },
-                            'report.delete': {
-                                label: 'Can delete report',
-                                desc: 'This enables general access to delete the production report.'
+                                label: 'Validate Report',
+                                desc: 'Verify and lock reports.'
                             },
                             'analytics.index': {
-                                label: 'Can view the analytics & report',
-                                desc: 'Enables the user to view the analytics and report.'
+                                label: 'View Analytics',
+                                desc: 'Detailed analytical dashboard access.'
                             },
                             'configuration.index': {
-                                label: 'Can modify the production metrics',
-                                desc: 'This enables general access to modify the production standard and configuration.'
+                                label: 'Modify Configurations',
+                                desc: 'Edit production formulas and standards.'
                             }
-                        })" :key="key">
+                        })" :key="entry[0]">
                             <div class="flex items-start justify-between border border-gray-200 bg-white rounded-lg p-4 h-full">
                                 <div class="pr-2">
-                                    <p class="text-sm font-medium text-[#2d326b]" x-text="perm.label"></p>
-                                    <p class="text-xs text-gray-500 mt-1" x-text="perm.desc"></p>
+                                    <p class="text-sm font-medium text-[#2d326b]" x-text="entry[1].label"></p>
+                                    <p class="text-xs text-gray-500 mt-1" x-text="entry[1].desc"></p>
                                 </div>
-                                <input type="hidden" :name="'permissions[' + key + ']'" :value="form.permissions[key] ? 1 : 0">
+                                <input type="hidden" :name="'permissions[' + entry[0] + ']'" :value="form.permissions[entry[0]] ? 1 : 0">
                                 <label class="inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" x-model="form.permissions[key]" class="sr-only peer">
-                                    <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full 
-                                                peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full 
+                                    <input type="checkbox" x-model="form.permissions[entry[0]]" class="sr-only peer">
+                                    <div class="relative w-11 h-6 bg-gray-200 rounded-full 
                                                 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white 
-                                                after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#2D3A8C]">
+                                                after:rounded-full after:h-5 after:w-5 after:transition-all 
+                                                peer-checked:after:translate-x-full peer-checked:bg-[#2D3A8C]">
                                     </div>
                                 </label>
                             </div>

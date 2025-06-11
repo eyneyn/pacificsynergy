@@ -56,6 +56,7 @@
             @include('roles.partials.permission-section', [
                 'title' => 'Admin Access',
                 'permissions' => [
+                    'user.dashboard' => 'Dashboard',
                     'roles.permission' => 'Roles & Permission Management',
                     'employees.index' => 'Employee Management',
                 ]
@@ -69,7 +70,6 @@
                     'report.add' => 'Add Reports',
                     'report.edit' => 'Edit Reports',
                     'report.validate' => 'Validate Reports',
-                    'report.delete' => 'Delete Reports',
                     'analytics.index' => 'Analytics & Reporting',
                     'configuration.index' => 'Modify Metrics',
                 ]

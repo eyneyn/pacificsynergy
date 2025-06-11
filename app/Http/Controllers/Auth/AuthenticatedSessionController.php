@@ -30,6 +30,7 @@ class AuthenticatedSessionController extends Controller
         $user = Auth::user();
 
         $redirectMap = [
+            'user.dashboard' => route('admin.dashboard'),
             'analytics.dashboard' => route('analytics.dashboard'),
             'report.index' => route('report.index'),
             'analytics.index' => route('analytics.index'),

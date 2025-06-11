@@ -54,23 +54,23 @@
                     <tr>
                         <td class="font-medium text-[#2d326b] px-4 py-2">Running SKU</td>
                         <td class="px-4 py-2">
-                            <x-select-dropdown name="sku" :options="$skus->pluck('description', 'description')->toArray()" placeholder="Select SKU" required />
+                            <x-select-dropdown name="sku" :options="$skus->pluck('description', 'description')->toArray()" :selected="old('sku')" placeholder="Select SKU" required />
                         </td>
                         <td class="font-medium text-[#2d326b] px-4 py-2">Production Date</td>
                         <td class="px-4 py-2">
-                            <input type="date" name="production_date" class="w-full border border-gray-300 rounded px-3 py-1 text-sm" required>
+                            <input type="date" name="production_date" class="w-full border border-gray-300 rounded px-3 py-1 text-sm" value="{{ old('production_date') }}" required>
                         </td>
                     </tr>
                     <tr>
                         <td class="font-medium text-[#2d326b] px-4 py-2">Shift</td>
                         <td class="px-4 py-2">
-                            <x-select-dropdown name="shift" :options="['00:00H - 24:00H' => '00:00H - 24:00H']" required />
+                            <x-select-dropdown name="shift" :options="['00:00H - 24:00H' => '00:00H - 24:00H']" :selected="old('shift')" required />
                         </td>
                         <td class="font-medium text-[#2d326b] px-4 py-2">AC Temperatures</td>
                         <td class="px-4 py-2">
                             <div class="grid grid-cols-4 gap-1">
                                 @for ($i = 1; $i <= 4; $i++)
-                                    <input type="text" name="ac{{ $i }}" placeholder="AC {{ $i }}" class="w-full border border-gray-300 rounded placeholder-gray-400 px-2 py-1 text-sm text-center">
+                                    <input type="text" name="ac{{ $i }}" placeholder="AC {{ $i }}" value="{{ old('ac' . $i) }}" class="w-full border border-gray-300 rounded placeholder-gray-400 px-2 py-1 text-sm text-center">
                                 @endfor
                             </div>
                         </td>
@@ -78,31 +78,31 @@
                     <tr>
                         <td class="font-medium text-[#2d326b] px-4 py-2">Line #</td>
                         <td class="px-4 py-2">
-                            <x-select-dropdown name="line" :options="$lineOptions->toArray()" placeholder="Select Line" required />
+                            <x-select-dropdown name="line" :options="$lineOptions->toArray()" :selected="old('line')" placeholder="Select Line" required />
                         </td>
                         <td class="font-medium text-[#2d326b] px-4 py-2">Total Output (Cases)</td>
                         <td class="px-4 py-2">
-                            <input type="text" name="total_outputCase" placeholder="cases" class="w-full border border-gray-300 placeholder-gray-400 rounded px-3 py-1 text-sm text-center">
+                            <input type="text" name="total_outputCase" placeholder="cases" value="{{ old('total_outputCase') }}" class="w-full border border-gray-300 placeholder-gray-400 rounded px-3 py-1 text-sm text-center">
                         </td>
                     </tr>
                     <tr>
                         <td class="font-medium text-[#2d326b] px-4 py-2">FBO/FCO</td>
                         <td class="px-4 py-2">
-                            <x-select-dropdown name="fbo_fco" :options="['00:00H - 00:00H' => '00:00H - 00:00H']" />
+                            <x-select-dropdown name="fbo_fco" :options="['00:00H - 00:00H' => '00:00H - 00:00H']" :selected="old('fbo_fco')" />
                         </td>
                         <td class="font-medium text-[#2d326b] px-4 py-2">LBO/LCO</td>
                         <td class="px-4 py-2">
-                            <x-select-dropdown name="lbo_lco" :options="['24:00H - 24:00H' => '24:00H - 24:00H']" />
+                            <x-select-dropdown name="lbo_lco" :options="['24:00H - 24:00H' => '24:00H - 24:00H']" :selected="old('lbo_lco')" />
                         </td>
                     </tr>
                     <tr>
                         <td class="font-medium text-[#2d326b] px-4 py-2">Manpower Present</td>
                         <td class="px-4 py-2">
-                            <input type="text" name="manpower_present" class="w-full border border-gray-300 rounded px-3 py-1 text-sm text-center">
+                            <input type="text" name="manpower_present" value="{{ old('manpower_present') }}" class="w-full border border-gray-300 rounded px-3 py-1 text-sm text-center">
                         </td>
                         <td class="font-medium text-[#2d326b] px-4 py-2">Manpower Absent</td>
                         <td class="px-4 py-2">
-                            <input type="text" name="manpower_absent" class="w-full border border-gray-300 rounded px-3 py-1 text-sm text-center">
+                            <input type="text" name="manpower_absent" value="{{ old('manpower_absent') }}" class="w-full border border-gray-300 rounded px-3 py-1 text-sm text-center">
                         </td>
                     </tr>
                 </tbody>
@@ -125,29 +125,29 @@
                     <tr>
                         <td class="font-medium text-[#2d326b] px-4 py-2 text-xs">Speed (Bottles per Hour) <span class="text-sm">Filler Speed</span></td>
                         <td class="px-4 py-2">
-                            <input type="text" name="filler_speed" placeholder="bph" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
+                            <input type="text" name="filler_speed" placeholder="bph" value="{{ old('filler_speed') }}" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
                         </td>
                         <td class="font-medium text-[#2d326b] px-4 py-2 text-xs">RM Rejects <br><span class="text-sm">Opp/Labels</span></td>
                         <td class="px-4 py-2">
-                            <input type="text" name="opp_labels" placeholder="pcs" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
+                            <input type="text" name="opp_labels" placeholder="pcs" value="{{ old('opp_labels') }}" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
                         </td>
                         <td class="font-medium text-[#2d326b] px-4 py-2">Bottle</td>
                         <td class="px-4 py-2">
-                            <input type="text" name="bottle_filling" placeholder="pcs" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
+                            <input type="text" name="bottle_filling" placeholder="pcs" value="{{ old('bottle_filling') }}" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
                         </td>
                     </tr>
                     <tr>
                         <td class="font-medium text-[#2d326b] px-4 py-2">OPP/Labeler Speed</td>
                         <td class="px-4 py-2">
-                            <input type="text" name="opp_labeler_speed" placeholder="0" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
+                            <input type="text" name="opp_labeler_speed" placeholder="0" value="{{ old('opp_labeler_speed') }}" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
                         </td>
                         <td class="font-medium text-[#2d326b] px-4 py-2">Shrinkfilm</td>
                         <td class="px-4 py-2">
-                            <input type="text" name="shrinkfilm" placeholder="pcs" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
+                            <input type="text" name="shrinkfilm" placeholder="pcs" value="{{ old('shrinkfilm') }}" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
                         </td>
                         <td class="font-medium text-[#2d326b] px-4 py-2">Caps</td>
                         <td class="px-4 py-2">
-                            <input type="text" name="caps_filling" placeholder="pcs" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
+                            <input type="text" name="caps_filling" placeholder="pcs" value="{{ old('caps_filling') }}" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
                         </td>
                     </tr>
                 </tbody>
@@ -166,21 +166,21 @@
                     <tr>
                         <td class="font-medium text-[#2d326b] px-4 py-2">Blow Molding Output</td>
                         <td class="px-4 py-2">
-                            <input type="text" name="blow_molding_output" placeholder="pcs" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
+                            <input type="text" name="blow_molding_output" placeholder="pcs" value="{{ old('blow_molding_output') }}" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
                         </td>
                         <td class="font-medium text-[#2d326b] px-4 py-2 text-xs">Blow Molding Rejects <span class="text-sm">Preform</span></td>
                         <td class="px-4 py-2">
-                            <input type="text" name="speed_blow_molding" placeholder="pcs" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
+                            <input type="text" name="speed_blow_molding" placeholder="pcs" value="{{ old('speed_blow_molding') }}" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
                         </td>
                         <td class="font-medium text-[#2d326b] px-4 py-2">Bottles</td>
                         <td class="px-4 py-2">
-                            <input type="text" name="preform_blow_molding" placeholder="pcs" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
+                            <input type="text" name="preform_blow_molding" placeholder="pcs" value="{{ old('preform_blow_molding') }}" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
                         </td>
                     </tr>
                     <tr>
                         <td class="font-medium text-[#2d326b] px-4 py-2">Speed (Bottles/Hour)</td>
                         <td class="px-4 py-2">
-                            <input type="text" name="bottles_blow_molding" placeholder="bph" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
+                            <input type="text" name="bottles_blow_molding" placeholder="bph" value="{{ old('bottles_blow_molding') }}" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
                         </td>
                         <td colspan="4"></td>
                     </tr>
@@ -208,15 +208,16 @@
                                         :name="'materials[]'" 
                                         :options="$materialsOptions->toArray()" 
                                         placeholder="Select machine" 
+                                        :selected="'issue.material'"
                                         required 
                                     />
                                 </td>
                                 <td class="px-2 py-2">
-                                    <input type="text" :name="`description[]`" placeholder="Describe the issue or remark"
+                                    <input type="text" :name="`description[]`" x-model="issue.description" placeholder="Describe the issue or remark"
                                         class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
                                 </td>
                                 <td class="px-2 py-2 text-center">
-                                    <input type="text" :name="`minutes[]`" placeholder="mins"
+                                    <input type="text" :name="`minutes[]`" x-model="issue.minutes" placeholder="mins"
                                         class="w-20 border border-gray-300 placeholder-gray-400 rounded  px-2 py-1 text-sm text-center">
                                 </td>
                                 <td class="px-2 py-2 text-center">
@@ -262,11 +263,11 @@
                             </td>
                             <td class="font-medium text-[#2d326b] px-4 py-2">With Label</td>
                             <td class="px-4 py-2">
-                                <input type="text" name="with_label" placeholder="pcs" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
+                                <input type="text" name="with_label" placeholder="pcs" value="{{ old('with_label') }}" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
                             </td>
                             <td class="font-medium text-[#2d326b] px-4 py-2">Without Label</td>
                             <td class="px-4 py-2">
-                                <input type="text" name="without_label" placeholder="pcs" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
+                                <input type="text" name="without_label" placeholder="pcs" value="{{ old('without_label') }}" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
                             </td>
                         </tr>
                     </tbody>
@@ -332,7 +333,15 @@
     // Alpine.js component for handling dynamic issue and QC reject rows
     function issueTable() {
         return {
-            issues: [{}], // Initial issue row
+            issues: {!! json_encode(
+                collect(old('description', []))->map(function ($desc, $index) {
+                    return [
+                        'description' => $desc,
+                        'minutes' => old('minutes')[$index] ?? '',
+                        'material' => old('materials')[$index] ?? ''
+                    ];
+                })
+            ) !!}, // Initial issue row
             form: {
                 qcRejects: {
                     'Caps': [{ defect: '', qty: '' }],

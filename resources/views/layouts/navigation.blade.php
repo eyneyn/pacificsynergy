@@ -38,7 +38,7 @@
         <div class="relative" id="user-menu-container">
             <button type="button" class="flex items-center space-x-2 px-3 py-1 bg-white border border-[#444d90] rounded-full shadow-sm transition duration-200 hover:shadow-md" id="user-menu-button">
                 <img src="{{ Auth::user()->photo ? asset('storage/' . Auth::user()->photo) : asset('img/default.jpg') }}" alt="User Avatar" class="w-8 h-8 rounded-full object-cover">
-                <span class="text-sm font-semibold text-[#2d326b]">{{ Auth::user()->last_name }},{{ Auth::user()->first_name }}</span>
+                <span class="text-sm font-semibold text-[#2d326b]">{{ Auth::user()->last_name }}, {{ Auth::user()->first_name }}</span>
                 <svg class="w-4 h-4 text-gray-600 transition duration-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
                 </svg>

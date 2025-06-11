@@ -14,6 +14,7 @@ class RoleAndPermissionSeeder extends Seeder
     {
         $permissions = [
             // Admin
+            'user.dashboard',
             'roles.permission',
             'employees.index',
             'employees.create',
@@ -27,7 +28,6 @@ class RoleAndPermissionSeeder extends Seeder
             'report.add',
             'report.edit',
             'report.validate',
-            'report.delete',
             'analytics.index',
             'configuration.index',
         ];
@@ -51,7 +51,7 @@ class RoleAndPermissionSeeder extends Seeder
                 'first_name'      => 'System',
                 'last_name'       => 'Administrator',
                 'department'      => 'IT Department',
-                'photo'           => null,
+                'photo'           => 'photos/default.jpg',
                 'phone_number'    => '123-456-7890',
                 'password'        => Hash::make('admin1234'), // ⚠️ Change this in production
             ]

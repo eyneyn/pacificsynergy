@@ -60,7 +60,7 @@ class ProductionReportController extends Controller
      */
     public function add()
     {
-        $lines = Line::orderBy('line_number')->get();
+        $lines = Line::where('status', 'Active')->orderBy('line_number')->get();
         $skus = Standard::orderBy('description')->get();
         $maintenances = Maintenance::orderBy('name')->orderBy('type')->get();
         $defects = Defect::all();

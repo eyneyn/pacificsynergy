@@ -16,6 +16,9 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
+Route::prefix('admin')->middleware(['permission:user.dashboard'])->group(function () {
+    Route::get('/dashboard', [DashboardAdminController::class, 'index'])->name('admin.dashboard');
+});
 
 // Profile routes (requires authentication)
 Route::middleware('auth')->group(function () {

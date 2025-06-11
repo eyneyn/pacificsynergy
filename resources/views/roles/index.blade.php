@@ -14,7 +14,7 @@
         };
     }
     $permissionLabels = [
-        'dashboard' => 'Admin Dashboard',
+        'user.dashboard' => 'Admin Dashboard',
         'roles.permission' => 'Role Permission',
         'employees.index' => 'Employee Management',
         'employees.create' => 'Add New Employee',
@@ -28,7 +28,6 @@
         'report.add' => 'Add Report',
         'report.edit' => 'Edit Report',
         'report.validate' => 'Validate Report',
-        'report.delete' => 'Delete Report',
         'analytics.index' => 'Analytics & Reports',
         'configuration.index' => 'Configuration',
     ];
@@ -68,7 +67,7 @@
                 <div class="flex justify-between items-center mb-5">
                     <h3 class="text-lg font-semibold text-[#2d326b]">{{ $role->name }}</h3>
                     <span class="inline-block px-3 py-0.5 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">
-                        {{ $role->users_count ?? 0 }} Manager{{ ($role->users_count ?? 0) != 1 ? 's' : '' }}
+                        {{ $role->users_count ?? 0 }} Employee{{ ($role->users_count ?? 0) != 1 ? 's' : '' }}
                     </span>
                 </div>
 

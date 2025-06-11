@@ -1,15 +1,15 @@
-@props(['name', 'options' => [], 'placeholder' => 'Select an option', 'value' => null, 'required' => false])
+@props(['name', 'options' => [], 'placeholder' => 'Select an option', 'value' => null, 'selected' => null, 'required' => false])
 
 @php
-    $selectedValue = old($name, $value);
+    $selectedValue = old($name, $selected ?? $value); // 👈 make sure it's defined
     $selectedLabel = $options[$selectedValue] ?? $placeholder;
 @endphp
 
 <div
     x-data="{
         open: false,
-        selected: '{{ $selectedValue }}',
-        label: '{{ $selectedLabel }}',
+        selected: @js($selectedValue),
+        label: @js($selectedLabel),
         selectOption(value, label) {
             this.selected = value;
             this.label = label;
