@@ -1,13 +1,14 @@
 {{-- Admin Navigation Section --}}
 @canany(['user.dashboard','roles.permission', 'employees.index'])
-    <p class="text-gray-500 dark:text-gray-400 uppercase font-semibold text-xs px-4 py-2 tracking-wider">
+    <p class="text-gray-400 uppercase font-semibold text-xs px-4 py-2 tracking-wider">
         Administrator
     </p>
     {{-- Dashboard Link --}}
     <li>
         @can('user.dashboard')
-            <a href="{{ route('admin.dashboard') }}" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-[#376faa] dark:hover:bg-[#444d90]/90 group">
-                <svg class="shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
+            <a href="{{ route('admin.dashboard') }}" class="flex items-center p-2 text-white rounded-lg hover:bg-[#444d90] group
+            {{ request()->is('admin/dashboard') ? 'bg-[#444d90]' : '' }}">
+                <svg class="shrink-0 w-5 h-5 text-gray-300 transition duration-75 group-hover:text-white"
                     aria-hidden="true"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="currentColor"
@@ -23,39 +24,79 @@
             </a>
         @endcan
     </li>
-    <li>
-        <button type="button"
-            class="flex items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded-lg group hover:bg-[#444d90] dark:text-white dark:hover:bg-[#444d90]/90"
-            aria-controls="dropdown-user-management" data-collapse-toggle="dropdown-user-management">
-            {{-- User Management Icon --}}
-            <svg class="shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
-                xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 18">
-                <path d="M14 2a3.963 3.963 0 0 0-1.4.267 6.439 6.439 0 0 1-1.331 6.638A4 4 0 1 0 14 2Zm1 9h-1.264A6.957 6.957 0 0 1 15 15v2a2.97 2.97 0 0 1-.184 1H19a1 1 0 0 0 1-1v-1a5.006 5.006 0 0 0-5-5ZM6.5 9a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9ZM8 10H5a5.006 5.006 0 0 0-5 5v2a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-2a5.006 5.006 0 0 0-5-5Z"/>
-            </svg>
-            <span class="flex-1 ms-3 text-left rtl:text-right whitespace-nowrap">User Management</span>
-            {{-- Dropdown Arrow --}}
-            <svg class="w-3 h-3" fill="none" viewBox="0 0 10 6" xmlns="http://www.w3.org/2000/svg">
-                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="m1 1 4 4 4-4"/>
-            </svg>
-        </button>
-        <ul id="dropdown-user-management" class="hidden py-2 space-y-2">
-            @can('roles.permission')
-                <li>
-                    <a href="{{ route('roles.index') }}"
-                        class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-[#376faa] dark:text-white dark:hover:bg-[#444d90]/90">
-                        Roles
-                    </a>
-                </li>
-            @endcan
-            @can('employees.index')
-                <li>
-                    <a href="{{ route('employees.index') }}"
-                        class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-[#376faa] dark:text-white dark:hover:bg-[#444d90]/90">
-                        Employees
-                    </a>
-                </li>
-            @endcan
-        </ul>
-    </li>
+
+@php
+    $isUserManagementActive = request()->is('roles*') || request()->is('employees*');
+@endphp
+
+<li>
+    <!-- Clickable User Management Toggle -->
+    <button
+        id="user-management-toggle"
+        class="flex items-center w-full p-2 text-base text-white transition duration-75 rounded-lg cursor-pointer
+            hover:bg-[#444d90] {{ $isUserManagementActive ? 'bg-[#444d90]' : '' }}">
+        {{-- User Management Icon --}}
+        <svg class="shrink-0 w-5 h-5 text-gray-300 transition duration-75"
+             aria-hidden="true"
+             xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 18">
+            <path d="M14 2a3.963 3.963 0 0 0-1.4.267 6.439 6.439 0 0 1-1.331 6.638A4 4 0 1 0 14 2Zm1 9h-1.264A6.957 6.957 0 0 1 15 15v2a2.97 2.97 0 0 1-.184 1H19a1 1 0 0 0 1-1v-1a5.006 5.006 0 0 0-5-5ZM6.5 9a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9ZM8 10H5a5.006 5.006 0 0 0-5 5v2a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-2a5.006 5.006 0 0 0-5-5Z"/>
+        </svg>
+        <span class="flex-1 ms-3 text-left whitespace-nowrap">User Management</span>
+        {{-- Dropdown Arrow --}}
+        <svg id="user-management-arrow" class="w-3 h-3 text-white ml-auto transition-transform duration-200"
+             fill="none" viewBox="0 0 10 6" xmlns="http://www.w3.org/2000/svg">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="m1 1 4 4 4-4" />
+        </svg>
+    </button>
+    
+    <!-- Submenu - Show based on click state or active page -->
+    <ul id="user-management-submenu" class="{{ $isUserManagementActive ? 'block' : 'hidden' }} py-2 space-y-2">
+        @can('roles.permission')
+            <li>
+                <a href="{{ route('roles.index') }}"
+                   class="block p-2 pl-10 text-white rounded-lg transition hover:bg-[#444d90]
+                   {{ request()->is('roles*') ? 'bg-[#444d90]' : '' }}">
+                    Roles
+                </a>
+            </li>
+        @endcan
+        @can('employees.index')
+            <li>
+                <a href="{{ route('employees.index') }}"
+                   class="block p-2 pl-10 text-white rounded-lg transition hover:bg-[#444d90]
+                   {{ request()->is('employees*') ? 'bg-[#444d90]' : '' }}">
+                    Employees
+                </a>
+            </li>
+        @endcan
+    </ul>
+</li>
+
+{{-- JavaScript for Toggle Functionality --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleButton = document.getElementById('user-management-toggle');
+    const submenu = document.getElementById('user-management-submenu');
+    const arrow = document.getElementById('user-management-arrow');
+    
+    if (toggleButton && submenu && arrow) {
+        toggleButton.addEventListener('click', function() {
+            // Toggle submenu visibility
+            const isHidden = submenu.classList.contains('hidden');
+            
+            if (isHidden) {
+                submenu.classList.remove('hidden');
+                submenu.classList.add('block');
+                arrow.style.transform = 'rotate(180deg)';
+            } else {
+                submenu.classList.remove('block');
+                submenu.classList.add('hidden');
+                arrow.style.transform = 'rotate(0deg)';
+            }
+        });
+    }
+});
+</script>
+
 @endcanany

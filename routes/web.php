@@ -10,6 +10,9 @@ use App\Http\Controllers\ProductionReportController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\MaterialController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\LineController;
+use Illuminate\Support\Facades\Redirect;
+
 
 // Redirect root URL to login page
 Route::get('/', function () {
@@ -36,9 +39,8 @@ Route::prefix('report')->middleware(['permission:report.index'])->group(function
     Route::post('/store', [ProductionReportController::class, 'store'])->middleware('permission:report.add')->name('report.store');
     Route::get('/{report}/edit', [ProductionReportController::class, 'edit'])->middleware('permission:report.edit')->name('report.edit');
     Route::put('/{report}', [ProductionReportController::class, 'update'])->middleware('permission:report.edit')->name('report.update');
-       Route::get('/{report}/pdf', [ProductionReportController::class, 'viewPDF'])->middleware('permission:report.index')->name('report.pdf');
-Route::patch('/report/{id}/validate', [ProductionReportController::class, 'validateReport'])->middleware('permission:report.validate')->name('report.validate');
-
+    Route::get('/{report}/pdf', [ProductionReportController::class, 'viewPDF'])->middleware('permission:report.index')->name('report.pdf');
+    Route::patch('/report/{id}/validate', [ProductionReportController::class, 'validateReport'])->middleware('permission:report.validate')->name('report.validate');
     });
 
 // Configuration Routes
@@ -100,18 +102,28 @@ Route::prefix('employees')->middleware(['permission:employees.index'])->group(fu
 // Group all analytics under a common prefix + middleware if needed
 Route::prefix('analytics')->name('analytics.')->group(function () {
     
-    // Dashboard view
-    Route::get('/dashboard', function () {
-        return view('analytics.dashboard');
-    })->name('dashboard'); // Permission: analytics.dashboard
-
     // Analytics index (Reports Overview)
     Route::get('/index', [AnalyticsController::class, 'index'])->name('index'); // Permission: analytics.index
 
     // Material Analytics
-    Route::get('/material/index', [MaterialController::class, 'index'])->name('materials.index'); // Permission: analytics.materials.index
+    Route::get('/material/index', [MaterialController::class, 'index'])->name('material.index'); // Permission: analytics.materials.index
+    Route::get('/material/monthly_report', [MaterialController::class, 'monthly_report'])->name('material.monthly_report');
+
+    //Line Analytics
+    Route::get('/line/index', [LineController::class, 'index'])->name('line.index'); // Permission: analytics.materials.index
+    Route::get('/line/monthly_report', [LineController::class, 'monthly_report'])->name('line.monthly_report');
+
+    // Material Dashboard Analytics
+    Route::get('/material_utilization', [MaterialController::class, 'material_utilization'])->name('material_utilization'); // Permission: analytics.materials.index
+
 
 });
 
 // Auth routes
 require __DIR__.'/auth.php';
+
+// Fallback route for undefined URLs
+Route::fallback(function () {
+    // Redirect back if possible, otherwise to dashboard or home
+    return Redirect::back(302)->with('error', 'Page not found or invalid search query.');
+});

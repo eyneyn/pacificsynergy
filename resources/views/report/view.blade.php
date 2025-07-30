@@ -1,87 +1,119 @@
 @extends('layouts.app')
 
 @section('content')
-<!-- Back Button -->
-<a href="{{ url('report/index') }}" class="flex items-center text-sm text-gray-500 hover:text-[#2d326b] mb-4">
-    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-    </svg>
-    Production Report
-</a>
 
-<!-- Main Card Container -->
-<div class="bg-white rounded-sm border border-gray-200 p-6 shadow-md space-y-5 transition-all duration-300 hover:shadow-xl hover:border-[#E5E7EB]">
+<div x-data="{ showHistory: false }" class="container mx-auto px-4">
 
-    <!-- Header Section -->
-    <div class="flex items-center justify-between mb-6">
-        <h4 class="text-lg font-semibold text-[#2d326b]">Basic Production Details</h4>
-        <div class="flex items-center gap-2">
-            @can('report.validate')
-                @if (! $isValidated)
-                    <!-- Validate Report Button -->
-                    <button type="button"
-                        id="open-validate-modal"
-                        class="inline-flex items-center gap-2 p-3 py-2 bg-[#323B76] hover:bg-[#444d90] border border-[#323B76] text-white text-sm font-medium rounded-md">
-                        Validate Report
-                    </button>
-                @endif
-            @endcan
-
-            @can('report.edit')
-                <!-- Edit Button -->
-                <a href="{{ route('report.edit', $reports->id) }}"
-                    class="inline-flex items-center gap-2 p-3 py-2 bg-[#323B76] hover:bg-[#444d90] border border-[#323B76] text-white text-sm font-medium rounded-md">
-                    <x-icons-edit class="w-4 h-4" />
-                    <span class="text-sm">Edit</span>
-                </a>
-            @endcan
-
-            <!-- Export PDF Button -->
-            <a href="{{ route('report.pdf', $reports->id) }}" target="_blank"
-                class="flex items-center gap-2 px-4 py-2 bg-[#323B76] border border-[#444d90] hover:bg-[#444d90] text-white text-sm font-medium rounded-md shadow-sm transition duration-200">
-                View PDF
-            </a>
-        </div>
+    <!-- Header with Icon and Title -->
+    <div class="mb-4">
+        <h1 class="text-xl font-bold text-[#23527c]">
+            Basic Production Details
+        </h1>
     </div>
+
+    <div class=" border-t border-[#E5E7EB]">
+
+            {{-- Top Controls: Back, Add Defect, Show Entries --}}
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4 mt-6 mb-10">
+            <div class="flex flex-col md:flex-row gap-2">
+                {{-- Back Button --}}
+                <a href="{{ url('report/index') }}" class="inline-flex items-center px-3 py-2 bg-[#5a9fd4] hover:bg-[#4a8bc2] text-white text-sm font-medium transition-colors duration-200 border border-[#4590ca] hover:border-[#4a8bc2]">
+                    <x-icons-back class="w-2 h-2 text-white" />
+                    Back
+                </a>
+                            @can('report.edit')
+                        <!-- Edit Button -->
+                        <a href="{{ route('report.edit', $reports->id) }}"
+                            class="inline-flex items-center justify-center gap-1 p-2 bg-[#323B76] hover:bg-[#444d90] border border-[#323B76] text-white text-sm font-medium">
+                            <x-icons-edit class="w-2 h-2" />
+                            <span class="text-sm">Edit</span>
+                        </a>
+                    @endcan
+
+                    
+            <!-- Change History Button -->
+            <button @click="showHistory = true"
+                class="inline-flex items-center justify-center gap-1 p-2 bg-[#5bb75b] hover:bg-[#42a542] border border-[#42a542] text-white text-sm font-medium">
+                <x-icons-history/>
+                <span class="text-sm">History</span>
+            </button>
+            </div>
+
+                <div class="flex items-center gap-2">
+                    @can('report.validate')
+                        @if (! $isValidated)
+                            <!-- Validate Report Button -->
+                            <button type="button"
+                                id="open-validate-modal"
+                                class="inline-flex items-center justify-center gap-1 p-2 bg-[#5bb75b] hover:bg-[#42a542] border border-[#42a542] text-white text-sm font-medium">
+                                <x-icons-validate class="w-2 h-2" />
+                                Validate
+                            </button>
+                        @endif
+                    @endcan
+
+                    <!-- Export PDF Button -->
+                    <a href="{{ route('report.pdf', $reports->id) }}" target="_blank"
+                        class="inline-flex items-center justify-center gap-1 p-2 bg-[#fe1111] hover:bg-[#fc4242] border border-[#EF4444] text-white text-sm font-medium">
+                        <x-icons-pdf class="w-4 h-4" />
+                        View PDF
+                    </a>
+                </div>
+        </div>
+
+        <div class="mx-auto px-4">
+
+        <h1 class="text-xl font-bold text-[#23527c]">
+            {{ $reports->sku ?? '-' }}
+        </h1>
+
+
+    <!-- Line Efficiency Input (One Row) -->
+                        <div class="flex items-center mt-4 mb-4">
+                        <span class="text-[#23527c] font-bold w-48 mr-6">Line Efficiency (%): </span>
+                        <span class="text-[#23527c]">{{ old('line_efficiency', $reports->line_efficiency) }}</span>
+                    </div>
+
+
 
     <!-- Success Message -->
     @if (session('success'))
-        <div class="mb-4 p-2 text-sm rounded bg-green-100 text-green-800 border border-green-300 text-center">
+        <div class="mb-4 p-2 text-sm  bg-green-100 text-green-800 border border-green-300 text-center">
             {{ session('success') }}
         </div>
     @endif
 
     <!-- Basic Production Details Table -->
-    <table class="min-w-full text-sm border border-gray-200 shadow-sm">
-        <thead class="bg-gray-100 text-[#2d326b]">
+    <table class="min-w-full text-sm border border-[#E5E7EB] shadow-sm">
+        <thead class="uppercase text-[#23527c] bg-[#e2f2ff]">
             <tr>
-                <th class="text-left px-4 py-3 w-1/4">Field</th>
-                <th class="text-left px-4 py-3 w-1/4">Value</th>
-                <th class="text-left px-4 py-3 w-1/4">Field</th>
-                <th class="text-left px-4 py-3 w-1/4">Value</th>
+                <th class="text-left p-3 w-1/4 font-bold">Production Details</th>
+                <th class="p-3 w-1/4"></th>
+                <th class="p-3 w-1/4"></th>
+                <th class="p-3 w-1/4"></th>
             </tr>
         </thead>
         <tbody class="text-gray-700 divide-y divide-gray-200">
             <tr>
-                <td class="font-medium text-[#2d326b] px-4 py-2">Running SKU</td>
-                <td class="px-4 py-2">
-                    <p class="w-full border border-gray-300 rounded px-3 py-1 text-sm">{{ $reports->sku ?? '-' }}</p>
+                <td class="font-medium text-[#2d326b] px-3 py-1">Running SKU</td>
+                <td class="p-2">
+                    <p class="w-full border border-gray-300  px-3 py-1 text-sm">{{ $reports->sku ?? '-' }}</p>
                 </td>
-                <td class="font-medium text-[#2d326b] px-4 py-2">Production Date</td>
-                <td class="px-4 py-2">
-                    <p class="w-full border border-gray-300 rounded px-3 py-1 text-sm">{{ $reports->production_date ?? '-' }}</p>
+                <td class="font-medium text-[#23527c] p-2">Production Date</td>
+                <td class="p-2">
+                    <p class="w-full border border-gray-300  px-3 py-1 text-sm">{{ $reports->production_date ? \Carbon\Carbon::parse($reports->production_date)->format('F j, Y') : '-' }}</p>
                 </td>
             </tr>
             <tr>
-                <td class="font-medium text-[#2d326b] px-4 py-2">Shift</td>
-                <td class="px-4 py-2">
-                    <p class="w-full border border-gray-300 rounded px-3 py-1 text-sm">{{ $reports->shift ?? '-' }}</p>
+                <td class="font-medium text-[#23527c] p-2">Shift</td>
+                <td class="p-2">
+                    <p class="w-full border border-gray-300  px-3 py-1 text-sm">{{ $reports->shift ?? '-' }}</p>
                 </td>
-                <td class="font-medium text-[#2d326b] px-4 py-2">AC Temperatures</td>
-                <td class="px-4 py-2">
+                <td class="font-medium text-[#23527c] p-2">AC Temperatures</td>
+                <td class="p-2">
                     <div class="grid grid-cols-4 gap-1">
                         @for ($i = 1; $i <= 4; $i++)
-                            <p class="w-full border border-gray-300 rounded px-2 py-1 text-sm">
+                            <p class="w-full border border-gray-300  p-2 text-sm">
                                 {{ $reports->{'ac' . $i} ?? '-' }} °C
                             </p>
                         @endfor
@@ -89,191 +121,172 @@
                 </td>
             </tr>
             <tr>
-                <td class="font-medium text-[#2d326b] px-4 py-2">Line #</td>
-                <td class="px-4 py-2">
-                    <p class="w-full border border-gray-300 rounded px-3 py-1 text-sm">{{ $reports->line ?? '-' }}</p>
+                <td class="font-medium text-[#23527c] p-2">Line #</td>
+                <td class="p-2">
+                    <p class="w-full border border-gray-300  px-3 py-1 text-sm">{{ $reports->line ?? '-' }}</p>
                 </td>
-                <td class="font-medium text-[#2d326b] px-4 py-2">Total Output (Cases)</td>
-                <td class="px-4 py-2">
-                    <p class="w-full border border-gray-300 rounded px-3 py-1 text-sm">
+                <td class="font-medium text-[#23527c] p-2">Total Output (Cases)</td>
+                <td class="p-2">
+                    <p class="w-full border border-gray-300  px-3 py-1 text-sm">
                         {{ $reports->total_outputCase ?? '-' }} <span>cases</span>
                     </p>
                 </td>
             </tr>
             <tr>
-                <td class="font-medium text-[#2d326b] px-4 py-2">FBO/FCO</td>
-                <td class="px-4 py-2">
-                    <p class="w-full border border-gray-300 rounded px-3 py-1 text-sm">{{ $reports->fbo_fco ?? '-' }}</p>
+                <td class="font-medium text-[#23527c] p-2">FBO/FCO</td>
+                <td class="p-2">
+                    <p class="w-full border border-gray-300  px-3 py-1 text-sm">{{ $reports->fbo_fco ?? '-' }}</p>
                 </td>
-                <td class="font-medium text-[#2d326b] px-4 py-2">LBO/LCO</td>
-                <td class="px-4 py-2">
-                    <p class="w-full border border-gray-300 rounded px-3 py-1 text-sm">{{ $reports->lbo_lco ?? '-' }}</p>
-                </td>
-            </tr>
-            <tr>
-                <td class="font-medium text-[#2d326b] px-4 py-2">Manpower Present</td>
-                <td class="px-4 py-2">
-                    <p class="w-full border border-gray-300 rounded px-3 py-1 text-sm">{{ $reports->manpower_present ?? '-' }}</p>
-                </td>
-                <td class="font-medium text-[#2d326b] px-4 py-2">Manpower Absent</td>
-                <td class="px-4 py-2">
-                    <p class="w-full border border-gray-300 rounded px-3 py-1 text-sm">{{ $reports->manpower_absent ?? '-' }}</p>
+                <td class="font-medium text-[#23527c] p-2">LBO/LCO</td>
+                <td class="p-2">
+                    <p class="w-full border border-gray-300  px-3 py-1 text-sm">{{ $reports->lbo_lco ?? '-' }}</p>
                 </td>
             </tr>
         </tbody>
     </table>
 
-    <!-- Filling Line and Blow Molding Section -->
-    <div class="flex items-center justify-between">
-        <h4 class="text-lg font-semibold text-[#2d326b]">Filling Line and Blow Molding</h4>
-        <div class="text-sm font-semibold text-[#2d326b] ml-2">
-            Bottle Code:
-            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                {{ $reports->bottle_code ?? '-' }}
-            </span>
-        </div>
-    </div>
 
     <!-- Filling Line Table -->
-    <table class="min-w-full text-sm border border-gray-200 shadow-sm">
-        <thead class="bg-gray-100 text-[#2d326b]">
+    <table class="min-w-full text-sm border border-[#E5E7EB] shadow-sm mt-6">
+        <thead class="uppercase text-[#23527c] bg-[#e2f2ff]">
             <tr>
-                <th class="text-left px-4 py-3 w-1/6">Filling Line</th>
-                <th class="text-left px-4 py-3 w-1/6"></th>
-                <th class="text-left px-4 py-3 w-1/6"></th>
-                <th class="text-left px-4 py-3 w-1/6"></th>
-                <th class="text-left px-4 py-3 w-1/6"></th>
-                <th class="text-left px-4 py-3 w-1/6"></th>
+                <th class="text-left p-3 w-1/6 font-bold">Filling Line</th>
+                <th class="text-left p-3 w-1/6"></th>
+                <th class="text-left p-3 w-1/6"></th>
+                <th class="text-left p-3 w-1/6"></th>
+                <th class="text-right text-xs p-3 w-1/6 font-bold">Bottle Code:</th>
+                <th class="text-left text-xs p-3 w-1/6 font-bold">{{ $reports->bottle_code ?? '-' }}</th>
             </tr>
         </thead>
         <tbody class="text-gray-700 divide-y divide-gray-200">
             <tr>
-                <td class="font-medium text-[#2d326b] px-4 py-2 text-xs">
+                <td class="font-medium text-[#23527c] p-2 text-xs">
                     Speed (Bottles per Hour) <span class="text-sm">Filler Speed</span>
                 </td>
-                <td class="px-4 py-2">
-                    <p class="w-full border border-gray-300 rounded px-3 py-1 text-sm">{{ $reports->filler_speed ?? '-' }} <span>bph</span></p>
+                <td class="p-2">
+                    <p class="w-full border border-gray-300  px-3 py-1 text-sm">{{ $reports->filler_speed ?? '-' }} <span>bph</span></p>
                 </td>
-                <td class="font-medium text-[#2d326b] px-4 py-2 text-xs">
+                <td class="font-medium text-[#23527c] p-2 text-xs">
                     RM Rejects <br><span class="text-sm">Opp/Labels</span>
                 </td>
-                <td class="px-4 py-2">
-                    <p class="w-full border border-gray-300 rounded px-3 py-1 text-sm">{{ $reports->opp_labels ?? '-' }} <span>pcs</span></p>
+                <td class="p-2">
+                    <p class="w-full border border-gray-300  px-3 py-1 text-sm">{{ $reports->opp_labels ?? '-' }} <span>pcs</span></p>
                 </td>
-                <td class="font-medium text-[#2d326b] px-4 py-2">Bottle (pcs)</td>
-                <td class="px-4 py-2">
-                    <p class="w-full border border-gray-300 rounded px-3 py-1 text-sm">{{ $reports->bottle_filling ?? '-' }} <span>pcs</span></p>
+                <td class="font-medium text-[#23527c] p-2">Bottle (pcs)</td>
+                <td class="p-2">
+                    <p class="w-full border border-gray-300  px-3 py-1 text-sm">{{ $reports->bottle_filling ?? '-' }} <span>pcs</span></p>
                 </td>
             </tr>
             <tr>
-                <td class="font-medium text-[#2d326b] px-4 py-2">OPP/Labeler Speed</td>
-                <td class="px-4 py-2">
-                    <p class="w-full border border-gray-300 rounded px-3 py-1 text-sm">{{ $reports->opp_labeler_speed ?? '-' }} <span>pcs</span></p>
+                <td class="font-medium text-[#23527c] p-2">OPP/Labeler Speed</td>
+                <td class="p-2">
+                    <p class="w-full border border-gray-300  px-3 py-1 text-sm">{{ $reports->opp_labeler_speed ?? '-' }} <span>pcs</span></p>
                 </td>
-                <td class="font-medium text-[#2d326b] px-4 py-2">Shrinkfilm</td>
-                <td class="px-4 py-2">
-                    <p class="w-full border border-gray-300 rounded px-3 py-1 text-sm">{{ $reports->shrinkfilm ?? '-' }} <span>pcs</span></p>
+                <td class="font-medium text-[#23527c] p-2">Shrinkfilm</td>
+                <td class="p-2">
+                    <p class="w-full border border-gray-300  px-3 py-1 text-sm">{{ $reports->shrinkfilm ?? '-' }} <span>pcs</span></p>
                 </td>
-                <td class="font-medium text-[#2d326b] px-4 py-2">Caps (pcs)</td>
-                <td class="px-4 py-2">
-                    <p class="w-full border border-gray-300 rounded px-3 py-1 text-sm">{{ $reports->caps_filling ?? '-' }} <span>pcs</span></p>
+                <td class="font-medium text-[#23527c] p-2">Caps (pcs)</td>
+                <td class="p-2">
+                    <p class="w-full border border-gray-300  px-3 py-1 text-sm">{{ $reports->caps_filling ?? '-' }} <span>pcs</span></p>
                 </td>
             </tr>
             <!-- Blow Molding Section Header -->
             <tr>
-                <td colspan="6" class="bg-gray-100 text-[#2d326b] font-semibold px-4 py-3">Blow Molding</td>
+                <td colspan="2" class="uppercase text-[#23527c] bg-[#e2f2ff] font-bold p-3">Blow Molding</td>
+                <td colspan="4" class="uppercase text-[#23527c] bg-[#e2f2ff] font-bold p-3">Blow Molding Rejects</td>
             </tr>
             <tr>
-                <td class="font-medium text-[#2d326b] px-4 py-2">Blow Molding Output</td>
-                <td class="px-4 py-2">
-                    <p class="w-full text-[#2d326b] border border-gray-300 rounded px-3 py-1 text-sm">{{ $reports->blow_molding_output ?? '-' }} <span>pcs</span></p>
+                <td class="font-medium text-[#23527c] p-2">Blow Molding Output</td>
+                <td class="p-2">
+                    <p class="w-full text-[#23527c] border border-gray-300  px-3 py-1 text-sm">{{ $reports->blow_molding_output ?? '-' }} <span>pcs</span></p>
                 </td>
-                <td class="font-medium text-[#2d326b] px-4 py-2 text-xs">
-                    Blow Molding Rejects <span class="text-sm">Preform</span>
+                <td class="font-medium text-[#23527c] p-2">
+                   Preform
                 </td>
-                <td class="px-4 py-2">
-                    <p class="w-full border border-gray-300 rounded px-3 py-1 text-sm">{{ $reports->preform_blow_molding ?? '-' }} <span>pcs</span></p>
+                <td class="p-2">
+                    <p class="w-full border border-gray-300  px-3 py-1 text-sm">{{ $reports->preform_blow_molding ?? '-' }} <span>pcs</span></p>
                 </td>
-                <td class="font-medium text-[#2d326b] px-4 py-2">Bottles</td>
-                <td class="px-4 py-2">
-                    <p class="w-full border border-gray-300 rounded px-3 py-1 text-sm">{{ $reports->bottles_blow_molding ?? '-' }} <span>pcs</span></p>
+                <td class="font-medium text-[#23527c] p-2">Bottles</td>
+                <td class="p-2">
+                    <p class="w-full border border-gray-300  px-3 py-1 text-sm">{{ $reports->bottles_blow_molding ?? '-' }} <span>pcs</span></p>
                 </td>
             </tr>
             <tr>
-                <td class="font-medium text-[#2d326b] px-4 py-2">Speed (Bottles/Hour)</td>
-                <td class="px-4 py-2">
-                    <p class="w-full border border-gray-300 rounded px-3 py-1 text-sm">{{ $reports->speed_blow_molding ?? '-' }} <span>bph</span></p>
+                <td class="font-medium text-[#23527c] p-2">Speed (Bottles/Hour)</td>
+                <td class="p-2">
+                    <p class="w-full border border-gray-300  px-3 py-1 text-sm">{{ $reports->speed_blow_molding ?? '-' }} <span>bph</span></p>
                 </td>
                 <td colspan="4"></td>
             </tr>
         </tbody>
     </table>
 
-    <!-- Issues / Down Time / Remarks Section -->
-    <div class="flex items-center justify-between">
-        <h4 class="text-lg font-semibold text-[#2d326b]">Issues/ Down Time / Remarks</h4>
-        <div class="text-sm font-semibold text-[#2d326b]">
-            Total downtime:
-            <span class="ml-2 bg-red-100 text-red-700 px-2 py-1 rounded">
-                {{ $reports->issues->sum('minutes') ?? 0 }} mins
-            </span>
-        </div>
-    </div>
-
-    <!-- Issues Table -->
-    <table class="min-w-full text-sm border border-gray-200 shadow-sm">
-        <thead class="bg-gray-100 text-[#2d326b]">
+<!-- Issues Table -->
+<table class="min-w-full text-sm border border-[#E5E7EB] shadow-sm mt-6">
+    <thead class="uppercase text-[#23527c] bg-[#e2f2ff]">
+        <tr>
+            <th class="text-left p-2 w-1/5">Machine / Others</th>
+            <th class="text-left p-2 text-center">Description</th>
+            <th class="text-left p-2 w-1/12">Minutes</th>
+        </tr>
+    </thead>
+    <tbody class="text-gray-700 divide-y divide-gray-200">
+        @forelse($reports->issues as $issue)
             <tr>
-                <th class="text-left px-4 py-3 w-1/4">Machine / Others</th>
-                <th class="text-left px-4 py-3 text-center">Description</th>
-                <th class="text-left px-4 py-3 w-1/12">Minutes</th>
+                <td class="p-2">{{ $issue->maintenance->name ?? '-' }}</td>
+                <td class="p-2 text-center">{{ $issue->remarks ?? '-' }}</td>
+                <td class="p-2 text-center">{{ $issue->minutes ?? '0' }} <span>mins</span></td>
             </tr>
-        </thead>
-        <tbody class="text-gray-700 divide-y divide-gray-200">
-            @forelse($reports->issues as $issue)
-                <tr>
-                    <td class="px-4 py-2">{{ $issue->maintenance->name ?? '-' }}</td>
-                    <td class="px-2 py-2 text-center">{{ $issue->remarks ?? '-' }}</td>
-                    <td class="px-2 py-2 text-center">{{ $issue->minutes ?? '0' }} <span>mins</span></td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="3" class="text-center py-3 italic text-gray-400">No issues reported.</td>
-                </tr>
-            @endforelse
-        </tbody>
-    </table>
+        @empty
+            <tr>
+                <td colspan="3" class="text-center py-2 italic text-gray-400">No issues reported.</td>
+            </tr>
+        @endforelse
+
+        {{-- Total Row --}}
+        @if($reports->issues->count() > 0)
+            <tr class="bg-[#f8fafc] font-semibold text-[#23527c]">
+                <td colspan="2" class="p-2 text-right">Total Downtime:</td>
+                <td class="p-2 text-center">
+                    {{ $reports->issues->sum('minutes') ?? 0 }} mins
+                </td>
+            </tr>
+        @endif
+    </tbody>
+</table>
+
 
     <!-- QA Remarks and Sample Table -->
-    <table class="min-w-full text-sm border border-gray-200 shadow-sm">
-        <thead class="bg-gray-100 text-[#2d326b]">
+    <table class="min-w-full text-sm border border-[#E5E7EB] shadow-sm  mt-6">
+        <thead class="uppercase text-[#23527c] bg-[#e2f2ff]">
             <tr>
-                <th class="text-left px-4 py-3 w-1/6">QA Remarks</th>
-                <th class="text-left px-4 py-3 w-1/6"></th>
-                <th class="text-left px-4 py-3 w-1/6">QA Sample</th>
-                <th class="text-left px-4 py-3 w-1/6"></th>
-                <th class="text-left px-4 py-3 w-1/6"></th>
-                <th class="text-right px-4 py-3 w-1/6">Total: {{ $reports->total_sample ?? '-' }} pcs</th>
+                <th class="text-left p-2 w-1/6">QA Remarks</th>
+                <th class="text-left p-2 w-1/6"></th>
+                <th class="text-left p-2 w-1/6">QA Sample</th>
+                <th class="text-left p-2 w-1/6"></th>
+                <th class="text-left p-2 w-1/6"></th>
+                <th class="text-right p-2 w-1/6">Total: {{ $reports->total_sample ?? '-' }} pcs</th>
             </tr>
         </thead>
         <tbody class="text-gray-700 divide-y divide-gray-200">
             <tr>
-                <td class="font-medium text-[#2d326b] px-4 py-2">Ozone</td>
-                <td class="px-4 py-2">
-                    <p class="w-full rounded px-3 py-1 text-sm
+                <td class="font-medium text-[#23527c] p-2">Ozone</td>
+                <td class="p-2">
+                    <p class="w-full  px-3 py-1 text-sm
                         @if($reports->qa_remarks === 'Passed') bg-green-100 text-green-800 font-semibold
                         @else border border-gray-300
                         @endif">
                         {{ $reports->qa_remarks ?? '-' }}
                     </p>
                 </td>
-                <td class="font-medium text-[#2d326b] px-4 py-2">With Label</td>
-                <td class="px-4 py-2">
-                    <p class="w-full border border-gray-300 rounded px-3 py-1 text-sm">{{ $reports->with_label ?? '-' }} <span>pcs</span></p>
+                <td class="font-medium text-[#23527c] p-2">With Label</td>
+                <td class="p-2">
+                    <p class="w-full border border-gray-300  px-3 py-1 text-sm">{{ $reports->with_label ?? '-' }} <span>pcs</span></p>
                 </td>
-                <td class="font-medium text-[#2d326b] px-4 py-2">Without Label</td>
-                <td class="px-4 py-2">
-                    <p class="w-full border border-gray-300 rounded px-3 py-1 text-sm">{{ $reports->without_label ?? '-' }} <span>pcs</span></p>
+                <td class="font-medium text-[#23527c] p-2">Without Label</td>
+                <td class="p-2">
+                    <p class="w-full border border-gray-300  px-3 py-1 text-sm">{{ $reports->without_label ?? '-' }} <span>pcs</span></p>
                 </td>
             </tr>
             @php
@@ -283,20 +296,20 @@
 
             <!-- Line QC Rejects Section -->
             <tr>
-                <td colspan="6" class="bg-gray-100 text-[#2d326b] font-semibold px-4 py-3">Line QC Rejects</td>
+                <td colspan="6" class="uppercase text-[#23527c] bg-[#e2f2ff] font-bold p-2">Line QC Rejects</td>
             </tr>
             <tr>
                 <td colspan="6">
                     <div class="grid md:grid-cols-2 gap-2">
-                        @foreach (['Caps', 'Bottle', 'Label', 'Carton'] as $category)
-                            <div class="p-3 border border-gray-200 rounded flex flex-col gap-2 bg-white">
+                        @foreach (['Caps', 'Bottle', 'Label', 'LDPE Shrinkfilm'] as $category)
+                            <div class="p-3 border border-[#E5E7EB]  flex flex-col gap-2 ">
                                 <!-- Category Title -->
-                                <h5 class="text-sm font-bold text-[#2d326b]">{{ $category }}</h5>
+                                <h5 class="text-sm font-bold text-[#23527c]">{{ $category }}</h5>
                                 @if ($groupedRejects->has($category))
                                     @foreach ($groupedRejects[$category] as $reject)
-                                        <div class="flex items-center justify-between gap-2 border border-gray-200 px-2 py-1 rounded font-medium text-[#2d326b] text-sm">
+                                        <div class="flex items-center justify-between gap-2 border border-[#E5E7EB] p-2  font-medium text-[#23527c] text-sm">
                                             <span>{{ $reject->defect->defect_name ?? '-' }}</span>
-                                            <span class="font-medium text-[#2d326b]">{{ $reject->quantity }} pcs</span>
+                                            <span class="font-medium text-[#23527c]">{{ $reject->quantity }} pcs</span>
                                         </div>
                                     @endforeach
                                 @else
@@ -311,52 +324,10 @@
     </table>
 </div>
 
-<!-- Change History Card Container -->
-<div class="bg-white rounded-sm border border-gray-200 p-6 mt-6 shadow-md space-y-5 transition-all duration-300 hover:shadow-xl hover:border-[#E5E7EB]">
-    <h4 class="text-lg font-semibold text-[#2d326b]">Change History</h4>
-    <!-- Change History Details Table -->
-    <table class="min-w-full text-sm border border-gray-200 shadow-sm">
-        <thead class="bg-gray-100 text-[#2d326b]">
-            <tr>
-                <th class="text-left px-4 py-3">Employee Name</th>
-                <th class="text-left px-4 py-3">Position</th>
-                <th class="text-left px-4 py-3">Date and Time</th>
-                <th class="text-left px-4 py-3">Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse ($reports->statuses as $status)
-                <tr class="border-t">
-                    <td class="px-4 py-2">
-                        {{ $status->user->first_name ?? 'N/A' }} {{ $status->user->last_name ?? '' }}
-                    </td>
-                    <td class="px-4 py-2">
-                        {{ $status->user->getRoleNames()->first() ?? 'No Position' }}
-                    </td>
-                    <td class="px-4 py-2">
-                        {{ \Carbon\Carbon::parse($status->created_at)->timezone('Asia/Manila')->format('F j, Y g:i A') }}
-                    </td>
-                    <td class="px-4 py-2">
-                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
-                            @if($status->status === 'Submitted') bg-yellow-100 text-yellow-800
-                            @elseif($status->status === 'Reviewed') bg-blue-100 text-blue-800
-                            @elseif($status->status === 'Validated') bg-green-100 text-green-800
-                            @elseif($status->status === 'Edited') bg-purple-100 text-purple-800
-                            @else bg-gray-100 text-gray-800
-                            @endif">
-                            {{ $status->status }}
-                        </span>
-                    </td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="4" class="text-center text-sm text-gray-500 py-4">No history found.</td>
-                </tr>
-            @endforelse
-        </tbody>
-    </table>
-</div>
 
 <!-- Validate Modal Component -->
 <x-validate-modal :reportId="$reports->id" />
+        <!-- Include the modal component -->
+    <x-history-modal :reports="$reports" />
+</div>
 @endsection

@@ -18,7 +18,7 @@ return new class extends Migration {
                 ->constrained()
                 ->onDelete('cascade');
 
-            $table->enum('status', ['Submitted','Edited', 'Reviewed', 'Validated']);
+            $table->enum('status', ['Submitted', 'Reviewed', 'Validated']);
 
             $table->timestamps();
         });

@@ -2,79 +2,117 @@
 
 @section('content')
 
-<!-- Back Button -->
-<a href="{{url('analytics/index')}}" class="flex items-center text-sm text-gray-500 hover:text-[#2d326b] mb-4">
-<svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-</svg>
-Analytics and Report
+{{-- Page Title --}}
+<h2 class="text-xl mb-2 font-bold text-[#23527c]">Material Utilization Report</h2>
+
+{{-- Back to Configuration Link --}}
+<a href="{{ url('analytics/index') }}" class="text-xs text-gray-500 hover:text-[#23527c] mb-4 inline-flex items-center">
+    <x-icons-back-confi/>
+    Analytics and Report
 </a>
 
+<div class="mx-16 mt-4">
 <!-- Heading -->
-<h2 class="text-lg font-semibold text-[#2d326b] tracking-wider mb-4">
-    Production Line 1 (Year 2024)
+<h2 class="flex items-center text-xl text-[#23527c] mb-2">
+    <svg class="w-6 h-6 mr-2 flex-shrink-0" 
+         viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="#23527c">
+        <g id="SVGRepo_iconCarrier">
+            <title>filter-horizontal</title>
+            <g id="Layer_2" data-name="Layer 2">
+                <g id="invisible_box" data-name="invisible box">
+                    <rect width="48" height="48" fill="none"></rect>
+                </g>
+                <g id="icons_Q2" data-name="icons Q2">
+                    <path d="M41.8,8H21.7A6.2,6.2,0,0,0,16,4a6,6,0,0,0-5.6,4H6.2A2.1,2.1,0,0,0,4,10a2.1,2.1,0,0,0,2.2,2h4.2A6,6,0,0,0,16,16a6.2,6.2,0,0,0,5.7-4H41.8A2.1,2.1,0,0,0,44,10,2.1,2.1,0,0,0,41.8,8ZM16,12a2,2,0,1,1,2-2A2,2,0,0,1,16,12Z"></path>
+                    <path d="M41.8,22H37.7A6.2,6.2,0,0,0,32,18a6,6,0,0,0-5.6,4H6.2a2,2,0,1,0,0,4H26.4A6,6,0,0,0,32,30a6.2,6.2,0,0,0,5.7-4h4.1a2,2,0,1,0,0-4ZM32,26a2,2,0,1,1,2-2A2,2,0,0,1,32,26Z"></path>
+                    <path d="M41.8,36H24.7A6.2,6.2,0,0,0,19,32a6,6,0,0,0-5.6,4H6.2a2,2,0,1,0,0,4h7.2A6,6,0,0,0,19,44a6.2,6.2,0,0,0,5.7-4H41.8a2,2,0,1,0,0-4ZM19,40a2,2,0,1,1,2-2A2,2,0,0,1,19,40Z"></path>
+                </g>
+            </g>
+        </g>
+    </svg>
+    Select analytic report
 </h2>
 
-<div class="flex flex-col md:flex-row md:items-center justify-between mb-4">
 
-{{-- <!-- Left-side filters styled like tab nav -->
-<div class="flex space-x-4 text-sm text-[#2d326b] mb-4 md:mb-0">
-    <a href="?filter=all" class="px-4 py-2 border-b-2 border-[#2d326b] font-semibold text-[#2d326b] hover:text-[#6B7280] transition duration-200">
-        All
-    </a>
-    <a href="?filter=qtd" class="px-4 py-2 border-b-2 border-transparent font-semibold text-gray-500 hover:text-[#2d326b] hover:border-[#2d326b] transition duration-200">
-        Quarter-To-Date
-    </a>
-    <a href="?filter=mtd" class="px-4 py-2 border-b-2 border-transparent font-semibold text-gray-500 hover:text-[#2d326b] hover:border-[#2d326b] transition duration-200">
-        Month-To-Date
-    </a>
-</div> --}}
+<!-- Divider -->
+<div class="w-full flex items-center justify-center mb-6">
+    <div class="w-full border-t border-[#E5E7EB]"></div>
+</div>
 
-    <div class="w-[30]">
-        <!-- Year Selection -->
-        <form method="GET" action="{{ url()->current() }}" class="flex items-center gap-2 text-[#2d326b]">
-            <label for="date" class="whitespace-nowrap text-sm">Production Year:</label>
-            <x-select-dropdown name="date" placeholder="Year" :options="['2024' => '2024']" />
-        </form>
+
+<div class="flex flex-col mb-4 ml-10">
+    <form method="GET" action="{{ url()->current() }}" class="flex flex-col gap-4 text-[#23527c] mb-4">
+<!-- Year Selection -->
+<div class="flex items-center gap-6 w-36">
+    <label for="date" class="whitespace-nowrap text-sm font-bold">
+        Production Year:<span class="text-red-500">*</span>
+    </label>
+    <x-select-year 
+        name="date" 
+        :options="collect($availableYears)->mapWithKeys(fn($v) => [$v => $v])->toArray()" 
+        :selected="$year"
+        class="w-28" />
+</div>
+
+<!-- Line Selection -->
+<div class="flex items-center gap-6 text-[#23527c]">
+    <label class="whitespace-nowrap text-sm font-bold">
+        Select Line:<span class="text-red-500">*</span>
+    </label>
+    <div class="flex gap-6 ml-8">
+        @foreach($activeLines as $ln)
+            <label class="inline-flex items-center gap-2 cursor-pointer">
+                <input type="radio" 
+                       name="line" 
+                       value="{{ $ln->line_number }}" 
+                       {{ (string)$selectedLine === (string)$ln->line_number ? 'checked' : '' }}
+                       class="w-4 h-4 rounded-full bg-gray-300 text-blue-600">
+                <span class="text-sm">Line {{ $ln->line_number }}</span>
+            </label>
+        @endforeach
     </div>
+</div>
 
+        <!-- Submit Button Section -->
+        <div class="flex gap-4 mt-4">
+            <a href="{{ route('analytics.index') }}"
+               class="inline-flex items-center px-3 py-2 bg-[#5a9fd4] hover:bg-[#4a8bc2] text-white text-sm font-medium transition-colors duration-200 border border-[#5a9fd4] hover:border-[#4a8bc2]">
+                <x-icons-back class="w-4 h-4 text-white" />
+                Back
+            </a>
 
-<!-- Right-side controls: Year dropdown + Export -->
-<div class="flex flex-col md:flex-row items-start md:items-center gap-3">
-
-    <!-- Export Button -->
-    <form method="POST" action="" target="_blank">
-        @csrf
-        <input type="hidden" name="report_id" value="">
-        <button type="submit"
-            class="text-center px-3 py-2 bg-[#323B76] border border-[#444d90] hover:bg-[#444d90] text-white text-xs font-medium rounded-md shadow-sm transition duration-200">
-            Export to Excel
-        </button>
+            <button type="submit"
+                    class="inline-flex items-center justify-center gap-1 bg-[#5bb75b] border border-[#43a143] text-white px-3 py-2 hover:bg-[#42a542] text-sm">
+                <x-icons-submit class="w-4 h-4 text-white" />
+                Submit
+            </button>
+        </div>
     </form>
 </div>
+
+<h2 class="text-xl font-bold text-[#23527c] mt-4">
+    Production Line {{ $selectedLine }} - Year {{ $year }}
+</h2>
+
+
+<!-- Divider -->
+<div class="w-full flex items-center justify-center mt-2 mb-8">
+    <div class="w-full border-t border-[#E5E7EB]"></div>
 </div>
 
-<!-- Elegant Divider -->
-<div class="w-full flex items-center justify-center my-6">
-<div class="w-full border-t border-[#E5E7EB]"></div>
-</div>
-
-<!-- 🧭 Chart + Cards Layout -->
-<div class="w-full flex flex-col xl:flex-row gap-4 mb-8">
-
-    <!-- 📈 Chart + Table Section (wider) -->
+<!-- Chart + Cards Layout -->
+<div class="w-full flex flex-col xl:flex-row gap-4 mb-4">
+    <!-- Chart + Table Section -->
     <div class="w-full xl:w-3/4 bg-white rounded-sm border border-gray-200 p-6 shadow-md space-y-5 transition-all duration-300 hover:shadow-xl hover:border-[#E5E7EB] flex flex-col">
-        <h2 class="text-lg font-semibold mb-4 text-[#2d326b]">Material Efficiency</h2>
-
+        <h2 class="text-lg font-semibold mb-4 text-[#23527c]">Material Efficiency</h2>
         <canvas id="efficiencyChart" height="300" class="w-full !pl-0 !ml-0 !translate-x-0"></canvas>
-
-        <!-- 📋 Table -->
+        <!-- Table -->
         <div class="overflow-x-auto mt-4">
             <table class="min-w-full text-[10px] border border-gray-300 text-gray-700 table-auto">
                 <thead class="bg-[#f1f5f9] font-semibold text-gray-800 text-center">
                     <tr>
                         <th class="border border-gray-300 px-2 py-1 text-left w-[130px]">Indicator</th>
-                        @foreach (['1','2','3','4','5','6','7','8','9','10','11','12'] as $month)
+                        @foreach (range(1,12) as $month)
                             <th class="border border-gray-300 px-2 py-1 text-right">{{ $month }}</th>
                         @endforeach
                     </tr>
@@ -94,31 +132,31 @@ Analytics and Report
                     </tr>
                     <tr>
                         <td class="border border-gray-300 px-2 py-1 font-semibold text-left text-[#0f766e]">Production <br><span class="text-[8px]">(Output, Cs)</span></td>
-                        @foreach ([38950,172277,237982,193767,308612,138176,254969,263036,282720,274888,279835,224552] as $item)
+                        @foreach ($monthlyProduction as $item)
                             <td class="border border-gray-300 px-2 py-1 text-right">{{ number_format($item) }}</td>
                         @endforeach
                     </tr>
                     <tr>
                         <td class="border border-gray-300 px-2 py-1 font-semibold text-left text-[#1e3a8a]">PREFORMS</td>
-                        @foreach (['0.16%','0.24%','0.18%','0.21%','0.19%','0.42%','0.50%','0.33%','0.39%','0.17%','0.32%','0.47%'] as $item)
+                        @foreach ($preformRejectRates as $item)
                             <td class="border border-gray-300 px-2 py-1 text-right">{{ $item }}</td>
                         @endforeach
                     </tr>
                     <tr>
                         <td class="border border-gray-300 px-2 py-1 font-semibold text-left text-[#334155]">CAPS</td>
-                        @foreach (['0.14%','0.19%','0.11%','0.13%','0.18%','0.21%','0.26%','0.26%','0.19%','0.14%','0.14%','0.17%'] as $item)
+                        @foreach ($capsRejectRates as $item)
                             <td class="border border-gray-300 px-2 py-1 text-right">{{ $item }}</td>
                         @endforeach
                     </tr>
                     <tr>
                         <td class="border border-gray-300 px-2 py-1 font-semibold text-left text-[#0f172a]">OPP LABELS</td>
-                        @foreach (['0.02%','0.03%','0.02%','0.07%','0.03%','0.06%','0.08%','0.08%','0.06%','0.06%','0.04%','0.06%'] as $item)
+                        @foreach ($oppRejectRates as $item)
                             <td class="border border-gray-300 px-2 py-1 text-right">{{ $item }}</td>
                         @endforeach
                     </tr>
                     <tr>
-                        <td class="border border-gray-300 px-2 py-1 font-semibold text-left text-[#b45309]">LD PE SHRINK FILM</td>
-                        @foreach (['0.13%','0.27%','0.15%','0.17%','0.11%','0.26%','0.33%','0.59%','0.31%','0.27%','0.18%','0.23%'] as $item)
+                        <td class="border border-gray-300 px-2 py-1 font-semibold text-left text-[#b45309]">LDPE SHRINK FILM</td>
+                        @foreach ($ldpeRejectRates as $item)
                             <td class="border border-gray-300 px-2 py-1 text-right">{{ $item }}</td>
                         @endforeach
                     </tr>
@@ -127,671 +165,278 @@ Analytics and Report
         </div>
     </div>
 
-    <!-- 📦 Right-side Cards (narrower) -->
+    <!-- Right-side Cards -->
     <div class="w-full xl:w-1/4 flex flex-col justify-between self-stretch">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 h-full">
-         <!-- Full Width Output Card -->
-<div class="col-span-1 sm:col-span-2 bg-white hover:bg-[#e5f4ff] rounded-xl shadow border border-gray-200 p-3 h-28 flex items-center justify-center">
-    <div class="text-center">
-        <h3 class="text-sm text-[#2d326b] mb-1">Production Output</h3>
-        <p class="text-lg font-semibold text-[#4b5563]">2,827,724</p>
-    </div>
-</div>
+            <!-- Total Material Efficiency -->
+            <div class="col-span-1 sm:col-span-2 bg-white hover:bg-[#e5f4ff] rounded-xl shadow border border-gray-200 p-3 h-28 flex items-center justify-center">
+                <div class="text-center">
+                    <h3 class="text-sm text-[#23527c] mb-1">Material Efficiency</h3>
+                    <p class="text-lg font-semibold text-[#4b5563]">{{ $materialEfficiencyRate }}</p>
+                </div>
+            </div>
+            @php
+                $cards = [
+                    ['title' => 'Preform', 'value' => $preformTotalRate ?? '0.00%', 'color' => '#4b5563'],
+                    ['title' => 'Caps', 'value' => $capsTotalRate ?? '0.00%', 'color' => '#1e3a8a'],
+                    ['title' => 'OPP', 'value' => $oppTotalRate ?? '0.00%', 'color' => '#166534'],
+                    ['title' => 'LDPE', 'value' => $ldpeTotalRate ?? '0.00%', 'color' => '#7c2d12'],
+                ];
+            @endphp
+            @foreach ($cards as $card)
+                <div class="bg-white hover:bg-[#e5f4ff] rounded-xl shadow border border-gray-200 p-3 h-28 flex items-center justify-center">
+                    <div class="text-center">
+                        <h3 class="text-sm text-[#23527c] mb-1">{{ $card['title'] }}</h3>
+                        <p class="text-lg font-semibold" style="color: {{ $card['color'] }}">{{ $card['value'] }}</p>
+                    </div>
+                </div>
+            @endforeach
 
-<!-- Individual Cards -->
-@php
-    $cards = [
-        ['title' => 'Preform', 'value' => '1.17%', 'color' => '#4b5563'],
-        ['title' => 'Caps', 'value' => '0.18%', 'color' => '#1e3a8a'],
-        ['title' => 'OPP', 'value' => '0.06%', 'color' => '#166534'],
-        ['title' => 'Shrinkfilm', 'value' => '0.25%', 'color' => '#7c2d12'],
-    ];
-@endphp
-
-@foreach ($cards as $card)
-    <div class="bg-white hover:bg-[#e5f4ff] rounded-xl shadow border border-gray-200 p-3 h-28 flex items-center justify-center">
-        <div class="text-center">
-            <h3 class="text-sm text-[#2d326b] mb-1">{{ $card['title'] }}</h3>
-            <p class="text-lg font-semibold" style="color: {{ $card['color'] }}">{{ $card['value'] }}</p>
+            <!-- Month Buttons -->
+            <div class="col-span-1 sm:col-span-2 bg-white rounded-xl shadow border border-gray-200 p-4">
+                <h3 class="text-sm text-[#23527c] text-center mb-3 font-semibold">Select Month</h3>
+                <div class="grid grid-cols-3 gap-2">
+                    @foreach ([
+                        'January', 'February', 'March', 'April', 'May', 'June',
+                        'July', 'August', 'September', 'October', 'November', 'December'
+                    ] as $monthName)
+                        <a href="{{ route('analytics.material.monthly_report', [
+                            'month' => $monthName,
+                            'line' => request('line'),
+                            'date' => request('date')
+                        ]) }}"
+                        class="text-xs text-[#23527c] text-center border border-gray-300 rounded-md py-1 px-2 hover:bg-[#23527c] hover:text-white transition duration-150">
+                            {{ $monthName }}
+                        </a>
+                    @endforeach
+                </div>
+            </div>
         </div>
     </div>
-@endforeach
-
-<!-- Month Buttons -->
-<div class="col-span-1 sm:col-span-2 bg-white rounded-xl shadow border border-gray-200 p-4">
-    <h3 class="text-sm text-[#2d326b] text-center mb-3 font-semibold">Select Month</h3>
-    <div class="grid grid-cols-3 gap-2">
-        @foreach ([
-            'January', 'February', 'March', 'April', 'May', 'June',
-            'July', 'August', 'September', 'October', 'November', 'December'
-        ] as $month)
-            <button type="button"
-                class="text-xs text-[#2d326b] border border-gray-300 rounded-md py-1 px-2 hover:bg-[#2d326b] hover:text-white transition duration-150">
-                {{ $month }}
-            </button>
-        @endforeach
-    </div>
 </div>
 
-        </div>
-    </div>
-
-</div>
-
-
-
+<!-- Quarter-To-Date Report Section -->
 <div x-data="{ showQuarter: false }" class="w-full mb-4">
     <!-- Toggle Button -->
     <div class="flex items-center justify-between cursor-pointer bg-white rounded-sm border border-gray-200 p-4 shadow-md hover:shadow-xl hover:border-[#E5E7EB]" @click="showQuarter = !showQuarter">
-        <p class="text-lg text-[#2d326b] font-semibold">Quarter-To-Date Report</p>
-        <svg :class="showQuarter ? 'rotate-180' : ''" class="w-5 h-5 transition-transform text-[#2d326b]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <p class="text-lg text-[#23527c] font-semibold">Quarter-To-Date Report</p>
+        <svg :class="showQuarter ? 'rotate-180' : ''" class="w-5 h-5 transition-transform text-[#23527c]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
         </svg>
     </div>
-
     <!-- Content to show/hide -->
     <div x-show="showQuarter" x-transition>
         <div class="bg-white rounded-sm border border-gray-200 p-6 shadow-md space-y-4 mt-2">
-
-     <div>
-<p class="text-sm text-[#2d326b] font-medium mb-2">Production output</p>
-
-<!-- Production Output Table -->
-<table class="w-full text-xs text-left border border-[#E5E7EB] border-collapse">
-    <thead class="text-xs text-white uppercase bg-[#35408e]">
-    <tr>
-        <th class="p-2 border border-[#d9d9d9]"></th>
-        <th class="p-2 border border-[#d9d9d9] text-center">Q1</th>
-        <th class="p-2 border border-[#d9d9d9] text-center">Q2</th>
-        <th class="p-2 border border-[#d9d9d9] text-center">Q3</th>
-        <th class="p-2 border border-[#d9d9d9] text-center">Q4</th>
-        <th class="p-2 border border-[#d9d9d9] text-center">TOTAL</th>
-    </tr>
-</thead>
-<tbody>
-<tr class="bg-white hover:bg-[#e5f4ff] cursor-pointer">
-<td class="p-2 border border-[#d9d9d9] text-[#2d326b]">Production Output</td>
-<td class="p-2 border border-[#d9d9d9] text-center">609169</td>
-<td class="p-2 border border-[#d9d9d9] text-center">638555</td>
-<td class="p-2 border border-[#d9d9d9] text-center">800725</td>
-<td class="p-2 border border-[#d9d9d9] text-center">779275</td>
-<td class="p-2 border border-[#d9d9d9] text-center">2827724</td>
-</tr>
-</tbody>
-</table>    
-</div>
-
-<div>
-<p class="text-sm text-[#2d326b] font-medium mb-2">Preforms</p>
-
-<!-- Preforms Table -->
-<table class="w-full text-xs text-left border border-[#E5E7EB] border-collapse">
-<thead class="text-xs text-white uppercase bg-[#35408e]">
-    <tr>
-        <th class="p-2 border border-[#d9d9d9]"></th>
-        <th class="p-2 border border-[#d9d9d9] text-center">Q1</th>
-        <th class="p-2 border border-[#d9d9d9] text-center">Q2</th>
-        <th class="p-2 border border-[#d9d9d9] text-center">Q3</th>
-        <th class="p-2 border border-[#d9d9d9] text-center">Q4</th>
-        <th class="p-2 border border-[#d9d9d9] text-center">TOTAL</th>
-    </tr>
-</thead>
-<tbody>
-    <tr class="bg-white hover:bg-[#e5f4ff] cursor-pointer">
-        <td class="p-2 border border-[#d9d9d9] text-[#2d326b]">FG Usage</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">17,544,296</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">13,903,713</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">22,042,925</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">21,757,740</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">75,248,674</td>
-    </tr>
-    <tr class="bg-white hover:bg-[#e5f4ff] cursor-pointer">
-        <td class="p-2 border border-[#d9d9d9] text-[#2d326b]">Rejects</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">33,974</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">35,357</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">89,627</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">62,851</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">221,809</td>
-    </tr>
-    <tr class="bg-white hover:bg-[#e5f4ff] cursor-pointer">
-        <td class="p-2 border border-[#d9d9d9] text-[#2d326b]">QA Samples</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">12,869</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">12,611</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">17,299</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">16,486</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">59,265</td>
-    </tr>
-    <tr class="bg-white hover:bg-[#e5f4ff] cursor-pointer">
-        <td class="p-2 border border-[#d9d9d9] text-[#2d326b]">% Rejects</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">0.19%</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">0.25%</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">0.40%</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">0.29%</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">0.29%</td>
-    </tr>
-</tbody>
-</table>
-</div>
-
-<div>
-<p class="text-sm text-[#2d326b] font-medium mb-2">Caps</p>
-
-<!-- Caps Table -->
-<table class="w-full text-xs text-left border border-[#E5E7EB] border-collapse">
-<thead class="text-xs text-white uppercase bg-[#35408e]">
-    <tr>
-        <th class="p-2 border border-[#d9d9d9]"></th>
-        <th class="p-2 border border-[#d9d9d9] text-center">Q1</th>
-        <th class="p-2 border border-[#d9d9d9] text-center">Q2</th>
-        <th class="p-2 border border-[#d9d9d9] text-center">Q3</th>
-        <th class="p-2 border border-[#d9d9d9] text-center">Q4</th>
-        <th class="p-2 border border-[#d9d9d9] text-center">TOTAL</th>
-    </tr>
-</thead>
-<tbody>
-    <tr class="bg-white hover:bg-[#e5f4ff] cursor-pointer">
-        <td class="p-2 border border-[#d9d9d9] text-[#2d326b]">FG Usage</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">17,544,296</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">13,903,713</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">22,042,925</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">21,757,740</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">75,248,674</td>
-    </tr>
-    <tr class="bg-white hover:bg-[#e5f4ff] cursor-pointer">
-        <td class="p-2 border border-[#d9d9d9] text-[#2d326b]">Rejects</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">33,974</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">35,357</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">89,627</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">62,851</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">221,809</td>
-    </tr>
-    <tr class="bg-white hover:bg-[#e5f4ff] cursor-pointer">
-        <td class="p-2 border border-[#d9d9d9] text-[#2d326b]">QA Samples</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">12,869</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">12,611</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">17,299</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">16,486</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">59,265</td>
-    </tr>
-    <tr class="bg-white hover:bg-[#e5f4ff] cursor-pointer">
-        <td class="p-2 border border-[#d9d9d9] text-[#2d326b]">% Rejects</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">0.19%</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">0.25%</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">0.40%</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">0.29%</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">0.29%</td>
-    </tr>
-</tbody>
-</table>
-</div>
-
-<div>
-<p class="text-sm text-[#2d326b] font-medium mb-2">OPP Labels</p>
-
-<!-- OPP Labels Table -->
-<table class="w-full text-xs text-left border border-[#E5E7EB] border-collapse">
-<thead class="text-xs text-white uppercase bg-[#35408e]">
-    <tr>
-        <th class="p-2 border border-[#d9d9d9]"></th>
-        <th class="p-2 border border-[#d9d9d9] text-center">Q1</th>
-        <th class="p-2 border border-[#d9d9d9] text-center">Q2</th>
-        <th class="p-2 border border-[#d9d9d9] text-center">Q3</th>
-        <th class="p-2 border border-[#d9d9d9] text-center">Q4</th>
-        <th class="p-2 border border-[#d9d9d9] text-center">TOTAL</th>
-    </tr>
-</thead>
-<tbody>
-    <tr class="bg-white hover:bg-[#e5f4ff] cursor-pointer">
-        <td class="p-2 border border-[#d9d9d9] text-[#2d326b]">FG Usage</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">17,544,296</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">13,903,713</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">22,042,925</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">21,757,740</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">75,248,674</td>
-    </tr>
-    <tr class="bg-white hover:bg-[#e5f4ff] cursor-pointer">
-        <td class="p-2 border border-[#d9d9d9] text-[#2d326b]">Rejects</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">33,974</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">35,357</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">89,627</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">62,851</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">221,809</td>
-    </tr>
-    <tr class="bg-white hover:bg-[#e5f4ff] cursor-pointer">
-        <td class="p-2 border border-[#d9d9d9] text-[#2d326b]">QA Samples</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">12,869</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">12,611</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">17,299</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">16,486</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">59,265</td>
-    </tr>
-    <tr class="bg-white hover:bg-[#e5f4ff] cursor-pointer">
-        <td class="p-2 border border-[#d9d9d9] text-[#2d326b]">% Rejects</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">0.19%</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">0.25%</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">0.40%</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">0.29%</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">0.29%</td>
-    </tr>
-</tbody>
-</table>
-</div>
-
-
-<div>
-<p class="text-sm text-[#2d326b] font-medium mb-2">LDPE Shrinkfilm </p>
-
-<!-- LDPE Shrinkfilm Table -->
-<table class="w-full text-xs text-left border border-[#E5E7EB] border-collapse">
-<thead class="text-xs text-white uppercase bg-[#35408e]">
-    <tr>
-        <th class="p-2 border border-[#d9d9d9]"></th>
-        <th class="p-2 border border-[#d9d9d9] text-center">Q1</th>
-        <th class="p-2 border border-[#d9d9d9] text-center">Q2</th>
-        <th class="p-2 border border-[#d9d9d9] text-center">Q3</th>
-        <th class="p-2 border border-[#d9d9d9] text-center">Q4</th>
-        <th class="p-2 border border-[#d9d9d9] text-center">TOTAL</th>
-    </tr>
-</thead>
-<tbody>
-    <tr class="bg-white hover:bg-[#e5f4ff] cursor-pointer">
-        <td class="p-2 border border-[#d9d9d9] text-[#2d326b]">FG Usage</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">17,544,296</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">13,903,713</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">22,042,925</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">21,757,740</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">75,248,674</td>
-    </tr>
-    <tr class="bg-white hover:bg-[#e5f4ff] cursor-pointer">
-        <td class="p-2 border border-[#d9d9d9] text-[#2d326b]">Rejects</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">33,974</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">35,357</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">89,627</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">62,851</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">221,809</td>
-    </tr>
-    <tr class="bg-white hover:bg-[#e5f4ff] cursor-pointer">
-        <td class="p-2 border border-[#d9d9d9] text-[#2d326b]">QA Samples</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">12,869</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">12,611</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">17,299</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">16,486</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">59,265</td>
-    </tr>
-    <tr class="bg-white hover:bg-[#e5f4ff] cursor-pointer">
-        <td class="p-2 border border-[#d9d9d9] text-[#2d326b]">% Rejects</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">0.19%</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">0.25%</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">0.40%</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">0.29%</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">0.29%</td>
-    </tr>
-</tbody>
-</table>
-</div>
-
-
-<div>
-<p class="text-sm text-[#2d326b] font-medium mb-2">Preforms</p>
-
-<!-- Preforms Table -->
-<table class="w-full text-xs text-left border border-[#E5E7EB] border-collapse">
-<thead class="text-xs text-white uppercase bg-[#35408e]">
-    <tr>
-        <th class="p-2 border border-[#d9d9d9]"></th>
-        <th class="p-2 border border-[#d9d9d9] text-center">Q1</th>
-        <th class="p-2 border border-[#d9d9d9] text-center">Q2</th>
-        <th class="p-2 border border-[#d9d9d9] text-center">Q3</th>
-        <th class="p-2 border border-[#d9d9d9] text-center">Q4</th>
-        <th class="p-2 border border-[#d9d9d9] text-center">TOTAL</th>
-    </tr>
-</thead>
-<tbody>
-    <tr class="bg-white hover:bg-[#e5f4ff] cursor-pointer">
-        <td class="p-2 border border-[#d9d9d9] text-[#2d326b]">FG Usage</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">17,544,296</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">13,903,713</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">22,042,925</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">21,757,740</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">75,248,674</td>
-    </tr>
-    <tr class="bg-white hover:bg-[#e5f4ff] cursor-pointer">
-        <td class="p-2 border border-[#d9d9d9] text-[#2d326b]">Rejects</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">33,974</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">35,357</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">89,627</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">62,851</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">221,809</td>
-    </tr>
-    <tr class="bg-white hover:bg-[#e5f4ff] cursor-pointer">
-        <td class="p-2 border border-[#d9d9d9] text-[#2d326b]">QA Samples</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">12,869</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">12,611</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">17,299</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">16,486</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">59,265</td>
-    </tr>
-    <tr class="bg-white hover:bg-[#e5f4ff] cursor-pointer">
-        <td class="p-2 border border-[#d9d9d9] text-[#2d326b]">% Rejects</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">0.19%</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">0.25%</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">0.40%</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">0.29%</td>
-        <td class="p-2 border border-[#d9d9d9] text-center">0.29%</td>
-    </tr>
-</tbody>
-</table>
-</div>
+            <!-- Production Output Table -->
+            <table class="w-full text-xs text-left border border-[#E5E7EB] border-collapse">
+                <thead class="text-xs text-white uppercase bg-[#35408e]">
+                    <tr>
+                        <th class="p-2 border border-[#d9d9d9]"></th>
+                        <th class="p-2 border border-[#d9d9d9] text-center">Q1</th>
+                        <th class="p-2 border border-[#d9d9d9] text-center">Q2</th>
+                        <th class="p-2 border border-[#d9d9d9] text-center">Q3</th>
+                        <th class="p-2 border border-[#d9d9d9] text-center">Q4</th>
+                        <th class="p-2 border border-[#d9d9d9] text-center">YTD</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="bg-white hover:bg-[#e5f4ff] cursor-pointer">
+                        <td class="p-2 border border-[#d9d9d9] text-[#23527c]">Production Output</td>
+                        <td class="p-2 border border-[#d9d9d9] text-center">{{ number_format($quarterlyProduction['Q1']) }}</td>
+                        <td class="p-2 border border-[#d9d9d9] text-center">{{ number_format($quarterlyProduction['Q2']) }}</td>
+                        <td class="p-2 border border-[#d9d9d9] text-center">{{ number_format($quarterlyProduction['Q3']) }}</td>
+                        <td class="p-2 border border-[#d9d9d9] text-center">{{ number_format($quarterlyProduction['Q4']) }}</td>
+                        <td class="p-2 border border-[#d9d9d9] text-center font-semibold text-[#1e3a8a]">{{ number_format($totalAnnualProduction) }}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <!-- Preforms Quarterly Summary Table -->
+            @foreach (['Preforms' => [
+                'FgUsage' => $preformQuarterFgUsage,
+                'Rejects' => $preformQuarterRejects,
+                'QaSamples' => $preformQuarterQaSamples,
+                'RejectRates' => $preformQuarterRejectRates,
+                'TotalFg' => $preformTotalFg,
+                'TotalRej' => $preformTotalRej,
+                'TotalQa' => $preformTotalQa,
+                'TotalRate' => $preformTotalRate
+            ], 'Caps' => [
+                'FgUsage' => $capsQuarterFgUsage,
+                'Rejects' => $capsQuarterRejects,
+                'QaSamples' => $capsQuarterQaSamples,
+                'RejectRates' => $capsQuarterRejectRates,
+                'TotalFg' => $capsTotalFg,
+                'TotalRej' => $capsTotalRej,
+                'TotalQa' => $capsTotalQa,
+                'TotalRate' => $capsTotalRate
+            ], 'OPP Labels' => [
+                'FgUsage' => $oppQuarterFgUsage,
+                'Rejects' => $oppQuarterRejects,
+                'QaSamples' => $oppQuarterQaSamples,
+                'RejectRates' => $oppQuarterRejectRates,
+                'TotalFg' => $oppTotalFg,
+                'TotalRej' => $oppTotalRej,
+                'TotalQa' => $oppTotalQa,
+                'TotalRate' => $oppTotalRate
+            ], 'LDPE Shrinkfilm' => [
+                'FgUsage' => $ldpeQuarterFgUsage,
+                'Rejects' => $ldpeQuarterRejects,
+                'QaSamples' => $ldpeQuarterQaSamples,
+                'RejectRates' => $ldpeQuarterRejectRates,
+                'TotalFg' => $ldpeTotalFg,
+                'TotalRej' => $ldpeTotalRej,
+                'TotalQa' => $ldpeTotalQa,
+                'TotalRate' => $ldpeTotalRate
+            ]] as $label => $data)
+            <div class="mt-6">
+                <table class="w-full text-xs text-left border border-[#E5E7EB] border-collapse">
+                    <thead class="uppercase bg-[#35408e] text-white">
+                        <tr>
+                            <th class="p-2 border border-[#d9d9d9]">{{ $label }}</th>
+                            <th class="p-2 border border-[#d9d9d9] text-center">Q1</th>
+                            <th class="p-2 border border-[#d9d9d9] text-center">Q2</th>
+                            <th class="p-2 border border-[#d9d9d9] text-center">Q3</th>
+                            <th class="p-2 border border-[#d9d9d9] text-center">Q4</th>
+                            <th class="p-2 border border-[#d9d9d9] text-center">YTD</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="bg-white hover:bg-[#f1f5f9] transition">
+                            <td class="p-2 border text-[#23527c]">FG Usage</td>
+                            <td class="p-2 border text-center">{{ number_format($data['FgUsage']['Q1']) }}</td>
+                            <td class="p-2 border text-center">{{ number_format($data['FgUsage']['Q2']) }}</td>
+                            <td class="p-2 border text-center">{{ number_format($data['FgUsage']['Q3']) }}</td>
+                            <td class="p-2 border text-center">{{ number_format($data['FgUsage']['Q4']) }}</td>
+                            <td class="p-2 border text-center font-semibold text-[#1e3a8a]">{{ number_format($data['TotalFg']) }}</td>
+                        </tr>
+                        <tr class="bg-white hover:bg-[#f1f5f9] transition">
+                            <td class="p-2 border text-[#23527c]">Rejects</td>
+                            <td class="p-2 border text-center">{{ number_format($data['Rejects']['Q1']) }}</td>
+                            <td class="p-2 border text-center">{{ number_format($data['Rejects']['Q2']) }}</td>
+                            <td class="p-2 border text-center">{{ number_format($data['Rejects']['Q3']) }}</td>
+                            <td class="p-2 border text-center">{{ number_format($data['Rejects']['Q4']) }}</td>
+                            <td class="p-2 border text-center font-semibold text-[#1e3a8a]">{{ number_format($data['TotalRej']) }}</td>
+                        </tr>
+                        <tr class="bg-white hover:bg-[#f1f5f9] transition">
+                            <td class="p-2 border text-[#23527c]">QA Samples</td>
+                            <td class="p-2 border text-center">{{ number_format($data['QaSamples']['Q1']) }}</td>
+                            <td class="p-2 border text-center">{{ number_format($data['QaSamples']['Q2']) }}</td>
+                            <td class="p-2 border text-center">{{ number_format($data['QaSamples']['Q3']) }}</td>
+                            <td class="p-2 border text-center">{{ number_format($data['QaSamples']['Q4']) }}</td>
+                            <td class="p-2 border text-center font-semibold text-[#1e3a8a]">{{ number_format($data['TotalQa']) }}</td>
+                        </tr>
+                        <tr class="bg-white hover:bg-[#f1f5f9] transition">
+                            <td class="p-2 border text-[#23527c]">% Rejects</td>
+                            <td class="p-2 border text-center">{{ $data['RejectRates']['Q1'] }}</td>
+                            <td class="p-2 border text-center">{{ $data['RejectRates']['Q2'] }}</td>
+                            <td class="p-2 border text-center">{{ $data['RejectRates']['Q3'] }}</td>
+                            <td class="p-2 border text-center">{{ $data['RejectRates']['Q4'] }}</td>
+                            <td class="p-2 border text-center font-semibold text-[#1e3a8a]">{{ $data['TotalRate'] }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            @endforeach
+        </div>
     </div>
 </div>
 
-</div>
-
-
+<!-- Month-To-Date Report Section -->
 <div x-data="{ showMonth: false }" class="w-full mb-4">
     <!-- Toggle Button -->
     <div class="flex items-center justify-between cursor-pointer bg-white rounded-sm border border-gray-200 p-4 shadow-md hover:shadow-xl hover:border-[#E5E7EB]" @click="showMonth = !showMonth">
-        <p class="text-lg text-[#2d326b] font-semibold">Month-To-Date Report</p>
-        <svg :class="showMonth ? 'rotate-180' : ''" class="w-5 h-5 transition-transform text-[#2d326b]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <p class="text-lg text-[#23527c] font-semibold">Month-To-Date Report</p>
+        <svg :class="showMonth ? 'rotate-180' : ''" class="w-5 h-5 transition-transform text-[#23527c]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
         </svg>
     </div>
-
     <!-- Content to show/hide -->
     <div x-show="showMonth" x-transition>
         <div class="bg-white rounded-sm border border-gray-200 p-6 shadow-md space-y-4 mt-2">
-
-<div>
-<p class="text-sm text-[#2d326b] font-medium mb-2">Production output</p>
-
-<!-- Production Output Table -->
-<table class="w-full text-xs text-left border border-[#E5E7EB] border-collapse">
-    <thead class="text-xs text-white uppercase bg-[#35408e]">
-    <tr>
-        <th class="p-2 border border-[#d9d9d9]"></th>
-        <th class="p-2 border border-[#d9d9d9] text-center">1</th>
-        <th class="p-2 border border-[#d9d9d9] text-center">2</th>
-        <th class="p-2 border border-[#d9d9d9] text-center">3</th>
-        <th class="p-2 border border-[#d9d9d9] text-center">4</th>
-        <th class="p-2 border border-[#d9d9d9] text-center">5</th>
-        <th class="p-2 border border-[#d9d9d9] text-center">6</th>
-        <th class="p-2 border border-[#d9d9d9] text-center">7</th>
-        <th class="p-2 border border-[#d9d9d9] text-center">8</th>
-        <th class="p-2 border border-[#d9d9d9] text-center">9</th>
-        <th class="p-2 border border-[#d9d9d9] text-center">10</th>
-        <th class="p-2 border border-[#d9d9d9] text-center">11</th>
-        <th class="p-2 border border-[#d9d9d9] text-center">12</th>
-    </tr>
-</thead>
-<tbody>
-<tr class="bg-white hover:bg-[#e5f4ff] cursor-pointer">
-<td class="p-2 border border-[#d9d9d9] text-[#2d326b]">Target Mat'l Efficiency, %</td>
-<td class="p-2 border border-[#d9d9d9] text-center">1.00%</td>
-<td class="p-2 border border-[#d9d9d9] text-center">1.00%</td>
-<td class="p-2 border border-[#d9d9d9] text-center">1.00%</td>
-<td class="p-2 border border-[#d9d9d9] text-center">1.00%</td>
-<td class="p-2 border border-[#d9d9d9] text-center">1.00%</td>
-<td class="p-2 border border-[#d9d9d9] text-center">1.00%</td>
-<td class="p-2 border border-[#d9d9d9] text-center">1.00%</td>
-<td class="p-2 border border-[#d9d9d9] text-center">1.00%</td>
-<td class="p-2 border border-[#d9d9d9] text-center">1.00%</td>
-<td class="p-2 border border-[#d9d9d9] text-center">1.00%</td>
-<td class="p-2 border border-[#d9d9d9] text-center">1.00%</td>
-<td class="p-2 border border-[#d9d9d9] text-center">1.00%</td>
-</tr>
-
-<tr class="bg-white hover:bg-[#e5f4ff] cursor-pointer">
-<td class="p-2 border border-[#d9d9d9] text-[#2d326b]">Production Output, Cs</td>
-<td class="p-2 border border-[#d9d9d9] text-center">198960</td>
-<td class="p-2 border border-[#d9d9d9] text-center">172227</td>
-<td class="p-2 border border-[#d9d9d9] text-center">237982</td>
-<td class="p-2 border border-[#d9d9d9] text-center">193767</td>
-<td class="p-2 border border-[#d9d9d9] text-center">308612</td>
-<td class="p-2 border border-[#d9d9d9] text-center">136176</td>
-<td class="p-2 border border-[#d9d9d9] text-center">254969</td>
-<td class="p-2 border border-[#d9d9d9] text-center">263036</td>
-<td class="p-2 border border-[#d9d9d9] text-center">282720</td>
-<td class="p-2 border border-[#d9d9d9] text-center">274888</td>
-<td class="p-2 border border-[#d9d9d9] text-center">279835</td>
-<td class="p-2 border border-[#d9d9d9] text-center">224552</td>
-</tr>
-</tbody>
-</table>    
-</div>
-
-<div>
-<p class="text-sm text-[#2d326b] font-medium mb-2">Preforms</p>
-
-<!-- Preforms Table -->
-<table class="w-full mt-4 text-[11px] text-left border border-[#E5E7EB] border-collapse">
-<thead class="uppercase bg-[#35408e] text-white">
-    <tr>
-        <th class="p-1 border border-[#d9d9d9] text-center"></th>
-        @for ($i = 1; $i <= 12; $i++)
-            <th class="p-2 border border-[#d9d9d9] text-center">{{ $i }}</th>
-        @endfor
-    </tr>
-</thead>
-<tbody>
-    @php
-        $fgUsage =    [5897953, 5037725, 6608618, 5445576, 5326861, 3131276, 7007506, 7322268, 7713151, 7607893, 7930055, 6219792];
-        $rejects =    [9571,    12191,   12212,   11624,   10370,   13363,   35071,   24241,   30315,   15097,   18251,   29503];
-        $qaSamples =  [4013,    3887,    4969,    4139,    5672,    2800,    5623,    5759,    5917,    5666,    5863,    4957];
-        $rejectRates = ['0.16%', '0.24%', '0.18%', '0.21%', '0.19%', '0.42%', '0.50%', '0.33%', '0.39%', '0.20%', '0.23%', '0.47%'];
-    @endphp
-
-    {{-- FG Usage Row --}}
-    <tr class="bg-white hover:bg-[#f1f5f9] transition">
-        <td class="p-2 border border-[#d9d9d9] text-[#2d326b]">FG Usage</td>
-        @foreach ($fgUsage as $value)
-            <td class="p-2 border border-[#d9d9d9] text-center">{{ number_format($value) }}</td>
-        @endforeach
-    </tr>
-
-    {{-- Rejects Row --}}
-    <tr class="bg-white hover:bg-[#f1f5f9] transition">
-        <td class="p-2 border border-[#d9d9d9] text-[#2d326b]">Rejects</td>
-        @foreach ($rejects as $value)
-            <td class="p-2 border border-[#d9d9d9] text-center">{{ number_format($value) }}</td>
-        @endforeach
-    </tr>
-
-    {{-- QA Samples Row --}}
-    <tr class="bg-white hover:bg-[#f1f5f9] transition">
-        <td class="p-2 border border-[#d9d9d9] text-[#2d326b]">QA Samples</td>
-        @foreach ($qaSamples as $value)
-            <td class="p-2 border border-[#d9d9d9] text-center">{{ number_format($value) }}</td>
-        @endforeach
-    </tr>
-
-    {{-- % Rejects Row --}}
-    <tr class="bg-white hover:bg-[#f1f5f9] transition">
-        <td class="p-2 border border-[#d9d9d9] text-[#2d326b]">% Rejects</td>
-        @foreach ($rejectRates as $value)
-            <td class="p-2 border border-[#d9d9d9] text-center">{{ $value }}</td>
-        @endforeach
-    </tr>
-</tbody>
-</table>
-    
-</div>
-
-<div>
-<p class="text-sm text-[#2d326b] font-medium mb-2">Caps</p>
-
-<!-- Caps Table -->
-<table class="w-full mt-4 text-[11px] text-left border border-[#E5E7EB] border-collapse">
-<thead class="uppercase bg-[#35408e] text-white">
-    <tr>
-        <th class="p-1 border border-[#d9d9d9] text-center"></th>
-        @for ($i = 1; $i <= 12; $i++)
-            <th class="p-2 border border-[#d9d9d9] text-center">{{ $i }}</th>
-        @endfor
-    </tr>
-</thead>
-<tbody>
-    @php
-        $fgUsage =    [5897953, 5037725, 6608618, 5445576, 5326861, 3131276, 7007506, 7322268, 7713151, 7607893, 7930055, 6219792];
-        $rejects =    [9571,    12191,   12212,   11624,   10370,   13363,   35071,   24241,   30315,   15097,   18251,   29503];
-        $qaSamples =  [4013,    3887,    4969,    4139,    5672,    2800,    5623,    5759,    5917,    5666,    5863,    4957];
-        $rejectRates = ['0.16%', '0.24%', '0.18%', '0.21%', '0.19%', '0.42%', '0.50%', '0.33%', '0.39%', '0.20%', '0.23%', '0.47%'];
-    @endphp
-
-    {{-- FG Usage Row --}}
-    <tr class="bg-white hover:bg-[#f1f5f9] transition">
-        <td class="p-2 border border-[#d9d9d9] text-[#2d326b]">FG Usage</td>
-        @foreach ($fgUsage as $value)
-            <td class="p-2 border border-[#d9d9d9] text-center">{{ number_format($value) }}</td>
-        @endforeach
-    </tr>
-
-    {{-- Rejects Row --}}
-    <tr class="bg-white hover:bg-[#f1f5f9] transition">
-        <td class="p-2 border border-[#d9d9d9] text-[#2d326b]">Rejects</td>
-        @foreach ($rejects as $value)
-            <td class="p-2 border border-[#d9d9d9] text-center">{{ number_format($value) }}</td>
-        @endforeach
-    </tr>
-
-    {{-- QA Samples Row --}}
-    <tr class="bg-white hover:bg-[#f1f5f9] transition">
-        <td class="p-2 border border-[#d9d9d9] text-[#2d326b]">QA Samples</td>
-        @foreach ($qaSamples as $value)
-            <td class="p-2 border border-[#d9d9d9] text-center">{{ number_format($value) }}</td>
-        @endforeach
-    </tr>
-
-    {{-- % Rejects Row --}}
-    <tr class="bg-white hover:bg-[#f1f5f9] transition">
-        <td class="p-2 border border-[#d9d9d9] text-[#2d326b]">% Rejects</td>
-        @foreach ($rejectRates as $value)
-            <td class="p-2 border border-[#d9d9d9] text-center">{{ $value }}</td>
-        @endforeach
-    </tr>
-</tbody>
-</table>
-    
-</div>
-
-<div>
-<p class="text-sm text-[#2d326b] font-medium mb-2">OPP Labels</p>
-
-<!-- Caps Table -->
-<table class="w-full mt-4 text-[11px] text-left border border-[#E5E7EB] border-collapse">
-<thead class="uppercase bg-[#35408e] text-white">
-    <tr>
-        <th class="p-1 border border-[#d9d9d9] text-center"></th>
-        @for ($i = 1; $i <= 12; $i++)
-            <th class="p-2 border border-[#d9d9d9] text-center">{{ $i }}</th>
-        @endfor
-    </tr>
-</thead>
-<tbody>
-    @php
-        $fgUsage =    [5897953, 5037725, 6608618, 5445576, 5326861, 3131276, 7007506, 7322268, 7713151, 7607893, 7930055, 6219792];
-        $rejects =    [9571,    12191,   12212,   11624,   10370,   13363,   35071,   24241,   30315,   15097,   18251,   29503];
-        $qaSamples =  [4013,    3887,    4969,    4139,    5672,    2800,    5623,    5759,    5917,    5666,    5863,    4957];
-        $rejectRates = ['0.16%', '0.24%', '0.18%', '0.21%', '0.19%', '0.42%', '0.50%', '0.33%', '0.39%', '0.20%', '0.23%', '0.47%'];
-    @endphp
-
-    {{-- FG Usage Row --}}
-    <tr class="bg-white hover:bg-[#f1f5f9] transition">
-        <td class="p-2 border border-[#d9d9d9] text-[#2d326b]">FG Usage</td>
-        @foreach ($fgUsage as $value)
-            <td class="p-2 border border-[#d9d9d9] text-center">{{ number_format($value) }}</td>
-        @endforeach
-    </tr>
-
-    {{-- Rejects Row --}}
-    <tr class="bg-white hover:bg-[#f1f5f9] transition">
-        <td class="p-2 border border-[#d9d9d9] text-[#2d326b]">Rejects</td>
-        @foreach ($rejects as $value)
-            <td class="p-2 border border-[#d9d9d9] text-center">{{ number_format($value) }}</td>
-        @endforeach
-    </tr>
-
-    {{-- QA Samples Row --}}
-    <tr class="bg-white hover:bg-[#f1f5f9] transition">
-        <td class="p-2 border border-[#d9d9d9] text-[#2d326b]">QA Samples</td>
-        @foreach ($qaSamples as $value)
-            <td class="p-2 border border-[#d9d9d9] text-center">{{ number_format($value) }}</td>
-        @endforeach
-    </tr>
-
-    {{-- % Rejects Row --}}
-    <tr class="bg-white hover:bg-[#f1f5f9] transition">
-        <td class="p-2 border border-[#d9d9d9] text-[#2d326b]">% Rejects</td>
-        @foreach ($rejectRates as $value)
-            <td class="p-2 border border-[#d9d9d9] text-center">{{ $value }}</td>
-        @endforeach
-    </tr>
-</tbody>
-</table>
-    
-</div>
-
-<div>
-<p class="text-sm text-[#2d326b] font-medium mb-2">LDPE Shrinkfilm</p>
-
-<!-- Caps Table -->
-<table class="w-full mt-4 text-[11px] text-left border border-[#E5E7EB] border-collapse">
-<thead class="uppercase bg-[#35408e] text-white">
-    <tr>
-        <th class="p-1 border border-[#d9d9d9] text-center"></th>
-        @for ($i = 1; $i <= 12; $i++)
-            <th class="p-2 border border-[#d9d9d9] text-center">{{ $i }}</th>
-        @endfor
-    </tr>
-</thead>
-<tbody>
-    @php
-        $fgUsage =    [5897953, 5037725, 6608618, 5445576, 5326861, 3131276, 7007506, 7322268, 7713151, 7607893, 7930055, 6219792];
-        $rejects =    [9571,    12191,   12212,   11624,   10370,   13363,   35071,   24241,   30315,   15097,   18251,   29503];
-        $qaSamples =  [4013,    3887,    4969,    4139,    5672,    2800,    5623,    5759,    5917,    5666,    5863,    4957];
-        $rejectRates = ['0.16%', '0.24%', '0.18%', '0.21%', '0.19%', '0.42%', '0.50%', '0.33%', '0.39%', '0.20%', '0.23%', '0.47%'];
-    @endphp
-
-    {{-- FG Usage Row --}}
-    <tr class="bg-white hover:bg-[#f1f5f9] transition">
-        <td class="p-2 border border-[#d9d9d9] text-[#2d326b]">FG Usage</td>
-        @foreach ($fgUsage as $value)
-            <td class="p-2 border border-[#d9d9d9] text-center">{{ number_format($value) }}</td>
-        @endforeach
-    </tr>
-
-    {{-- Rejects Row --}}
-    <tr class="bg-white hover:bg-[#f1f5f9] transition">
-        <td class="p-2 border border-[#d9d9d9] text-[#2d326b]">Rejects</td>
-        @foreach ($rejects as $value)
-            <td class="p-2 border border-[#d9d9d9] text-center">{{ number_format($value) }}</td>
-        @endforeach
-    </tr>
-
-    {{-- QA Samples Row --}}
-    <tr class="bg-white hover:bg-[#f1f5f9] transition">
-        <td class="p-2 border border-[#d9d9d9] text-[#2d326b]">QA Samples</td>
-        @foreach ($qaSamples as $value)
-            <td class="p-2 border border-[#d9d9d9] text-center">{{ number_format($value) }}</td>
-        @endforeach
-    </tr>
-
-    {{-- % Rejects Row --}}
-    <tr class="bg-white hover:bg-[#f1f5f9] transition">
-        <td class="p-2 border border-[#d9d9d9] text-[#2d326b]">% Rejects</td>
-        @foreach ($rejectRates as $value)
-            <td class="p-2 border border-[#d9d9d9] text-center">{{ $value }}</td>
-        @endforeach
-    </tr>
-</tbody>
-</table>
-</div>
+            <!-- Production Output Table -->
+            <table class="w-full text-xs text-left border border-[#E5E7EB] border-collapse">
+                <thead class="text-xs text-white uppercase bg-[#35408e]">
+                    <tr>
+                        <th class="p-2 border border-[#d9d9d9]">Production output</th>
+                        @for ($i = 1; $i <= 12; $i++)
+                            <th class="p-2 border border-[#d9d9d9] text-center">{{ $i }}</th>
+                        @endfor
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="bg-white hover:bg-[#f1f5f9] cursor-pointer">
+                        <td class="p-2 border border-[#d9d9d9] text-[#23527c]">Target Mat'l Efficiency, %</td>
+                        @for ($i = 1; $i <= 12; $i++)
+                            <td class="p-2 border border-[#d9d9d9] text-center">1.00%</td>
+                        @endfor
+                    </tr>
+                    <tr class="bg-white hover:bg-[#f1f5f9] cursor-pointer">
+                        <td class="p-2 border border-[#d9d9d9] text-[#23527c]">Production Output, Cs</td>
+                        @for ($i = 1; $i <= 12; $i++)
+                            <td class="p-2 border border-[#d9d9d9] text-center">
+                                {{ number_format($monthlyProduction[$i]) }}
+                            </td>
+                        @endfor
+                    </tr>
+                </tbody>
+            </table>
+            <!-- Preforms Table -->
+            @foreach ([
+                ['label' => 'Preforms', 'FgUsage' => $monthlyFgUsage, 'Rejects' => $monthlyRejects, 'QaSamples' => $monthlyQaSamples, 'RejectRates' => $monthlyRejectRates],
+                ['label' => 'Caps', 'FgUsage' => $capsFgUsage, 'Rejects' => $capsRejects, 'QaSamples' => $capsQaSamples, 'RejectRates' => $capsRejectRates],
+                ['label' => 'OPP Labels', 'FgUsage' => $oppFgUsage, 'Rejects' => $oppRejects, 'QaSamples' => $oppQaSamples, 'RejectRates' => $oppRejectRates],
+                ['label' => 'LDPE Shrinkfilm', 'FgUsage' => $ldpeFgUsage, 'Rejects' => $ldpeRejects, 'QaSamples' => $ldpeQaSamples, 'RejectRates' => $ldpeRejectRates],
+            ] as $mat)
+            <table class="w-full mt-4 text-[11px] text-left border border-[#E5E7EB] border-collapse">
+                <thead class="uppercase bg-[#35408e] text-white">
+                    <tr>
+                        <th class="p-2 border border-[#d9d9d9] text-center">{{ $mat['label'] }}</th>
+                        @for ($i = 1; $i <= 12; $i++)
+                            <th class="p-2 border border-[#d9d9d9] text-center">{{ $i }}</th>
+                        @endfor
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="bg-white hover:bg-[#f1f5f9] transition">
+                        <td class="p-2 border text-[#23527c]">FG Usage</td>
+                        @foreach ($mat['FgUsage'] as $value)
+                            <td class="p-2 border text-center">{{ number_format($value) }}</td>
+                        @endforeach
+                    </tr>
+                    <tr class="bg-white hover:bg-[#f1f5f9] transition">
+                        <td class="p-2 border text-[#23527c]">Rejects</td>
+                        @foreach ($mat['Rejects'] as $value)
+                            <td class="p-2 border text-center">{{ number_format($value) }}</td>
+                        @endforeach
+                    </tr>
+                    <tr class="bg-white hover:bg-[#f1f5f9] transition">
+                        <td class="p-2 border text-[#23527c]">QA Samples</td>
+                        @foreach ($mat['QaSamples'] as $value)
+                            <td class="p-2 border text-center">{{ number_format($value) }}</td>
+                        @endforeach
+                    </tr>
+                    <tr class="bg-white hover:bg-[#f1f5f9] transition">
+                        <td class="p-2 border text-[#23527c]">% Rejects</td>
+                        @foreach ($mat['RejectRates'] as $value)
+                            <td class="p-2 border text-center">{{ $value }}</td>
+                        @endforeach
+                    </tr>
+                </tbody>
+            </table>
+            @endforeach
         </div>
-    
-</div>
+    </div>
 </div>
 
+<!-- Chart.js Data Preparation -->
+@php
+    $jsPreforms = json_encode(array_map(fn($v) => (float) str_replace('%', '', $v) / 100, $preformRejectRates));
+    $jsCaps = json_encode(array_map(fn($v) => (float) str_replace('%', '', $v) / 100, $capsRejectRates));
+    $jsOpp = json_encode(array_map(fn($v) => (float) str_replace('%', '', $v) / 100, $oppRejectRates));
+    $jsLdpe = json_encode(array_map(fn($v) => (float) str_replace('%', '', $v) / 100, $ldpeRejectRates));
+@endphp
 
-<!-- 📈 Chart.js Script -->
+<!-- Chart.js Script -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 const ctx = document.getElementById('efficiencyChart').getContext('2d');
@@ -802,7 +447,7 @@ new Chart(ctx, {
         datasets: [
             {
                 label: 'Target MAT Efficiency, %',
-                data: [0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01],
+                data: Array(12).fill(0.01),
                 borderColor: '#10B981',
                 borderDash: [4, 4],
                 tension: 0.3,
@@ -813,7 +458,7 @@ new Chart(ctx, {
             },
             {
                 label: 'PREFORMS',
-                data: [0.0016, 0.0024, 0.0018, 0.0021, 0.0019, 0.0042, 0.0050, 0.0033, 0.0039, 0.0017, 0.0032, 0.0047],
+                data: {!! $jsPreforms !!},
                 borderColor: '#1e3a8a',
                 tension: 0.3,
                 fill: false,
@@ -823,7 +468,7 @@ new Chart(ctx, {
             },
             {
                 label: 'CAPS',
-                data: [0.0014, 0.0019, 0.0011, 0.0013, 0.0018, 0.0021, 0.0026, 0.0026, 0.0019, 0.0014, 0.0014, 0.0017],
+                data: {!! $jsCaps !!},
                 borderColor: '#334155',
                 tension: 0.3,
                 fill: false,
@@ -833,7 +478,7 @@ new Chart(ctx, {
             },
             {
                 label: 'OPP LABELS',
-                data: [0.0002, 0.0003, 0.0002, 0.0007, 0.0003, 0.0006, 0.0008, 0.0008, 0.0006, 0.0006, 0.0004, 0.0006],
+                data: {!! $jsOpp !!},
                 borderColor: '#0f172a',
                 tension: 0.3,
                 fill: false,
@@ -842,8 +487,8 @@ new Chart(ctx, {
                 pointHoverRadius: 5
             },
             {
-                label: 'LD PE SHRINK FILM',
-                data: [0.0013, 0.0027, 0.0015, 0.0017, 0.0011, 0.0026, 0.0033, 0.0059, 0.0031, 0.0027, 0.0018, 0.0023],
+                label: 'LDPE SHRINK FILM',
+                data: {!! $jsLdpe !!},
                 borderColor: '#b45309',
                 tension: 0.3,
                 fill: false,
@@ -914,130 +559,3 @@ new Chart(ctx, {
 </script>
 
 @endsection
-
-
-
-
-
-{{-- <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-
-    <div>
-
-    
-<p class="text-sm text-[#2d326b] font-medium mb-2">Production Output</p>
-
-<table class="w-full mt-4 text-xs text-left border border-[#E5E7EB] border-collapse">
-<thead class="text-white uppercase bg-[#35408e]">
-    <tr>
-        <th class="p-1 text-[11px] border border-[#d9d9d9]">Period</th>
-        <th class="p-1 text-[11px] border border-[#d9d9d9] text-center">Month</th>
-        <th class="p-1 text-[11px] border border-[#d9d9d9] text-center">Target Mat'l Efficiency, %</th>
-        <th class="p-1 text-[11px] border border-[#d9d9d9] text-center">Production Output, Cs</th>
-    </tr>
-</thead>
-<tbody>
-    @php
-        $data = [
-            ['P1', 'JANUARY',     198960],
-            ['P2', 'FEBRUARY',    172227],
-            ['P3', 'MARCH',       237982],
-            ['P4', 'APRIL',       193767],
-            ['P5', 'MAY',         308612],
-            ['P6', 'JUNE',        136176],
-            ['P7', 'JULY',        254969],
-            ['P8', 'AUGUST',      263036],
-            ['P9', 'SEPTEMBER',   282720],
-            ['P10', 'OCTOBER',    274888],
-            ['P11', 'NOVEMBER',   279835],
-            ['P12', 'DECEMBER',   224552],
-        ];
-    @endphp
-
-    @foreach ($data as [$period, $month, $output])
-        <tr class="bg-white hover:bg-[#e5f4ff] cursor-pointer">
-            <td class="p-1 border border-[#d9d9d9] text-[#2d326b]">{{ $period }}</td>
-            <td class="p-1 border border-[#d9d9d9] text-center">{{ $month }}</td>
-            <td class="p-1 border border-[#d9d9d9] text-center">1.00%</td>
-            <td class="p-1 border border-[#d9d9d9] text-center">{{ number_format($output) }}</td>
-        </tr>
-    @endforeach
-</tbody>
-</table>
-
-<table class="w-full mt-4 text-xs text-left border border-[#E5E7EB] border-collapse">
-<thead class="text-white uppercase bg-[#35408e]">
-    <tr>
-        <th class="p-1 text-[11px] border border-[#d9d9d9]" colspan="2">Quarter</th>
-        <th class="p-1 text-[11px] border border-[#d9d9d9] text-center">Production Output, Cs</th>
-    </tr>
-</thead>
-<tbody class="text-[#2d326b] text-[11px]">
-    <tr class="bg-white hover:bg-[#e5f4ff] cursor-pointer">
-        <td colspan="2" class="p-1 border border-[#d9d9d9] text-center">Q1</td>
-        <td class="p-1 border border-[#d9d9d9] text-center">{{ number_format(198960 + 172227 + 237982) }}</td>
-    </tr>
-    <tr class="bg-white hover:bg-[#e5f4ff] cursor-pointer">
-        <td colspan="2" class="p-1 border border-[#d9d9d9] text-center">Q2</td>
-        <td class="p-1 border border-[#d9d9d9] text-center">{{ number_format(193767 + 308612 + 136176) }}</td>
-    </tr>
-    <tr class="bg-white hover:bg-[#e5f4ff] cursor-pointer">
-        <td colspan="2" class="p-1 border border-[#d9d9d9] text-center">Q3</td>
-        <td class="p-1 border border-[#d9d9d9] text-center">{{ number_format(254969 + 263036 + 282720) }}</td>
-    </tr>
-    <tr class="bg-white hover:bg-[#e5f4ff] cursor-pointer">
-        <td colspan="2" class="p-1 border border-[#d9d9d9] text-center">Q4</td>
-        <td class="p-1 border border-[#d9d9d9] text-center">{{ number_format(274888 + 279835 + 224552) }}</td>
-    </tr>
-    <tr class="bg-white font-bold">
-        <td colspan="2" class="p-1 border border-[#d9d9d9] text-center">YTD</td>
-        <td class="p-1 border border-[#d9d9d9] text-center text-[13px] text-black">{{ number_format(2827724) }}</td>
-    </tr>
-</tbody>
-</table>
-
-
-    </div>
-<div>
-
-<p class="text-sm text-[#2d326b] font-medium mb-2">Preforms</p>
-
-<table class="w-full mt-4 text-xs text-left border border-[#E5E7EB] border-collapse">
-<thead class="text-white uppercase bg-[#35408e]">
-    <tr>
-        <th class="p-1 text-[11px] border border-[#d9d9d9]">FG Usage</th>
-        <th class="p-1 text-[11px] border border-[#d9d9d9] text-center">Rejects</th>
-        <th class="p-1 text-[11px] border border-[#d9d9d9] text-center">QA Samples</th>
-        <th class="p-1 text-[11px] border border-[#d9d9d9] text-center">% Rejects</th>
-    </tr>
-</thead>
-<tbody class="text-[#2d326b]">
-    @php
-        $data = [
-            [5897953,  9571,  4013, '0.16%'],
-            [5037725, 12191, 3887, '0.24%'],
-            [6608618, 12212, 4969, '0.18%'],
-            [5445576, 11624, 4139, '0.21%'],
-            [5326861, 10370, 5672, '0.19%'],
-            [3131276, 13363, 2800, '0.42%'],
-            [7007506, 35071, 5623, '0.50%'],
-            [7322268, 24241, 5759, '0.33%'],
-            [7713151, 30315, 5917, '0.39%'],
-            [7607893, 15097, 5666, '0.20%'],
-            [7930055, 18251, 5863, '0.23%'],
-            [6219792, 29503, 4957, '0.47%'],
-        ];
-    @endphp
-
-    @foreach ($data as [$usage, $rejects, $samples, $percent])
-        <tr class="bg-white hover:bg-[#e5f4ff] cursor-pointer">
-            <td class="p-1 border border-[#d9d9d9] text-center">{{ number_format($usage) }}</td>
-            <td class="p-1 border border-[#d9d9d9] text-center">{{ number_format($rejects) }}</td>
-            <td class="p-1 border border-[#d9d9d9] text-center">{{ number_format($samples) }}</td>
-            <td class="p-1 border border-[#d9d9d9] text-center">{{ $percent }}</td>
-        </tr>
-    @endforeach
-</tbody>
-</table>
-
-</div>
-</div> --}}

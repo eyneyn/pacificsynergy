@@ -28,6 +28,7 @@ return new class extends Migration
             $table->decimal('alt_preform_for_350ml', 8, 3);
             $table->decimal('preform_weight2', 8, 3);
             $table->timestamps();
+            $table->softDeletes(); // 👈 adds deleted_at column
         });
     }
 

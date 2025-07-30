@@ -21,8 +21,8 @@ class LineQcRejectSeeder extends Seeder
             ['defect_name' => 'Bottle with Pin Hole', 'quantity' => 11],
             ['defect_name' => 'Visible Glue', 'quantity' => 69],
             ['defect_name' => 'Sticky/Messy Bottle', 'quantity' => 284],
-            ['defect_name' => 'Label with Red Tape', 'quantity' => 15],
-            ['defect_name' => 'Dented Bottle', 'quantity' => 15],
+            ['defect_name' => 'Out of square', 'quantity' => 15],
+            ['defect_name' => 'Wrong print LDPE Shrinkfilm', 'quantity' => 15],
         ];
 
         foreach ($rejects as $reject) {

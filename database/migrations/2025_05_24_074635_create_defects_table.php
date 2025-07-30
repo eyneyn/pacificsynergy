@@ -14,9 +14,10 @@ return new class extends Migration
         Schema::create('defects', function (Blueprint $table) {
             $table->id();
             $table->string('defect_name');
-            $table->enum('category', ['Caps', 'Bottle', 'Label', 'Carton']);
+            $table->enum('category', ['Caps', 'Bottle', 'Label', 'LDPE Shrinkfilm']);
             $table->text('description')->nullable();
             $table->timestamps();
+            $table->softDeletes(); // 👈 adds deleted_at column
         });
     }
 

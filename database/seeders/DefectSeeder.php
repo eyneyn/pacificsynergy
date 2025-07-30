@@ -49,12 +49,12 @@ class DefectSeeder extends Seeder
             ['defect_name' => 'Visible glue', 'category' => 'Label', 'description' => '≥ 3mm excess glue on the label'],
             ['defect_name' => 'Sticky/messy bottle', 'category' => 'Label', 'description' => 'Excess glue observed anywhere in the bottle'],
 
-            // CARTON
-            ['defect_name' => 'Out of square', 'category' => 'Carton', 'description' => 'Carton is deformed'],
-            ['defect_name' => 'Weak gluing', 'category' => 'Carton', 'description' => 'Side flap pop out'],
-            ['defect_name' => 'Wrong print carton', 'category' => 'Carton', 'description' => 'Wrong design (refer to approved drawing)'],
-            ['defect_name' => 'Date code compliance', 'category' => 'Carton', 'description' => 'Missing, incomplete, illegible (pls specify in the remarks)'],
-            ['defect_name' => 'Dirty carton', 'category' => 'Carton', 'description' => 'Any dirt or stain observed on the carton'],
+            // LDPE Shrinkfilm
+            ['defect_name' => 'Out of square', 'category' => 'LDPE Shrinkfilm', 'description' => 'LDPE Shrinkfilm is deformed'],
+            ['defect_name' => 'Weak gluing', 'category' => 'LDPE Shrinkfilm', 'description' => 'Side flap pop out'],
+            ['defect_name' => 'Wrong print LDPE Shrinkfilm', 'category' => 'LDPE Shrinkfilm', 'description' => 'Wrong design (refer to approved drawing)'],
+            ['defect_name' => 'Date code compliance', 'category' => 'LDPE Shrinkfilm', 'description' => 'Missing, incomplete, illegible (pls specify in the remarks)'],
+            ['defect_name' => 'Dirty LDPE Shrinkfilm', 'category' => 'LDPE Shrinkfilm', 'description' => 'Any dirt or stain observed on the LDPE Shrinkfilm'],
         ];
 
         foreach ($defects as $defect) {

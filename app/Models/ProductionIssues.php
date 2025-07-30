@@ -16,4 +16,9 @@ class ProductionIssues extends Model
     {
         return $this->belongsTo(Maintenance::class, 'maintenances_id');
     }
+
+public function productionReport()
+{
+    return $this->belongsTo(ProductionReport::class, 'production_reports_id');
+}
 }

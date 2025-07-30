@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="!bg-white !text-gray-900">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -13,11 +13,12 @@
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="font-sans" style="font-family: 'Inter', sans-serif;">
+    <body class="font-sans" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
             @include('layouts.navigation')
 
-            <div class="p-8 lg:ml-64">
-                <div class="p-5 mt-12">
+            <!-- Main Content -->
+            <div id="main-content" class="transition-all duration-300 p-8 ml-0">
+                <div>
                     @yield('content')
                 </div>
             </div>

@@ -1,13 +1,1 @@
-<svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-  <!-- Plus icon (now white via currentColor) -->
-  <path d="M15 12L12 12M12 12L9 12M12 12L12 9M12 12L12 15"
-        stroke="currentColor"
-        stroke-width="1.5"
-        stroke-linecap="round" />
-  
-  <!-- Circular outline (also white via currentColor) -->
-  <path d="M7 3.33782C8.47087 2.48697 10.1786 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 10.1786 2.48697 8.47087 3.33782 7"
-        stroke="currentColor"
-        stroke-width="1.5"
-        stroke-linecap="round" />
-</svg>
+<svg class="w-3 h-3" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#ffffff" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <title></title> <g id="Complete"> <g data-name="add" id="add-2"> <g> <line fill="none" stroke="#fffff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" x1="12" x2="12" y1="19" y2="5"></line> <line fill="none" stroke="#fffff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" x1="5" x2="19" y1="12" y2="12"></line> </g> </g> </g> </g></svg> 

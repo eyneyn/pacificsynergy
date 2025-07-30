@@ -11,25 +11,47 @@ class StandardController extends Controller
     /**
      * Display a listing of the standards, with optional search.
      */
-    public function index(Request $request)
-    {
-        $query = Standard::query();
+public function index(Request $request)
+{
+    $query = Standard::query();
 
-        // Apply search filter if provided
-        if ($request->has('search') && $request->search !== null) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('description', 'like', "%{$search}%")
-                  ->orWhere('size', 'like', "%{$search}%")
-                  ->orWhere('mat_no', 'like', "%{$search}%")
-                  ->orWhere('group', 'like', "%{$search}%");
-            });
-        }
-
-        $standards = $query->orderBy('created_at', 'desc')->paginate(10);
-
-        return view('configuration.standard.index', compact('standards'));
+    // 🔍 Apply search filter if provided
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function ($q) use ($search) {
+            $q->where('description', 'like', "%{$search}%")
+              ->orWhere('size', 'like', "%{$search}%")
+              ->orWhere('bottles_per_case', 'like', "%{$search}%")
+              ->orWhere('mat_no', 'like', "%{$search}%")
+              ->orWhere('group', 'like', "%{$search}%")
+              ->orWhere('preform_weight', 'like', "%{$search}%")
+              ->orWhere('ldpe_size', 'like', "%{$search}%");
+        });
     }
+
+    // 📌 Sorting
+    $sort = $request->get('sort', 'created_at');
+    $direction = $request->get('direction', 'desc');
+
+    if (in_array($sort, [
+        'description','size','bottles_per_case',
+        'mat_no','group','preform_weight','ldpe_size'
+    ])) {
+        $query->orderBy($sort, $direction);
+    } else {
+        $query->orderBy('created_at', 'desc');
+    }
+
+    $standards = $query->paginate(20);
+
+    return view('configuration.standard.index', [
+        'standards' => $standards,
+        'currentSort' => $sort,
+        'currentDirection' => $direction
+    ]);
+}
+
+
 
     /**
      * Show the form for creating a new standard.

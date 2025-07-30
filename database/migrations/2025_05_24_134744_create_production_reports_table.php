@@ -35,8 +35,6 @@ return new class extends Migration
             $table->integer('ac2')->nullable();
             $table->integer('ac3')->nullable();
             $table->integer('ac4')->nullable();
-            $table->integer('manpower_present')->nullable();
-            $table->integer('manpower_absent')->nullable();
 
             // Foreign key to standards table (description)
             $table->string('sku');
@@ -73,6 +71,8 @@ return new class extends Migration
             // Downtime and bottle code
             $table->integer('total_downtime')->default(0);
             $table->string('bottle_code');
+
+            $table->decimal('line_efficiency', 5, 2)->default(0);
 
             $table->timestamps();
         });

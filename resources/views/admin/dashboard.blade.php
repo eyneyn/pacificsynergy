@@ -94,10 +94,6 @@
                class="px-4 py-2 bg-[#2d326b] text-white text-sm font-medium rounded-md hover:bg-[#444d90] transition">
                Manage Roles
             </a>
-            <a href="#"
-               class="px-4 py-2 bg-[#2d326b] text-white text-sm font-medium rounded-md hover:bg-[#444d90] transition">
-               View Activity Logs
-            </a>
         </div>
     </div>
 

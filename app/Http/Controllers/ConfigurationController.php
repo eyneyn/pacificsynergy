@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ProductionIssues;
 use App\Models\ProductionReport;
 use Illuminate\Http\Request;
 use App\Models\Defect;
@@ -29,32 +30,59 @@ class ConfigurationController extends Controller
     /**
      * List defects with search and sort.
      */
-    public function defect(Request $request)
-    {
-        $query = Defect::query();
+public function defect(Request $request)
+{
+    $query = Defect::query();
 
-        // Search filter
-        if ($request->has('search') && $request->search !== null) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('defect_name', 'like', "%{$search}%")
-                  ->orWhere('category', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
-            });
-        }
-
-        // Sorting
-        $sort = $request->get('sort', 'created_at');
-        $direction = $request->get('direction', 'desc');
-        $allowedSorts = ['defect_name', 'category', 'description', 'created_at'];
-        if (!in_array($sort, $allowedSorts)) {
-            $sort = 'created_at';
-        }
-
-        $defects = $query->orderBy($sort, $direction)->paginate(10);
-
-        return view('configuration.defect.index', compact('defects'));
+    // Global search
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function ($q) use ($search) {
+            $q->where('defect_name', 'like', "%{$search}%")
+              ->orWhere('category', 'like', "%{$search}%")
+              ->orWhere('description', 'like', "%{$search}%");
+        });
     }
+
+    // Column-specific searches
+    if ($request->filled('defect_name_search')) {
+        $query->where('defect_name', 'like', "%{$request->defect_name_search}%");
+    }
+
+    if ($request->filled('category_search')) {
+        $query->where('category', 'like', "%{$request->category_search}%");
+    }
+
+    if ($request->filled('description_search')) {
+        $query->where('description', 'like', "%{$request->description_search}%");
+    }
+
+    // Sorting
+    $sort = $request->get('sort', 'created_at');
+    $direction = strtolower($request->get('direction', 'desc'));
+
+    $allowedSorts = ['defect_name', 'category', 'description', 'created_at'];
+    if (!in_array($sort, $allowedSorts)) {
+        $sort = 'created_at';
+    }
+
+    if (!in_array($direction, ['asc', 'desc'])) {
+        $direction = 'desc';
+    }
+
+    // 🔹 Per page handling (default 25)
+    $perPage = $request->get('per_page', 25);
+
+    // Final query
+    $defects = $query->orderBy($sort, $direction)
+                     ->paginate($perPage)
+                     ->appends($request->query()); // keep filters in pagination links
+
+    return view('configuration.defect.index', compact('defects'));
+}
+
+
+
 
     /**
      * View a single defect.
@@ -75,19 +103,41 @@ class ConfigurationController extends Controller
     /**
      * Store a new defect.
      */
-    public function defect_store(Request $request)
-    {
-        $validated = $request->validate([
-            'defect_name' => 'required|string|unique:defects,defect_name',
-            'category' => 'required|in:Caps,Bottle,Label,Carton',
-            'description' => 'nullable|string',
-        ]);
+public function defect_store(Request $request)
+{
+    $validated = $request->validate([
+        'defect_name' => [
+            'required',
+            'string',
+            // check unique but ignore soft-deleted rows
+            Rule::unique('defects', 'defect_name')->whereNull('deleted_at'),
+        ],
+        'category' => 'required|in:Caps,Bottle,Label,LDPE Shrinkfilm',
+        'description' => 'nullable|string',
+    ]);
 
-        $defect = Defect::create($validated);
+    // Check if the defect already exists but is soft-deleted
+    $trashedDefect = Defect::withTrashed()
+        ->where('defect_name', $validated['defect_name'])
+        ->first();
 
-        return redirect()->route('configuration.defect.view', $defect)
-                         ->with('success', 'Defect added successfully!');
+    if ($trashedDefect && $trashedDefect->trashed()) {
+        // Restore instead of creating a duplicate
+        $trashedDefect->restore();
+        $trashedDefect->update($validated);
+
+        return redirect()
+            ->route('configuration.defect.view', $trashedDefect)
+            ->with('success', "Defect '{$trashedDefect->defect_name}' restored successfully!");
     }
+
+    // If not soft-deleted, create new
+    $defect = Defect::create($validated);
+
+    return redirect()
+        ->route('configuration.defect.view', $defect)
+        ->with('success', 'Defect added successfully!');
+}
 
     /**
      * Show edit defect form.
@@ -108,7 +158,7 @@ class ConfigurationController extends Controller
                 'string',
                 Rule::unique('defects', 'defect_name')->ignore($defect->id),
             ],
-            'category' => 'required|in:Caps,Bottle,Label,Carton',
+            'category' => 'required|in:Caps,Bottle,Label,LDPE Shrinkfilm',
             'description' => 'nullable|string',
         ]);
 
@@ -121,20 +171,15 @@ class ConfigurationController extends Controller
     /**
      * Delete a defect if not used in QC Rejects.
      */
-    public function defect_destroy(Defect $defect)
-    {
-        $isUsed = LineQcReject::where('sku', $defect->id)->exists();
+public function defect_destroy(Defect $defect)
+{
+    $defect->delete(); // soft delete
 
-        if ($isUsed) {
-            return redirect()->back()->withErrors([
-                'defect_delete' => "Defect \"{$defect->defect_name}\" is used in QC Rejects and cannot be deleted."
-            ]);
-        }
+    return redirect()
+        ->route('configuration.defect.index') // go back to index page
+        ->with('success', "Defect '{$defect->defect_name}' deleted successfully.");
+}
 
-        $defect->delete();
-
-        return redirect()->route('configuration.defect.index')->with('success', 'Defect deleted successfully.');
-    }
 
     // ===================== Maintenance =====================
 
@@ -145,18 +190,14 @@ class ConfigurationController extends Controller
     {
         $query = Maintenance::query();
 
-        // Search filter
-        if ($request->has('search') && $request->search !== null) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('production_date', 'like', "%{$search}%")
-                  ->orWhere('type', 'like', "%{$search}%")
-                  ->orWhere('type', 'like', "%{$search}%")
-                  ->orWhere('type', 'like', "%{$search}%")
-                  ->orWhere('type', 'like', "%{$search}%")
-                  ->orWhere('type', 'like', "%{$search}%");
-            });
-        }
+// Search filter
+if ($request->filled('search')) {
+    $search = $request->search;
+    $query->where(function ($q) use ($search) {
+        $q->where('name', 'like', "%{$search}%")
+          ->orWhere('type', 'like', "%{$search}%");
+    });
+}
 
         // Sorting
         $sort = $request->get('sort', 'created_at');
@@ -237,20 +278,21 @@ class ConfigurationController extends Controller
     /**
      * Delete a maintenance record if not used.
      */
-    public function maintenance_destroy(Maintenance $maintenance)
-    {
-        $isUsed = LineQcReject::where('id', $maintenance->id)->exists();
+public function maintenance_destroy(Maintenance $maintenance)
+{
+    // Check if maintenance is used in production_issues
+    $isUsed = ProductionIssues::where('maintenances_id', $maintenance->id)->exists();
 
-        if ($isUsed) {
-            return redirect()->route('configuration.maintenance.index')->withErrors([
-                'maintenance_delete' => "\"{$maintenance->name}\" is currently in use and cannot be deleted."
-            ]);
-        }
-
-        $maintenance->delete();
-
-        return redirect()->route('configuration.maintenance.index')->with('success', 'Maintenance record deleted successfully.');
+    if ($isUsed) {
+        return redirect()->route('configuration.maintenance.index')->withErrors([
+            'maintenance_delete' => "\"{$maintenance->name}\" is currently in use and cannot be deleted."
+        ]);
     }
+
+    $maintenance->delete();
+
+    return redirect()->route('configuration.maintenance.index')->with('success', 'Maintenance record deleted successfully.');
+}
 
     // ===================== Line =====================
 
@@ -288,7 +330,7 @@ class ConfigurationController extends Controller
             if ($trashedLine->trashed()) {
                 $trashedLine->restore();
                 $trashedLine->update(['status' => $validated['status']]);
-                return redirect()->back()->with('success', "Line {$validated['line_number']} was restored.");
+                return redirect()->back()->with('success', "Line saved successfully!");
             } else {
                 return redirect()->back()
                     ->withErrors(['line_number' => 'The line number has already been taken.'])
@@ -324,15 +366,7 @@ class ConfigurationController extends Controller
     {
         $line = Line::findOrFail($line_number);
 
-        $isUsed = ProductionReport::where('line', $line_number)->exists();
-
-        if ($isUsed) {
-            return redirect()->back()->withErrors([
-                'line_delete' => "Line {$line_number} is in use in production reports and cannot be deleted."
-            ]);
-        }
-
-        $line->delete();
+        $line->delete(); // soft delete
 
         return redirect()->back()->with('success', "Line {$line_number} deleted successfully.");
     }

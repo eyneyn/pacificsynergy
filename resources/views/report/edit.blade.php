@@ -35,6 +35,35 @@
                 </button>
             </div>
 
+<!-- Line Efficiency Input (One Row) -->
+<div class="mb-4 space-x-4">
+    <label for="line_efficiency" class="w-full text-sm font-medium text-[#2d326b]">
+        Line Efficiency (%)
+    </label>
+    <input 
+        type="number"
+        name="line_efficiency"
+        id="line_efficiency"
+        step="0.01"
+        min="0"
+        max="100"
+        inputmode="decimal"
+        oninput="
+            const val = parseFloat(this.value);
+            if (val > 100) this.value = 100;
+            if (val < 0) this.value = 0;
+        "
+        class="w-1/6 border border-gray-300 rounded placeholder-gray-400 px-2 py-1 text-sm text-center"
+        value="{{ old('line_efficiency', $report->line_efficiency) }}"
+        placeholder="(e.g. 98.75)"
+    >
+</div>
+
+
+
+
+
+
             <!-- Basic Production Form Table -->
             <table class="min-w-full text-sm border border-gray-200 shadow-sm">
                 <thead class="bg-gray-100 text-[#2d326b]">
@@ -49,17 +78,32 @@
                     <tr>
                         <td class="font-medium text-[#2d326b] px-4 py-2">Running SKU</td>
                         <td class="px-4 py-2">
-                            <x-select-dropdown name="sku" value="{{ old('sku', $report->sku) }}" :options="$skus->pluck('description', 'description')->toArray()" placeholder="Select SKU" required />
+                            <x-select-dropdown name="sku" value="{{ old('sku', $report->sku) }}" :options="$skus->pluck('description', 'description')->toArray()" placeholder="Select SKU"   />
                         </td>
                         <td class="font-medium text-[#2d326b] px-4 py-2">Production Date</td>
                         <td class="px-4 py-2">
-                            <input type="date" name="production_date" value="{{ old('production_date', $report->production_date) }}" class="w-full border border-gray-300 rounded px-3 py-1 text-sm" required>
+
+@php
+    $formattedDate = old('production_date') 
+        ?? (\Carbon\Carbon::parse($report->production_date)->format('m/d/Y'));
+@endphp
+
+<input 
+    type="text" 
+    id="production_date" 
+    name="production_date" 
+    datepicker 
+    datepicker-autohide  
+    value="{{ $formattedDate }}" 
+    class="w-full border border-gray-300 rounded px-3 py-1 text-sm" 
+>
+
                         </td>
                     </tr>
                     <tr>
                         <td class="font-medium text-[#2d326b] px-4 py-2">Shift</td>
                         <td class="px-4 py-2">
-                            <x-select-dropdown name="shift" value="{{ old('shift', $report->shift) }}" :options="['00:00H - 24:00H' => '00:00H - 24:00H']" required />
+                            <x-select-dropdown name="shift" value="{{ old('shift', $report->shift) }}" :options="['00:00H - 24:00H' => '00:00H - 24:00H']"   />
                         </td>
                         <td class="font-medium text-[#2d326b] px-4 py-2">AC Temperatures</td>
                         <td class="px-4 py-2">
@@ -79,7 +123,7 @@
                     <tr>
                         <td class="font-medium text-[#2d326b] px-4 py-2">Line #</td>
                         <td class="px-4 py-2">
-                            <x-select-dropdown name="line" value="{{ old('line', $report->line) }}" :options="$lineOptions->toArray()" required />
+                            <x-select-dropdown name="line" value="{{ old('line', $report->line) }}" :options="$lineOptions->toArray()"   />
                         </td>
                         <td class="font-medium text-[#2d326b] px-4 py-2">Total Output (Cases)</td>
                         <td class="px-4 py-2">
@@ -94,16 +138,6 @@
                         <td class="font-medium text-[#2d326b] px-4 py-2">LBO/LCO</td>
                         <td class="px-4 py-2">
                             <x-select-dropdown name="lbo_lco" value="{{ old('lbo_lco', $report->lbo_lco) }}" :options="['24:00H - 24:00H' => '24:00H - 24:00H']" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="font-medium text-[#2d326b] px-4 py-2">Manpower Present</td>
-                        <td class="px-4 py-2">
-                            <input type="text" name="manpower_present" value="{{ old('manpower_present', $report->manpower_present) }}" class="w-full border border-gray-300 rounded px-3 py-1 text-sm text-center">
-                        </td>
-                        <td class="font-medium text-[#2d326b] px-4 py-2">Manpower Absent</td>
-                        <td class="px-4 py-2">
-                            <input type="text" name="manpower_absent" value="{{ old('manpower_absent', $report->manpower_absent) }}" class="w-full border border-gray-300 rounded px-3 py-1 text-sm text-center">
                         </td>
                     </tr>
                 </tbody>
@@ -274,7 +308,7 @@
                 <tr>
                     <td colspan="6">
                         <div class="grid md:grid-cols-2 gap-2">
-                            @foreach (['Caps', 'Bottle', 'Label', 'Carton'] as $category)
+                            @foreach (['Caps', 'Bottle', 'Label', 'LDPE Shrinkfilm'] as $category)
                                 <div class="pl-3 pr-3 p-3 border-l border-r border-gray-200 flex flex-col gap-2">
                                     <!-- QC Rejects Category Header and Add Button -->
                                     <div class="flex items-center justify-between">
@@ -327,7 +361,7 @@
                                     'Caps': @json($qcRejects['Caps']),
                                     'Bottle': @json($qcRejects['Bottle']),
                                     'Label': @json($qcRejects['Label']),
-                                    'Carton': @json($qcRejects['Carton']),
+                                    'LDPE Shrinkfilm': @json($qcRejects['LDPE Shrinkfilm']),
                                 }
                             },
                             // Add new issue row

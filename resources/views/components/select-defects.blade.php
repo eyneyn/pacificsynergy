@@ -2,67 +2,93 @@
 
 @php
     $selectedValue = old($name, $value);
-    $selectedLabel = $options[$selectedValue] ?? $placeholder;
+    $selectedLabel = $options[$selectedValue] ?? '';
 @endphp
 
 <div
     x-data="{
         open: false,
+        search: '{{ $selectedLabel }}',
         selected: '{{ $selectedValue }}',
-        label: '{{ $selectedLabel }}',
+        options: @js($options),
+        focusedIndex: -1,
+        filteredOptions() {
+            if (!this.search) return Object.entries(this.options);
+            return Object.entries(this.options).filter(([value, label]) =>
+                label.toLowerCase().includes(this.search.toLowerCase())
+            );
+        },
         selectOption(value, label) {
             this.selected = value;
-            this.label = label;
+            this.search = label;
             this.open = false;
+        },
+        moveFocus(dir) {
+            const count = this.filteredOptions().length;
+            if (count === 0) return;
+            this.focusedIndex = (this.focusedIndex + dir + count) % count;
+            this.scrollIntoView();
+        },
+        scrollIntoView() {
+            this.$nextTick(() => {
+                const options = this.$refs.dropdownOptions?.children;
+                if (options?.[this.focusedIndex]) {
+                    options[this.focusedIndex].scrollIntoView({ block: 'nearest' });
+                }
+            });
+        },
+        selectFocused() {
+            const entry = this.filteredOptions()[this.focusedIndex];
+            if (entry) this.selectOption(entry[0], entry[1]);
         }
     }"
     x-ref="{{ $name }}Dropdown"
     class="relative w-full"
 >
-    <!-- Styled Trigger Button -->
-    <button
-        type="button"
-        @click="open = !open"
-        class="w-full text-sm rounded border border-gray-300 bg-white px-3 py-[0.375rem] text-left flex justify-between items-center hover:shadow-lg hover:border-[#2d326b] focus:border-[#2d326b] focus:ring focus:ring-[#2d326b] focus:ring-0 transition"
-    >
-        <span 
-            class="truncate"
-            :class="label === '{{ $placeholder }}' ? 'text-gray-400' : 'text-[#2d326b]'" 
-            x-text="label">
-        </span>
-        <svg class="w-4 h-4 ml-2 text-gray-500 transform transition-transform"
-             :class="{ 'rotate-180': open }"
-             fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M19 9l-7 7-7-7" />
-        </svg>
-    </button>
+    <div @click.away="open = false">
+        <!-- Input Field -->
+        <input
+            type="text"
+            x-model="search"
+            @focus="open = true"
+            @mousedown="open = true"
+            @keydown.arrow-down.prevent="moveFocus(1)"
+            @keydown.arrow-up.prevent="moveFocus(-1)"
+            @keydown.enter.prevent="selectFocused()"
+            @keydown.escape="open = false"
+            placeholder="{{ $placeholder }}"
+            class="w-full text-sm border border-gray-300 bg-white px-3 py-[0.375rem] focus:border-[#2d326b] focus:ring focus:ring-[#2d326b] focus:ring-0 transition"
+            :class="{ 'text-gray-400': search === '' }"
+        >
 
-    <!-- Dropdown Options -->
-    <div 
-        x-show="open"
-        @click.away="open = false"
-        x-transition
-        class="absolute z-10 w-full bottom-full mb-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
-    >
-        @foreach ($options as $value => $label)
-            <div 
-                @click="selectOption('{{ $value }}', '{{ $label }}')"
-                class="px-4 py-2 text-sm cursor-pointer transition"
-                :class="{ 
-                    'bg-[#C7D2FE]': selected === '{{ $value }}', 
-                    'hover:bg-[#C7D2FE]': true 
-                }"
-            >
-                {{ $label }}
+        <!-- Dropdown Options Above Input -->
+        <div
+            x-show="open"
+            x-transition
+            class="absolute z-10 w-full bottom-full mb-1 bg-white border border-gray-300 shadow-lg max-h-60 overflow-auto"
+            x-ref="dropdownOptions"
+        >
+            <template x-for="([value, label], index) in filteredOptions()" :key="value">
+                <div
+                    @click="selectOption(value, label)"
+                    :class="{
+                        'bg-[#C7D2FE]': selected === value || focusedIndex === index,
+                        'hover:bg-[#C7D2FE]': true
+                    }"
+                    class="px-4 py-2 text-sm cursor-pointer transition"
+                    x-text="label"
+                ></div>
+            </template>
+
+            <div x-show="filteredOptions().length === 0" class="px-4 py-2 text-sm text-gray-500">
+                No results found.
             </div>
-        @endforeach
+        </div>
     </div>
 
-    <!-- Hidden Input with dynamic required -->
+    <!-- Hidden Input for Form -->
     <input type="hidden" name="{{ $name }}" :value="selected" @if($required) required @endif>
 
-    <!-- Validation Error -->
     @error($name)
         <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
     @enderror

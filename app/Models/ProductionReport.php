@@ -38,6 +38,8 @@ class ProductionReport extends Model
 
         'total_downtime',
         'bottle_code',
+
+        'line_efficiency',
         
         'user_id'
     ];
@@ -66,12 +68,17 @@ public function lineQcRejects()
     return $this->hasMany(LineQcReject::class, 'production_reports_id')->with('defect');
 }
 
-    public function maintenances()
-    {
-        return $this->belongsToMany('App\Models\Maintenance', 'production_report_maintenance', 'production_report_id', 'maintenance_id');
-    }
+public function maintenances()
+{
+    return $this->belongsToMany(Maintenance::class, 'maintenance_production_report', 'production_report_id', 'maintenance_id');
+}
+
     public function statuses()
 {
     return $this->hasMany(Status::class);
+}
+public function histories()
+{
+    return $this->hasMany(ProductionReportHistory::class);
 }
 }

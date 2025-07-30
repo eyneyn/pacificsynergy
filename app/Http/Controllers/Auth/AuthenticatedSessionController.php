@@ -31,7 +31,6 @@ class AuthenticatedSessionController extends Controller
 
         $redirectMap = [
             'user.dashboard' => route('admin.dashboard'),
-            'analytics.dashboard' => route('analytics.dashboard'),
             'report.index' => route('report.index'),
             'analytics.index' => route('analytics.index'),
 

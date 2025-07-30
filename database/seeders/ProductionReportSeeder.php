@@ -18,8 +18,6 @@ class ProductionReportSeeder extends Seeder
             'ac2' => 17,
             'ac3' => 17,
             'ac4' => 17,
-            'manpower_present' => 0,
-            'manpower_absent' => 0,
             'sku' => 'AQUASPRING 350 x24',
             'fbo_fco' => '00:00H - 00:00H',
             'lbo_lco' => '24:00H - 24:00H',

@@ -5,7 +5,10 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\Auth;
 use App\Models\ProductionReport;
+use App\Models\Status;
+use App\Models\ProductionReportHistory;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -27,10 +30,24 @@ class AppServiceProvider extends ServiceProvider
             return $user->hasRole('Admin') ? true : null;
         });
 
-        // ✅ Share Submitted Reports Count Globally
-        //View::composer('*', function ($view) {
-            //$submittedCount = ProductionReport::where('status', 'Submitted')->count();
-            //$view->with('submittedReportCount', $submittedCount);
-        //});
-    }
+View::composer('*', function ($view) {
+    $userId = Auth::id();
+
+    $statusNotifications = Status::with(['productionReport', 'user'])
+        ->where('user_id', $userId)
+        ->latest()
+        ->take(5)
+        ->get();
+
+    $changeLogs = ProductionReportHistory::with(['report', 'user'])
+        ->where('updated_by', $userId)
+        ->orderBy('updated_at', 'desc')
+        ->take(5)
+        ->get();
+
+    $view->with('statusNotifications', $statusNotifications);
+    $view->with('changeLogs', $changeLogs);
+});
+
+}
 }

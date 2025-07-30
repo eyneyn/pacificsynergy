@@ -1,5 +1,5 @@
 {{-- Logout Navigation Partial --}}
-<ul class="pt-4 mt-4 space-y-2 font-medium border-t border-gray-200 dark:border-gray-700">
+<ul class="pt-4 mt-4 space-y-2 font-medium border-t border-gray-200">
     <li>
         <form method="POST" action="{{ route('logout') }}">
             @csrf
@@ -7,7 +7,7 @@
             <a href="{{ route('logout') }}" 
                onclick="event.preventDefault(); this.closest('form').submit();" 
                class="flex items-center p-2 text-white rounded-lg hover:bg-[#363c7e] transition">
-                <svg class="shrink-0 w-4 h-4 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" 
+                <svg class="shrink-0 w-4 h-4 text-gray-300 transition duration-75 group-hover:text-white" 
                      xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96.943 96.943" fill="currentColor" aria-hidden="true">
                     <g>
                         <path d="M61.168,83.92H11.364V13.025H61.17c1.104,0,2-0.896,2-2V3.66c0-1.104-0.896-2-2-2H2c-1.104,0-2,0.896-2,2v89.623 c0,1.104,0.896,2,2,2h59.168c1.105,0,2-0.896,2-2V85.92C63.168,84.814,62.274,83.92,61.168,83.92z"></path>

@@ -1,34 +1,37 @@
 @extends('layouts.app')
 
 @section('content')
-<!-- Back Button -->
-<a href="{{ url('report/index') }}" class="flex items-center text-sm text-gray-500 hover:text-[#2d326b] mb-4">
-    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-    </svg>
-    Production Report
-</a>
 
-<!-- Card Container -->
-<div class="bg-white rounded-sm border border-gray-200 p-6 shadow-md space-y-5 transition-all duration-300 hover:shadow-xl hover:border-[#E5E7EB]">
+<div class="container mx-auto px-4">
+    <!-- Header with Icon and Title -->
+    <div class="mb-4">
+        <h1 class="text-xl font-bold text-[#23527c]">
+            Daily Production Report
+        </h1>
+    </div>
+
+        <div class=" border-t border-[#E5E7EB]">
+                            <div class="flex items-center justify-between mt-6">
+                                        {{-- Back Button --}}
+                <a href="{{ url('report/index') }}" class="inline-flex items-center px-3 py-2 bg-[#5a9fd4] hover:bg-[#4a8bc2] text-white text-sm font-medium transition-colors duration-200 border border-[#4590ca] hover:border-[#4a8bc2]">
+                    <x-icons-back class="w-2 h-2 text-white" />
+                    Back
+                </a>
+                    <button type="submit"
+                        class="inline-flex items-center justify-center gap-1 bg-[#5bb75b] border border-[#43a143] text-white px-3 py-2 hover:bg-[#42a542] text-sm">
+                        <x-icons-save class="w-2 h-2 text-white" />
+                        Save
+                    </button>
+                </div>
+
+
     <form action="{{ route('report.store') }}" method="POST">
         @csrf
 
-        <!-- Title -->
-        <div class="flex-1 text-center">
-            <h2 class="text-2xl m-4 font-bold text-[#2d326b]">Daily Production Report</h2>
-        </div>
 
         <div class="space-y-5">
             <!-- Header -->
             <div class="mb-6">
-                <div class="flex items-center justify-between">
-                    <h4 class="text-lg font-semibold text-[#2d326b]">Basic Production Details</h4>
-                    <button type="submit"
-                        class="inline-flex items-center gap-2 p-3 py-2 bg-[#323B76] hover:bg-[#444d90] border border-[#323B76] text-white text-sm font-medium rounded-md">
-                        Save Report
-                    </button>
-                </div>
 
                 {{-- Centered Duplicate Error --}}
                 @if ($errors->has('duplicate'))
@@ -41,79 +44,105 @@
             </div>
 
             <!-- Basic Production Form Table -->
-            <table class="min-w-full text-sm border border-gray-200 shadow-sm">
-                <thead class="bg-gray-100 text-[#2d326b]">
+            <table class="min-w-full text-sm border border-[#E5E7EB] shadow-sm">
+                <thead class="uppercase text-[#23527c] bg-[#e2f2ff]">
                     <tr>
-                        <th class="text-left px-4 py-3 w-1/4">Field</th>
-                        <th class="text-left px-4 py-3 w-1/4">Value</th>
-                        <th class="text-left px-4 py-3 w-1/4">Field</th>
-                        <th class="text-left px-4 py-3 w-1/4">Value</th>
+                        <th class="text-left p-3 w-1/4 font-bold">Production Details</th>
+                        <th class="p-3 w-1/4"></th>
+                        <th class="p-3 w-1/4"></th>
+                        <th class="p-3 w-1/4"></th>
                     </tr>
                 </thead>
                 <tbody class="text-gray-700 divide-y divide-gray-200">
                     <tr>
-                        <td class="font-medium text-[#2d326b] px-4 py-2">Running SKU</td>
-                        <td class="px-4 py-2">
+                        <td class="font-medium text-[#2d326b] px-3 py-1">Running SKU</td>
+                        <td class="p-2">
                             <x-select-dropdown name="sku" :options="$skus->pluck('description', 'description')->toArray()" :selected="old('sku')" placeholder="Select SKU" required />
                         </td>
-                        <td class="font-medium text-[#2d326b] px-4 py-2">Production Date</td>
-                        <td class="px-4 py-2">
-                            <input type="date" name="production_date" class="w-full border border-gray-300 rounded px-3 py-1 text-sm" value="{{ old('production_date') }}" required>
+                        <td class="font-medium text-[#2d326b] px-3 py-1">Production Date</td>
+                        <td class="p-2">
+@php
+    use Carbon\Carbon;
+    $todayManila = Carbon::now('Asia/Manila')->toDateString(); // YYYY-MM-DD
+@endphp
+
+<input 
+    id="production_date" 
+    name="production_date" 
+    datepicker 
+    datepicker-autohide 
+    datepicker-buttons 
+    datepicker-autoselect-today
+    type="text" 
+    class="text-sm w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400"
+    placeholder="Select production date"
+    value="{{ old('production_date') }}"
+    required
+>
+
+
+
+
                         </td>
                     </tr>
                     <tr>
-                        <td class="font-medium text-[#2d326b] px-4 py-2">Shift</td>
-                        <td class="px-4 py-2">
-                            <x-select-dropdown name="shift" :options="['00:00H - 24:00H' => '00:00H - 24:00H']" :selected="old('shift')" required />
+                        <td class="font-medium text-[#2d326b] px-3 py-1">Shift</td>
+                        <td class="p-2">
+                            <x-select-dropdown name="shift" class="placeholder-gray-400" :selected="old('shift', '00:00H - 24:00H')"  :options="['00:00H - 24:00H' => '00:00H - 24:00H']" required />
                         </td>
-                        <td class="font-medium text-[#2d326b] px-4 py-2">AC Temperatures</td>
-                        <td class="px-4 py-2">
+                        <td class="font-medium text-[#2d326b] px-3 py-1">AC Temperatures</td>
+                        <td class="p-2">
                             <div class="grid grid-cols-4 gap-1">
                                 @for ($i = 1; $i <= 4; $i++)
-                                    <input type="text" name="ac{{ $i }}" placeholder="AC {{ $i }}" value="{{ old('ac' . $i) }}" class="w-full border border-gray-300 rounded placeholder-gray-400 px-2 py-1 text-sm text-center">
+                                    <input type="text" name="ac{{ $i }}" placeholder="AC {{ $i }}" value="{{ old('ac' . $i) }}" class="text-sm w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400">
                                 @endfor
                             </div>
                         </td>
                     </tr>
                     <tr>
-                        <td class="font-medium text-[#2d326b] px-4 py-2">Line #</td>
-                        <td class="px-4 py-2">
+                        <td class="font-medium text-[#2d326b] px-3 py-1">Line #</td>
+                        <td class="p-2">
                             <x-select-dropdown name="line" :options="$lineOptions->toArray()" :selected="old('line')" placeholder="Select Line" required />
                         </td>
-                        <td class="font-medium text-[#2d326b] px-4 py-2">Total Output (Cases)</td>
-                        <td class="px-4 py-2">
-                            <input type="text" name="total_outputCase" placeholder="cases" value="{{ old('total_outputCase') }}" class="w-full border border-gray-300 placeholder-gray-400 rounded px-3 py-1 text-sm text-center">
+                        <td class="font-medium text-[#2d326b] px-3 py-1">Total Output (Cases)</td>
+                        <td class="p-2">
+                            <input type="text" name="total_outputCase" placeholder="cases" value="{{ old('total_outputCase') }}" class="text-sm w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400">
                         </td>
                     </tr>
                     <tr>
-                        <td class="font-medium text-[#2d326b] px-4 py-2">FBO/FCO</td>
-                        <td class="px-4 py-2">
-                            <x-select-dropdown name="fbo_fco" :options="['00:00H - 00:00H' => '00:00H - 00:00H']" :selected="old('fbo_fco')" />
-                        </td>
-                        <td class="font-medium text-[#2d326b] px-4 py-2">LBO/LCO</td>
-                        <td class="px-4 py-2">
-                            <x-select-dropdown name="lbo_lco" :options="['24:00H - 24:00H' => '24:00H - 24:00H']" :selected="old('lbo_lco')" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="font-medium text-[#2d326b] px-4 py-2">Manpower Present</td>
-                        <td class="px-4 py-2">
-                            <input type="text" name="manpower_present" value="{{ old('manpower_present') }}" class="w-full border border-gray-300 rounded px-3 py-1 text-sm text-center">
-                        </td>
-                        <td class="font-medium text-[#2d326b] px-4 py-2">Manpower Absent</td>
-                        <td class="px-4 py-2">
-                            <input type="text" name="manpower_absent" value="{{ old('manpower_absent') }}" class="w-full border border-gray-300 rounded px-3 py-1 text-sm text-center">
-                        </td>
+                        <td class="font-medium text-[#2d326b] px-3 py-1">FBO/FCO</td>
+                        <td class="p-2">
+<!-- FBO/FCO Input -->
+<input 
+    type="text" 
+    name="fbo_fco" 
+    class="text-sm w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400" 
+    placeholder="Format must be like 00:00H/00:00H"
+    value="{{ old('fbo_fco') }}"
+    pattern="\d{2}:\d{2}H/\d{2}:\d{2}H"
+    title="Format must be like 00:00H/00:00H"
+/>                       </td>
+                        <td class="font-medium text-[#2d326b] px-3 py-1">LBO/LCO</td>
+                        <td class="p-2">
+<!-- LBO/LCO Input -->
+<input 
+    type="text" 
+    name="lbo_lco" 
+    class="text-sm w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400" 
+    placeholder="Format must be like 00:00H/00:00H"
+    value="{{ old('lbo_lco') }}"
+    pattern="\d{2}:\d{2}H/\d{2}:\d{2}H"
+    title="Format must be like 00:00H/00:00H"
+/>                        </td>
                     </tr>
                 </tbody>
             </table>
 
             <!-- Filling Line and Blow Molding Section -->
-            <h4 class="text-lg font-semibold text-[#2d326b]">Filling Line and Blow Molding</h4>
-            <table class="min-w-full text-sm border border-gray-200 shadow-sm">
-                <thead class="bg-gray-100 text-[#2d326b]">
+            <table class="min-w-full text-sm border border-[#E5E7EB] shadow-sm">
+                <thead class="uppercase text-[#23527c] bg-[#e2f2ff]">
                     <tr>
-                        <th class="text-left px-4 py-3 w-1/6">Filling Line</th>
+                        <th class="text-left p-3 w-1/6 font-bold">Filling Line</th>
                         <th class="text-left px-4 py-3 w-1/6"></th>
                         <th class="text-left px-4 py-3 w-1/6"></th>
                         <th class="text-left px-4 py-3 w-1/6"></th>
@@ -125,36 +154,36 @@
                     <tr>
                         <td class="font-medium text-[#2d326b] px-4 py-2 text-xs">Speed (Bottles per Hour) <span class="text-sm">Filler Speed</span></td>
                         <td class="px-4 py-2">
-                            <input type="text" name="filler_speed" placeholder="bph" value="{{ old('filler_speed') }}" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
+                            <input type="text" name="filler_speed" placeholder="bph" value="{{ old('filler_speed') }}" class="w-full border border-gray-300 placeholder-gray-400  px-2 py-1 text-sm text-center">
                         </td>
                         <td class="font-medium text-[#2d326b] px-4 py-2 text-xs">RM Rejects <br><span class="text-sm">Opp/Labels</span></td>
                         <td class="px-4 py-2">
-                            <input type="text" name="opp_labels" placeholder="pcs" value="{{ old('opp_labels') }}" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
+                            <input type="text" name="opp_labels" placeholder="pcs" value="{{ old('opp_labels') }}" class="w-full border border-gray-300 placeholder-gray-400  px-2 py-1 text-sm text-center">
                         </td>
                         <td class="font-medium text-[#2d326b] px-4 py-2">Bottle</td>
                         <td class="px-4 py-2">
-                            <input type="text" name="bottle_filling" placeholder="pcs" value="{{ old('bottle_filling') }}" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
+                            <input type="text" name="bottle_filling" placeholder="pcs" value="{{ old('bottle_filling') }}" class="w-full border border-gray-300 placeholder-gray-400  px-2 py-1 text-sm text-center">
                         </td>
                     </tr>
                     <tr>
                         <td class="font-medium text-[#2d326b] px-4 py-2">OPP/Labeler Speed</td>
                         <td class="px-4 py-2">
-                            <input type="text" name="opp_labeler_speed" placeholder="0" value="{{ old('opp_labeler_speed') }}" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
+                            <input type="text" name="opp_labeler_speed" placeholder="0" value="{{ old('opp_labeler_speed') }}" class="w-full border border-gray-300 placeholder-gray-400  px-2 py-1 text-sm text-center">
                         </td>
                         <td class="font-medium text-[#2d326b] px-4 py-2">Shrinkfilm</td>
                         <td class="px-4 py-2">
-                            <input type="text" name="shrinkfilm" placeholder="pcs" value="{{ old('shrinkfilm') }}" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
+                            <input type="text" name="shrinkfilm" placeholder="pcs" value="{{ old('shrinkfilm') }}" class="w-full border border-gray-300 placeholder-gray-400  px-2 py-1 text-sm text-center">
                         </td>
                         <td class="font-medium text-[#2d326b] px-4 py-2">Caps</td>
                         <td class="px-4 py-2">
-                            <input type="text" name="caps_filling" placeholder="pcs" value="{{ old('caps_filling') }}" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
+                            <input type="text" name="caps_filling" placeholder="pcs" value="{{ old('caps_filling') }}" class="w-full border border-gray-300 placeholder-gray-400  px-2 py-1 text-sm text-center">
                         </td>
                     </tr>
                 </tbody>
                 <!-- Blow Molding Section -->
-                <thead class="bg-gray-100 text-[#2d326b]">
+                <thead class="uppercase text-[#23527c] bg-[#e2f2ff]">
                     <tr>
-                        <th class="text-left px-4 py-3 w-1/6">Blow Molding</th>
+                        <th class="text-left p-3 w-1/6 font-bold">Blow Molding</th>
                         <th class="text-left px-4 py-3 w-1/6"></th>
                         <th class="text-left px-4 py-3 w-1/6"></th>
                         <th class="text-left px-4 py-3 w-1/6"></th>
@@ -166,21 +195,21 @@
                     <tr>
                         <td class="font-medium text-[#2d326b] px-4 py-2">Blow Molding Output</td>
                         <td class="px-4 py-2">
-                            <input type="text" name="blow_molding_output" placeholder="pcs" value="{{ old('blow_molding_output') }}" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
+                            <input type="text" name="blow_molding_output" placeholder="pcs" value="{{ old('blow_molding_output') }}" class="w-full border border-gray-300 placeholder-gray-400  px-2 py-1 text-sm text-center">
                         </td>
                         <td class="font-medium text-[#2d326b] px-4 py-2 text-xs">Blow Molding Rejects <span class="text-sm">Preform</span></td>
                         <td class="px-4 py-2">
-                            <input type="text" name="speed_blow_molding" placeholder="pcs" value="{{ old('speed_blow_molding') }}" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
+                            <input type="text" name="speed_blow_molding" placeholder="pcs" value="{{ old('speed_blow_molding') }}" class="w-full border border-gray-300 placeholder-gray-400  px-2 py-1 text-sm text-center">
                         </td>
                         <td class="font-medium text-[#2d326b] px-4 py-2">Bottles</td>
                         <td class="px-4 py-2">
-                            <input type="text" name="preform_blow_molding" placeholder="pcs" value="{{ old('preform_blow_molding') }}" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
+                            <input type="text" name="preform_blow_molding" placeholder="pcs" value="{{ old('preform_blow_molding') }}" class="w-full border border-gray-300 placeholder-gray-400  px-2 py-1 text-sm text-center">
                         </td>
                     </tr>
                     <tr>
                         <td class="font-medium text-[#2d326b] px-4 py-2">Speed (Bottles/Hour)</td>
                         <td class="px-4 py-2">
-                            <input type="text" name="bottles_blow_molding" placeholder="bph" value="{{ old('bottles_blow_molding') }}" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
+                            <input type="text" name="bottles_blow_molding" placeholder="bph" value="{{ old('bottles_blow_molding') }}" class="w-full border border-gray-300 placeholder-gray-400  px-2 py-1 text-sm text-center">
                         </td>
                         <td colspan="4"></td>
                     </tr>
@@ -189,9 +218,8 @@
 
             <!-- Issues/Down Time/Remarks Section -->
             <div x-data="issueTable()" class="space-y-4">
-                <h4 class="text-lg font-semibold text-[#2d326b]">Issues/ Down Time / Remarks</h4>
-                <table class="min-w-full text-sm border border-gray-200 shadow-sm">
-                    <thead class="bg-gray-100 text-[#2d326b]">
+                <table class="min-w-full text-sm border border-[#E5E7EB] shadow-sm">
+                    <thead class="uppercase text-[#23527c] bg-[#e2f2ff]">
                         <tr>
                             <th class="text-left px-4 py-3 text-center w-1/4">Machine / Others</th>
                             <th class="text-left px-4 py-3 text-center">Description</th>
@@ -214,15 +242,15 @@
                                 </td>
                                 <td class="px-2 py-2">
                                     <input type="text" :name="`description[]`" x-model="issue.description" placeholder="Describe the issue or remark"
-                                        class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
+                                        class="w-full border border-gray-300 placeholder-gray-400  px-2 py-1 text-sm text-center">
                                 </td>
                                 <td class="px-2 py-2 text-center">
                                     <input type="text" :name="`minutes[]`" x-model="issue.minutes" placeholder="mins"
-                                        class="w-20 border border-gray-300 placeholder-gray-400 rounded  px-2 py-1 text-sm text-center">
+                                        class="w-20 border border-gray-300 placeholder-gray-400   px-2 py-1 text-sm text-center">
                                 </td>
                                 <td class="px-2 py-2 text-center">
                                     <button type="button" @click="removeIssue(index)"
-                                        class="text-red-600 border border-red-600 py-1 px-2 rounded hover:text-red-800 text-sm font-medium">
+                                        class="text-red-600 border border-red-600 py-1 px-2  hover:text-red-800 text-sm font-medium">
                                         Delete
                                     </button>
                                 </td>
@@ -233,7 +261,7 @@
                             <td></td>
                             <td class="px-4 py-3 text-center">
                                 <button type="button" @click="addIssue()"
-                                    class="inline-flex items-center gap-2 bg-[#323B76] hover:bg-[#2d326b] text-white p-2 text-xs rounded shadow">
+                                    class="inline-flex items-center gap-2 bg-[#323B76] hover:bg-[#2d326b] text-white p-2 text-xs  shadow">
                                     Add Issue
                                 </button>
                             </td>
@@ -244,8 +272,8 @@
                 </table>
 
                 <!-- QA Remarks and QC Rejects Section -->
-                <table class="min-w-full text-sm border border-gray-200 shadow-sm">
-                    <thead class="bg-gray-100 text-[#2d326b]">
+                <table class="min-w-full text-sm border border-[#E5E7EB] shadow-sm">
+                    <thead class="uppercase text-[#23527c] bg-[#e2f2ff]">
                         <tr>
                             <th class="text-left px-4 py-3 w-1/6">QA Remarks</th>
                             <th class="text-left px-4 py-3 w-1/6"></th>
@@ -263,16 +291,16 @@
                             </td>
                             <td class="font-medium text-[#2d326b] px-4 py-2">With Label</td>
                             <td class="px-4 py-2">
-                                <input type="text" name="with_label" placeholder="pcs" value="{{ old('with_label') }}" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
+                                <input type="text" name="with_label" placeholder="pcs" value="{{ old('with_label') }}" class="w-full border border-gray-300 placeholder-gray-400  px-2 py-1 text-sm text-center">
                             </td>
                             <td class="font-medium text-[#2d326b] px-4 py-2">Without Label</td>
                             <td class="px-4 py-2">
-                                <input type="text" name="without_label" placeholder="pcs" value="{{ old('without_label') }}" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
+                                <input type="text" name="without_label" placeholder="pcs" value="{{ old('without_label') }}" class="w-full border border-gray-300 placeholder-gray-400  px-2 py-1 text-sm text-center">
                             </td>
                         </tr>
                     </tbody>
                     <!-- Line QC Rejects Section -->
-                    <thead class="bg-gray-100 text-[#2d326b]">
+                    <thead class="uppercase text-[#23527c] bg-[#e2f2ff]">
                         <tr>
                             <th colspan="6" class="text-left px-4 py-3">Line QC Rejects</th>
                         </tr>
@@ -280,14 +308,14 @@
                     <tbody>
                         <tr>
                             <td colspan="6">
-                                <div class="grid md:grid-cols-2 gap-2">
-                                    @foreach (['Caps', 'Bottle', 'Label', 'Carton'] as $category)
-                                        <div class="pl-3 pr-3 p-3 border-l border-r border-gray-200 flex flex-col gap-2">
+                                <div class="grid md:grid-cols-2 gap-6">
+                                    @foreach (['Caps', 'Bottle', 'Label', 'LDPE Shrinkfilm'] as $category)
+                                        <div class="pl-3 pr-3 p-3 border border-gray-200 flex flex-col gap-6">
                                             <!-- Category Header with Add Button -->
                                             <div class="flex items-center justify-between">
-                                                <h5 class="text-sm font-bold text-[#2d326b]">{{ $category }}</h5>
+                                                <h5 class="text-sm font-bold text-[#23527c]">{{ $category }}</h5>
                                                 <button type="button"
-                                                    class="text-xs px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                                                    class="text-xs px-2 py-1 bg-green-600 text-white  hover:bg-green-700"
                                                     @click="addQcReject('{{ $category }}')">
                                                     Add
                                                 </button>
@@ -298,20 +326,20 @@
                                                     <!-- Defect Select -->
                                                     <x-select-defects
                                                         class="w-[160px]"
-                                                        :name="'qc_' . strtolower($category) . '_defect[]'"
+                                                        :name="'qc_' . str_replace(' ', '_', strtolower($category)) . '_defect[]'"
                                                         :options="$defects->where('category', $category)->pluck('defect_name', 'defect_name')->toArray()"
                                                         x-init="$watch('item.defect', value => $el.querySelector('select').value = value)"
                                                         @change="item.defect = $event.target.value"
                                                     />
                                                     <!-- Quantity Input -->
-                                                    <input type="text" x-model="item.qty" name="qc_{{ strtolower($category) }}_qty[]"
+                                                    <input type="text" x-model="item.qty" name="qc_{{ str_replace(' ', '_', strtolower($category)) }}_qty[]"
                                                         placeholder="pcs"
-                                                        class="w-[50px] text-sm text-center rounded-md border border-gray-300 placeholder-gray-400 shadow-sm focus:ring-[#323B76] focus:border-[#323B76]">
+                                                        class="w-[50px] text-sm text-center -md border border-gray-300 placeholder-gray-400 shadow-sm focus:ring-[#323B76] focus:border-[#323B76]">
                                                     <!-- Delete Button -->
                                                     <button type="button"
                                                         @click="removeQcReject('{{ $category }}', index)"
                                                         :class="form.qcRejects['{{ $category }}'].length > 1 ? 'visible' : 'invisible'"
-                                                        class="w-[32px] h-[20px] text-white bg-red-600 rounded hover:bg-red-700 text-sm flex items-center justify-center">
+                                                        class="w-[32px] h-[20px] text-white bg-red-600  hover:bg-red-700 text-sm flex items-center justify-center">
                                                         ×
                                                     </button>
                                                 </div>
@@ -347,7 +375,7 @@
                     'Caps': [{ defect: '', qty: '' }],
                     'Bottle': [{ defect: '', qty: '' }],
                     'Label': [{ defect: '', qty: '' }],
-                    'Carton': [{ defect: '', qty: '' }]
+                    'LDPE Shrinkfilm': [{ defect: '', qty: '' }]
                 }
             },
             addIssue() {

@@ -1,77 +1,102 @@
 @extends('layouts.app')
 
 @section('content')
+<div class="container mx-auto px-4">
+    <!-- Header with Icon and Title -->
+    <div class="mb-4 flex items-center justify-between">
+        <h1 class="text-xl font-bold text-[#23527c]">Add New Defect</h1>
+    </div>
 
-<!-- Back Button -->
-<a href="{{ url('configuration/defect/index') }}" class="flex items-center text-sm text-gray-500 hover:text-[#2d326b] mb-4">
-    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-    </svg>
-    Defect
-</a>
+    <!-- Defect Form Card -->
+    <div class="border-t border-b border-gray-200 px-20 py-10 mb-6">
+        <!-- Defect Form -->
+        <div>
+            <form action="{{ route('configuration.defect.store') }}" method="POST">
+                @csrf
 
-<!-- Defect Add Form -->
-<div class="w-full max-w-2xl bg-white rounded-sm border border-gray-200 p-6 shadow-md space-y-5 transition-all duration-300 hover:shadow-xl hover:border-[#E5E7EB]">
-    <form action="{{ route('configuration.defect.store') }}" method="POST">
-        @csrf
-
-        <h2 class="text-xl font-bold text-[#2d326b] mb-6">New Defect</h2>
-
-        <table class="w-full max-w-2xl text-sm border border-gray-200 shadow-sm">
-            <thead class="bg-gray-100 text-[#2d326b]">
-                <tr>
-                    <th class="text-left px-4 py-3 w-1/4">Defect Field</th>
-                    <th class="text-left px-4 py-3 w-3/4">Value</th>
-                </tr>
-            </thead>
-            <tbody class="text-gray-700 divide-y divide-gray-200">
                 <!-- Defect Name Field -->
-                <tr>
-                    <td class="font-medium text-[#2d326b] px-4 py-2">Defect Name</td>
-                    <td class="px-4 py-2">
-                        <input type="text" name="defect_name" required class="w-full border border-gray-300 rounded px-3 py-1 text-sm">
+                <div class="flex items-center mb-2">
+                    <label class="text-[#23527c] font-bold w-40 text-right mr-8" for="defect_name">
+                        Defect Name:
+                    </label>
+                    <div class="flex-1">
+                        <input type="text"
+                               name="defect_name"
+                               id="defect_name"
+                               value="{{ old('defect_name') }}"
+                               required
+                               class="text-sm w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none">
                         @error('defect_name')
                             <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                         @enderror
-                    </td>
-                </tr>
+                    </div>
+                </div>
+
                 <!-- Category Field -->
-                <tr>
-                    <td class="font-medium text-[#2d326b] px-4 py-2">Category</td>
-                    <td class="px-4 py-2">
-                        <x-select-dropdown name="category" id="category" required
-                            :options="[
-                                'Caps' => 'Caps',
-                                'Bottle' => 'Bottle',
-                                'Label' => 'Label',
-                                'Carton' => 'Carton',
-                            ]" />
-                    </td>
-                </tr>
+                <div class="flex items-center mb-2">
+                    <label class="text-[#23527c] font-bold w-40 text-right mr-8" for="category">
+                        Defect Category:
+                    </label>
+                    <div class="flex-1">
+                        <!-- Custom select dropdown component -->
+                        <x-select-dropdown name="category"
+                                           id="category"
+                                           required
+                                           :options="[
+                                               'Caps' => 'Caps',
+                                               'Bottle' => 'Bottle',
+                                               'Label' => 'Label',
+                                               'LDPE Shrinkfilm' => 'LDPE Shrinkfilm',
+                                           ]" />
+                    </div>
+                </div>
+
                 <!-- Description Field -->
-                <tr>
-                    <td class="font-medium text-[#2d326b] px-4 py-2">Description</td>
-                    <td class="px-4 py-2">
-                        <textarea name="description" id="description" rows="3" class="w-full border border-gray-300 rounded px-3 py-1 text-sm">{{ old('description') }}</textarea>
+                <div class="flex items-start">
+                    <label class="text-[#23527c] font-bold w-40 text-right mr-8" for="description">
+                        Description:
+                    </label>
+                    <div class="flex-1">
+                        <textarea name="description"
+                                  id="description"
+                                  rows="3"
+                                  class="text-sm w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none">{{ old('description') }}</textarea>
                         @error('description')
                             <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                         @enderror
-                    </td>
-                </tr>
-                <!-- Submit Button -->
-                <tr>
-                    <td colspan="2" class="p-3">
-                        <div class="flex justify-end">
-                            <button type="submit" class="inline-flex items-center px-3 py-2 bg-[#323B76] hover:bg-[#444d90] border border-[#323B76] text-white text-sm font-medium rounded-md shadow-sm">
-                                Save
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </form>
+                    </div>
+                </div>
+        </div>
+    </div>
+
+            <!-- Information Message -->
+        <div class="bg-[#5a9fd4] text-sm border border-[#4590ca] p-4 mt-4 text-white">
+            <div class="font-bold">
+                New Defect
+            </div>
+            <div>
+                Please fill in all required fields to add a new defect to the system.
+            </div>
+        </div>
+
+                        <!-- Submit Button Section -->
+                <div class="flex gap-4 mt-4">
+                    <!-- Back Button -->
+                    <a href="{{ route('configuration.defect.index') }}"
+                       class="inline-flex items-center px-3 py-2 bg-[#5a9fd4] hover:bg-[#4a8bc2] text-white text-sm font-medium transition-colors duration-200 border border-[#5a9fd4] hover:border-[#4a8bc2]">
+                        <x-icons-back class="w-4 h-4 text-white" />
+                        Back
+                    </a>
+
+                    <!-- Save Button -->
+                    <button type="submit"
+                            class="inline-flex items-center justify-center gap-1 bg-[#5bb75b] border border-[#43a143] text-white px-3 py-2 hover:bg-[#42a542] text-sm">
+                        <x-icons-save class="w-4 h-4 text-white" />
+                        Save Defect
+                    </button>
+                </div>
+            </form>
+
 </div>
-<!-- End Defect Add Form -->
 
 @endsection

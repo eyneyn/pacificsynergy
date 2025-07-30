@@ -1,79 +1,78 @@
 @extends('layouts.app')
 
 @section('content')
+<div class="container mx-auto px-4">
+    <!-- Page Header -->
+    <div class="mb-4">
+        <h1 class="text-xl font-bold text-[#23527c]">Defect Details</h1>
+    </div>
 
-<!-- Back Button -->
-<a href="{{ route('configuration.defect.index') }}" class="flex items-center text-sm text-gray-500 hover:text-[#2d326b] mb-4">
-    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-    </svg>
-    Defect
-</a>
+    <!-- Defect Details Card -->
+    <div class="border-t border-b border-gray-200 px-20 py-10 mb-6">
+        <!-- Defect Info Section -->
+        <div class="space-y-2">
+            <!-- Defect Name -->
+            <div class="flex items-center">
+                <span class="text-[#23527c] font-bold w-40 text-right mr-8">Defect Name:</span>
+                <span class="text-[#23527c]">{{ $defect->defect_name }}</span>
+            </div>
+            <!-- Defect Category -->
+            <div class="flex items-center">
+                <span class="text-[#23527c] font-bold w-40 text-right mr-8">Defect Category:</span>
+                <span class="text-[#23527c]">{{ $defect->category }}</span>
+            </div>
+            <!-- Description -->
+            <div class="flex items-center">
+                <span class="text-[#23527c] font-bold w-40 text-right mr-8">Description:</span>
+                <span class="text-[#23527c]">{{ $defect->description }}</span>
+            </div>
+        </div>
+    </div>
 
-<div class="w-full max-w-2xl bg-white rounded-sm border border-gray-200 p-6 shadow-md space-y-5 transition-all duration-300 hover:shadow-xl hover:border-[#E5E7EB]">
+        <!-- Message -->
+            <div class="bg-[#43ac6a] text-sm border border-[#2f9655] p-4 mt-4 text-white">
+                <div>
+                    <span class="font-bold">Good job!</span> {{ session('success') }}
+                </div>
+                <div>
+                    You can edit or delete this defect record using the controls.
+                </div>
+            </div>
 
-
-<!-- Heading -->
-<div class="flex items-center justify-between mb-6">
-    <h2 class="text-xl font-bold text-[#2d326b]">{{ $defect->defect_name }}</h2>
-
-    <div class="flex items-center gap-2">
-        <!-- Delete Button -->
-        <form id="icon-delete-defect-form"
-            data-delete-type="defect"
-            action="{{ route('configuration.defect.destroy', $defect->id) }}"
-            method="POST">
-            @csrf
-            @method('DELETE')
-
-            <!-- Add this hidden input -->
-            <input type="hidden" id="edit_defect_name" value="{{ $defect->defect_name }}">
-            
-            <button type="submit"
-                    class="text-red-600 hover:text-red-800 rounded-lg text-md w-10 h-10 flex items-center justify-center"
-                    title="Delete Standard">
-                <x-icons-delete class="w-5 h-5" />
-            </button>
-        </form>
+    <!-- Action Buttons -->
+    <div class="flex items-center gap-2 mt-6">
+        <!-- Back Button -->
+        <a href="{{ route('configuration.defect.index') }}"
+           class="inline-flex items-center px-3 py-2 bg-[#5a9fd4] hover:bg-[#4a8bc2] border border-[#4590ca] text-white text-sm font-medium transition-colors duration-200">
+            <x-icons-back class="w-2 h-2 text-white" />
+            Back
+        </a>
         <!-- Edit Button -->
         <a href="{{ route('configuration.defect.edit', $defect->id) }}"
-           class="inline-flex items-center gap-2 p-3 py-2 bg-[#323B76] hover:bg-[#444d90] border border-[#323B76] text-white text-sm font-medium rounded-md">
+           class="inline-flex items-center gap-2 p-2 bg-[#323B76] hover:bg-[#444d90] border border-[#323B76] text-white text-sm font-medium transition-colors duration-200">
             <x-icons-edit class="w-4 h-4" />
-            <span class="text-sm">Edit</span>
+            Edit
         </a>
+        <!-- Delete Form -->
+        <form id="icon-delete-defect-form-{{ $defect->id }}"
+              data-delete-type="defect"
+              data-base-action="{{ route('configuration.defect.destroy', ':id') }}"
+              class="delete-defect-form"
+              method="POST">
+            @csrf
+            @method('DELETE')
+            <input type="hidden" id="edit_defect_id" value="{{ $defect->id }}">
+            <input type="hidden" id="edit_defect_name" value="{{ $defect->defect_name }}">
+            <button type="submit"
+                    class="inline-flex items-center gap-2 p-2 bg-red-600 hover:bg-red-700 border border-red-700 text-white text-sm font-medium transition-colors duration-200"
+                    title="Delete Standard">
+                <x-icons-delete class="w-4 h-4"/>
+                Delete
+            </button>
+        </form>
     </div>
 </div>
-        @if ($errors->has('defect_delete'))
-            <div class="bg-red-100 border border-red-400 text-red-700 p-2 rounded relative mb-4 text-sm" role="alert">
-                <strong class="font-bold">Delete Failed:</strong>
-                <span class="block sm:inline">{{ $errors->first('defect_delete') }}</span>
-            </div>
-        @endif
 
-    <!-- Table Layout -->
-        <table class="w-full max-w-2xl text-sm border border-gray-200 shadow-sm">
-            <thead class="bg-gray-100 text-[#2d326b]">
-            <tr>
-                <th class="text-left px-4 py-3 w-1/3">Product Defect Field</th>
-                <th class="text-left px-4 py-3 w-1/4">Value</th>
-            </tr>
-        </thead>
-        <tbody class="text-gray-700 divide-y divide-gray-200">
-            <tr>
-                <td class="font-medium text-[#2d326b] px-4 py-2">Defect Name</td>
-                <td class="px-4 py-2 w-full">{{ $defect->defect_name }}</td>
-            </tr>
-            <tr>
-                <td class="font-medium text-[#2d326b] px-4 py-2">Category</td>
-                <td class="px-4 py-2 w-full">{{ $defect->category }}</td>
-            </tr>
-            <tr>
-                <td class="font-medium text-[#2d326b] px-4 py-2">Description</td>
-                <td class="px-4 py-2 w-full">{{ $defect->description }}</td>
-            </tr>
-        </tbody>
-    </table>
-</div>
-
+<!-- Delete Modal Component -->
 <x-delete-modal/>
 @endsection

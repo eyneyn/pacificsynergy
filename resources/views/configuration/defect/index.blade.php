@@ -2,82 +2,181 @@
 
 @section('content')
 
-<!-- Back Button -->
-<a href="{{ url('configuration/index') }}" class="flex items-center text-sm text-gray-500 hover:text-[#2d326b] mb-4">
-    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-    </svg>
+{{-- Page Title --}}
+<h2 class="text-xl mb-2 font-bold text-[#23527c]">List of Defects</h2>
+
+{{-- Back to Configuration Link --}}
+<a href="{{ url('configuration/index') }}" class="text-xs text-gray-500 hover:text-[#23527c] mb-4 inline-flex items-center">
+    <x-icons-back-confi/>
     Configuration
 </a>
 
-<h2 class="text-2xl mb-5 font-bold text-[#2d326b]">Types of Defect</h2>
-
-<div class="flex flex-col md:flex-row md:items-center justify-between">
-    <!-- Search bar with filter -->
-    <form method="GET" action="{{ route('configuration.defect.index') }}">
-        <div class="w-full max-w-xs px-4 border border-[#d9d9d9] rounded-md shadow-md transition-all duration-200 hover:shadow-lg hover:border-[#2d326b]">
-            <!-- Search Input with Icon -->
-            <div class="flex items-center flex-grow">
-                <svg class="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M16.65 16.65A7.5 7.5 0 1 0 3 10a7.5 7.5 0 0 0 13.65 6.65z" />
-                </svg>
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Search products" class="w-full border-none text-sm text-gray-700 placeholder-gray-400"/>
-            </div>
+{{-- Top Controls: Back, Add Defect, Show Entries --}}
+<div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-4">
+    <div class="flex flex-col md:flex-row gap-2">
+        {{-- Back Button --}}
+        <a href="{{ url('configuration/index') }}" class="inline-flex items-center px-3 py-2 bg-[#5a9fd4] hover:bg-[#4a8bc2] text-white text-sm font-medium transition-colors duration-200 border border-[#4590ca] hover:border-[#4a8bc2]">
+            <x-icons-back class="w-2 h-2 text-white" />
+            Back
+        </a>
+        {{-- Add Defect Button --}}
+        <a href="{{ url('configuration/defect/add') }}" class="inline-flex items-center justify-center gap-1 p-2 bg-[#323B76] hover:bg-[#444d90] border border-[#323B76] text-white text-sm font-medium">
+            <x-icons-plus-circle class="w-2 h-2 text-white" />
+            <span class="text-sm">Defect</span>
+        </a>
+        {{-- Show Entries Dropdown --}}
+        <div class="inline-flex items-center gap-2 text-sm text-gray-600">
+            <span>Show</span>
+            <form id="per-page-form" method="GET" action="{{ route('configuration.defect.index') }}">
+                {{-- Keep existing filters/sort when changing per_page --}}
+                @foreach(request()->except('per_page') as $key => $value)
+                    <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                @endforeach
+                <select name="per_page" class="px-2 py-1 border border-gray-300 text-sm bg-white"
+                        onchange="document.getElementById('per-page-form').submit()">
+                    <option value="25" {{ request('per_page', 25) == 25 ? 'selected' : '' }}>25</option>
+                    <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                    <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                </select>
+            </form>
+            <span>entries</span>
         </div>
-    </form>
-    <!-- Add Defect Button -->
-    <a href="{{ url('configuration/defect/add') }}"
-        class="inline-flex items-center gap-2 p-3 py-2 bg-[#323B76] hover:bg-[#444d90] border border-[#323B76] text-white text-sm font-medium rounded-md">
-        <x-icons-plus-circle class="w-4 h-4 text-white" />
-        <span class="text-sm">Defect</span>
-    </a>
+    </div>
+    {{-- Pagination --}}
+    <div>
+        {{ $defects->appends(request()->query())->links('pagination::tailwind') }}
+    </div>
 </div>
 
 @php
-    $currentSort = request('sort');
-    $currentDirection = request('direction') === 'asc' ? 'desc' : 'asc';
+    // Sorting logic
+    $currentSort = request('sort', 'created_at');
+    $currentDirection = request('direction', 'desc');
+    $toggleDirection = $currentDirection === 'asc' ? 'desc' : 'asc';
 @endphp
 
-<!-- Defect Table -->
-<table class="w-full mt-4 text-sm text-left rtl:text-right border border-[#E5E7EB] border-collapse">
-    <thead class="text-xs text-white uppercase bg-[#35408e]">
-        <tr>
-            @foreach (['defect_name' => 'Defect Name', 'category' => 'Category', 'description' => 'Description'] as $field => $label)
-                <th class="px-6 py-2 border border-[#d9d9d9] text-center">
-                    <!-- Sortable Column Header -->
-                    <a href="{{ route('configuration.defect.index', ['sort' => $field, 'direction' => ($currentSort === $field ? $currentDirection : 'asc')]) }}"
-                        class="flex justify-center items-center gap-1 text-white no-underline">
-                        {{ $label }}
-                        <svg class="w-4 h-4 {{ $currentSort === $field ? 'opacity-100' : 'opacity-50' }}"
-                            viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
-                            <path d="M304 96h48v320h48l-72 80-72-80h48V96zM64 192h128v32H64v-32zm32 64h96v32H96v-32zm32 64h64v32h-64v-32zm32 64h32v32h-32v-32z"/>
-                        </svg>
-                    </a>
-                </th>
-            @endforeach
-        </tr>
-    </thead>
-    <tbody>
-        @forelse ($defects as $defect)
-            <tr onclick="window.location='{{ route('configuration.defect.view', $defect) }}'" class="bg-white border-b border-[#35408e] hover:bg-[#e5f4ff] cursor-pointer">
-                <td class="px-6 py-2 border border-[#d9d9d9] text-[#2d326b]">{{ $defect->defect_name }}</td>
-                <td class="px-6 py-2 border border-[#d9d9d9] text-gray-600 text-center">{{ $defect->category }}</td>
-                <td class="px-6 py-2 border border-[#d9d9d9] text-gray-600 text-center">{{ $defect->description }}</td>
+{{-- Search & Table --}}
+<form id="column-search-form" method="GET" action="{{ route('configuration.defect.index') }}">
+    {{-- Preserve existing sort parameters --}}
+    @if(request('sort'))
+        <input type="hidden" name="sort" value="{{ request('sort') }}">
+    @endif
+    @if(request('direction'))
+        <input type="hidden" name="direction" value="{{ request('direction') }}">
+    @endif
+
+    {{-- Defect Table --}}
+    <table class="w-full text-sm text-left border border-[#E5E7EB] border-collapse shadow-sm">
+        <thead>
+            {{-- Main Header Row --}}
+            <tr class="text-xs text-white uppercase bg-[#35408e]">
+                @foreach (['defect_name' => 'Defect Name', 'category' => 'Category', 'description' => 'Description'] as $field => $label)
+                    <th class="p-2 border border-[#d9d9d9] text-center">
+                        <x-table-sort-link 
+                            :field="$field" 
+                            :label="$label" 
+                            :currentSort="$currentSort" 
+                            :currentDirection="$currentDirection"
+                            route="configuration.defect.index"
+                        />
+                    </th>
+                @endforeach
             </tr>
-        @empty
+            {{-- Search Input Row --}}
             <tr>
-                <td colspan="3" class="px-6 py-4 border border-[#E5E7EB] text-center text-[#35408e]">No defect entries found.</td>
+                <th class="p-2 border border-[#d9d9d9]">
+                    <div class="relative">
+                        <input type="text" name="defect_name_search" value="{{ request('defect_name_search') }}"
+                               placeholder="Search defect"
+                               class="w-full placeholder:text-gray-400 p-2 text-xs font-medium border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none"
+                               autocomplete="off">
+                        {{-- No clear button for defect_name_search --}}
+                    </div>
+                </th>
+                <th class="p-2 border border-[#d9d9d9]">
+                    <div class="relative">
+                        <input type="text" name="category_search" value="{{ request('category_search') }}"
+                               placeholder="Search category"
+                               class="w-full placeholder:text-gray-400 p-2 text-xs font-medium border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none"
+                               autocomplete="off">
+                    </div>
+                </th>
+                <th class="p-2 border border-[#d9d9d9]">
+                    <div class="relative">
+                        <input type="text" name="description_search" value="{{ request('description_search') }}"
+                               placeholder="Search description"
+                               class="w-full placeholder:text-gray-400 p-2 text-xs font-medium border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none"
+                               autocomplete="off">
+                    </div>
+                </th>
             </tr>
-        @endforelse
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @forelse ($defects as $defect)
+                <tr onclick="window.location='{{ route('configuration.defect.view', $defect) }}'" class="bg-white border-b border-gray-200 hover:bg-[#e5f4ff] transition-colors duration-200 cursor-pointer">
+                    <td class="p-2 border border-[#d9d9d9] text-[#23527c] font-bold text-center">
+                        {{-- Highlight search term for defect_name --}}
+                        @if(request('defect_name_search'))
+                            {!! str_ireplace(request('defect_name_search'), '<span class="bg-yellow-200">' . request('defect_name_search') . '</span>', $defect->defect_name) !!}
+                        @else
+                            {{ $defect->defect_name }}
+                        @endif
+                    </td>
+                    <td class="p-2 border border-[#d9d9d9] text-gray-600 text-center">
+                        {{-- Highlight search term for category --}}
+                        @if(request('category_search'))
+                            {!! str_ireplace(request('category_search'), '<span class="bg-yellow-200">' . request('category_search') . '</span>', $defect->category) !!}
+                        @else
+                            {{ $defect->category }}
+                        @endif
+                    </td>
+                    <td class="p-2 border border-[#d9d9d9] text-gray-600 text-center">
+                        {{-- Highlight search term for description --}}
+                        @if(request('description_search'))
+                            {!! str_ireplace(request('description_search'), '<span class="bg-yellow-200">' . request('description_search') . '</span>', $defect->description) !!}
+                        @else
+                            {{ $defect->description }}
+                        @endif
+                    </td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="6" class="p-2 border border-[#d9d9d9] text-gray-600 text-center">No matching records found</td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+</form>
 
-<!-- Pagination -->
-<div class="mt-6">
-    {{ $defects->appends(request()->query())->links('pagination::tailwind') }}
-</div>
-
-<!-- Delete Modal Component -->
+{{-- Delete Modal Component --}}
 <x-delete-modal />
+
+{{-- JS for search and clear --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Submit search form on Enter key
+    const searchInputs = document.querySelectorAll('input[name$="_search"]');
+    searchInputs.forEach(input => {
+        input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('column-search-form').submit();
+            }
+        });
+    });
+});
+
+// Clear search field and submit form
+function clearSearch(fieldName) {
+    let input = document.querySelector(`input[name="${fieldName}"]`);
+    if (input) {
+        input.value = "";
+        let form = input.closest("form");
+        if (form) {
+            form.submit();
+        }
+    }
+}
+</script>
 
 @endsection

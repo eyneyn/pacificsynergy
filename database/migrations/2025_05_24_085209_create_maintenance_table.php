@@ -6,9 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('maintenances', function (Blueprint $table) {
@@ -16,14 +13,12 @@ return new class extends Migration
             $table->string('name')->unique();
             $table->enum('type', ['EPL', 'OPL']);
             $table->timestamps();
+            $table->softDeletes(); // 👈 adds deleted_at column
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('maintenance');
+        Schema::dropIfExists('maintenances'); // 👈 just drop table
     }
 };
