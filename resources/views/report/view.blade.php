@@ -54,14 +54,14 @@
 
                     <!-- Export PDF Button -->
                     <a href="{{ route('report.pdf', $reports->id) }}" target="_blank"
-                        class="inline-flex items-center justify-center gap-1 p-2 bg-[#fe1111] hover:bg-[#fc4242] border border-[#EF4444] text-white text-sm font-medium">
+                        class="inline-flex items-center justify-center gap-1 p-2 bg-red-600 hover:bg-red-700 border border-red-700 text-white text-sm font-medium">
                         <x-icons-pdf class="w-4 h-4" />
                         View PDF
                     </a>
                 </div>
         </div>
 
-        <div class="mx-auto px-4">
+        <div class="mx-auto">
 
         <h1 class="text-xl font-bold text-[#23527c]">
             {{ $reports->sku ?? '-' }}
@@ -71,7 +71,7 @@
     <!-- Line Efficiency Input (One Row) -->
                         <div class="flex items-center mt-4 mb-4">
                         <span class="text-[#23527c] font-bold w-48 mr-6">Line Efficiency (%): </span>
-                        <span class="text-[#23527c]">{{ old('line_efficiency', $reports->line_efficiency) }}</span>
+                        <span class="text-[#23527c] w-[160px] border border-gray-300  px-3 py-1 text-sm text-center">{{ old('line_efficiency', $reports->line_efficiency) }}</span>
                     </div>
 
 

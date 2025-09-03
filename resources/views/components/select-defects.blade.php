@@ -57,7 +57,7 @@
             @keydown.enter.prevent="selectFocused()"
             @keydown.escape="open = false"
             placeholder="{{ $placeholder }}"
-            class="w-full text-sm border border-gray-300 bg-white px-3 py-[0.375rem] focus:border-[#2d326b] focus:ring focus:ring-[#2d326b] focus:ring-0 transition"
+            class="w-full text-sm px-3 py-1 border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400"
             :class="{ 'text-gray-400': search === '' }"
         >
 

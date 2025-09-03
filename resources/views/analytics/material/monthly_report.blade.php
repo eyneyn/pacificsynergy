@@ -4,33 +4,51 @@
 
 
 {{-- Page Title --}}
-<h2 class="text-xl mb-2 font-bold text-[#23527c]">Material Utilization Report</h2>
+<h2 class="text-xl mb-2 font-bold text-[#23527c]">Monthly Report</h2>
 
-
-<!-- Back Button -->
 <a href="{{ route('analytics.material.index', ['line' => request('line'), 'date' => request('date', now()->year)]) }}"
    class="text-xs text-gray-500 hover:text-[#23527c] mb-4 inline-flex items-center">
     <x-icons-back-confi/>
     Analytics and Report
 </a>
 
-<div class="flex flex-col md:flex-row md:items-center justify-between mb-4">
+<div class="mx-16 mt-4">
+<!-- Heading -->
+<h2 class="flex items-center text-xl text-[#23527c] mb-2 font-bold">
+    <svg class="w-6 h-6 mr-2 flex-shrink-0" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 15.315 15.315" xml:space="preserve" fill="#23527c"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <g> <path style="fill:#23527c;" d="M3.669,3.71h0.696c0.256,0,0.464-0.165,0.464-0.367V0.367C4.829,0.164,4.621,0,4.365,0H3.669 C3.414,0,3.206,0.164,3.206,0.367v2.976C3.205,3.545,3.413,3.71,3.669,3.71z"></path> <path style="fill:#23527c;" d="M10.95,3.71h0.696c0.256,0,0.464-0.165,0.464-0.367V0.367C12.11,0.164,11.902,0,11.646,0H10.95 c-0.256,0-0.463,0.164-0.463,0.367v2.976C10.487,3.545,10.694,3.71,10.95,3.71z"></path> <path style="fill:#23527c;" d="M14.512,1.42h-1.846v2.278c0,0.509-0.458,0.923-1.021,0.923h-0.696 c-0.563,0-1.021-0.414-1.021-0.923V1.42H5.384v2.278c0,0.509-0.458,0.923-1.021,0.923H3.669c-0.562,0-1.02-0.414-1.02-0.923V1.42 H0.803c-0.307,0-0.557,0.25-0.557,0.557V14.76c0,0.307,0.25,0.555,0.557,0.555h13.709c0.308,0,0.557-0.248,0.557-0.555V1.977 C15.069,1.67,14.82,1.42,14.512,1.42z M14.316,9.49v4.349c0,0.096-0.078,0.176-0.175,0.176H7.457H1.174 c-0.097,0-0.175-0.08-0.175-0.176V10.31V5.961c0-0.096,0.078-0.176,0.175-0.176h6.683h6.284l0,0c0.097,0,0.175,0.08,0.175,0.176 V9.49z"></path> <rect x="2.327" y="8.93" style="fill:#23527c;" width="1.735" height="1.736"></rect> <rect x="5.28" y="8.93" style="fill:#23527c;" width="1.735" height="1.736"></rect> <rect x="8.204" y="8.93" style="fill:#23527c;" width="1.734" height="1.736"></rect> <rect x="11.156" y="8.93" style="fill:#23527c;" width="1.736" height="1.736"></rect> <rect x="2.363" y="11.432" style="fill:#23527c;" width="1.736" height="1.736"></rect> <rect x="5.317" y="11.432" style="fill:#23527c;" width="1.735" height="1.736"></rect> <rect x="8.241" y="11.432" style="fill:#23527c;" width="1.734" height="1.736"></rect> <rect x="11.194" y="11.432" style="fill:#23527c;" width="1.735" height="1.736"></rect> <rect x="8.215" y="6.47" style="fill:#23527c;" width="1.735" height="1.735"></rect> <rect x="11.17" y="6.47" style="fill:#23527c;" width="1.734" height="1.735"></rect> </g> </g> </g></svg>
+    {{ $monthName }} {{ $year }} (Line {{ $line }})
+</h2>
 
 
-    <!-- Export -->
-    <div class="flex flex-col md:flex-row items-start md:items-center gap-3">
-
-        <!-- Export Button -->
-        <form method="POST" action="" target="_blank">
-            @csrf
-            <input type="hidden" name="report_id" value="">
-            <button type="submit"
-                class="text-center px-3 py-2 bg-[#323B76] border border-[#444d90] hover:bg-[#444d90] text-white text-xs font-medium rounded-md shadow-sm transition duration-200">
-                Export to Excel
-            </button>
-        </form>
-    </div>
+<!-- Divider -->
+<div class="w-full flex items-center justify-center mb-6">
+    <div class="w-full border-t border-[#E5E7EB]"></div>
 </div>
+
+
+<div class="flex flex-col md:flex-row gap-2 mb-4">
+
+    <a href="{{ route('analytics.index') }}"
+        class="inline-flex items-center px-3 py-2 bg-[#5a9fd4] hover:bg-[#4a8bc2] text-white text-sm font-medium transition-colors duration-200 border border-[#5a9fd4] hover:border-[#4a8bc2]">
+        <x-icons-back class="w-4 h-4 text-white" />
+        Back
+    </a>
+
+
+<form action="{{ route('analytics.material.export_excel') }}" method="GET" class="inline-block">
+    <input type="hidden" name="line" value="{{ $line }}">
+    <input type="hidden" name="month" value="{{ $monthNumber }}"> {{-- ✅ numeric month --}}
+    <input type="hidden" name="date" value="{{ $year }}">
+
+    <button type="submit"
+        class="inline-flex items-center justify-center gap-1 p-2 bg-[#5bb75b] hover:bg-[#42a542] border border-[#42a542] text-white text-sm font-medium">
+        <x-icons-pdf class="w-4 h-4" />
+        Excel
+    </button>
+</form>
+
+</div>
+
 
     <!-- 📈 Chart + Table Section (wider) -->
     <div class="w-full bg-white rounded-sm border border-gray-200 p-6 mb-8 shadow-md space-y-5 transition-all duration-300 hover:shadow-xl hover:border-[#E5E7EB] flex flex-col">
@@ -185,7 +203,7 @@
 
             <!-- LDPE -->
             <tr>
-                <td class="border px-2 py-1 text-left font-semibold text-[#b45309]">LDPE SHRINKLDPE Shrinkfilm</td>
+                <td class="border px-2 py-1 text-left font-semibold text-[#b45309]">LDPE Shrinkfilm</td>
                 @foreach ($dailyLdpe as $value)
                     <td class="border px-2 py-1 text-right">{{ $value }}</td>
                 @endforeach
@@ -196,91 +214,96 @@
 
     </div>
 
-<div class="w-full mb-4 bg-white rounded-sm border border-gray-300 p-6 shadow-xl">
-    <!-- Header -->
-    <div class="">
-        <p class="text-lg text-[#2d326b] font-semibold">Weekly Report</p>
-    </div> <!-- 🟢 Properly closed here -->
-
-    <!-- Weekly Report Table -->
-    <div class=" mt-5">
-        <table class="w-full text-xs text-left border border-[#E5E7EB] border-collapse">
-            <thead class="text-[8px] text-white uppercase bg-[#35408e]">
-                <tr>
-                    <th class="p-2 border"></th>
-                    <th class="p-2 border text-center"></th>
-                    <th colspan="4" class="p-2 border bg-[#6c6c6c] text-center">Preforms</th>
-                    <th colspan="4" class="p-2 border bg-[#1f3661] text-center">Caps</th>
-                    <th colspan="4" class="p-2 border bg-[#4d642d] text-center">OPP Label</th>
-                    <th colspan="4" class="p-2 border bg-[#8a2e2e] text-center">LDPE Shrinkfilm</th>
-                </tr>
-                <tr>
-                    <th class="p-2 border text-center">Week</th>
-                    
-                    <th class="p-2 border text-center">Production Output</th>
-
-                    <th class="p-2 border text-center">FG Usage</th>
-                    <th class="p-2 border text-center">Rejects</th>
-                    <th class="p-2 border text-center">QA Samples</th>
-                    <th class="p-2 border text-center">% Rejects</th>
-
-                    <th class="p-2 border text-center">FG Usage</th>
-                    <th class="p-2 border text-center">Rejects</th>
-                    <th class="p-2 border text-center">QA Samples</th>
-                    <th class="p-2 border text-center">% Rejects</th>
-
-                    <th class="p-2 border text-center">FG Usage</th>
-                    <th class="p-2 border text-center">Rejects</th>
-                    <th class="p-2 border text-center">QA Samples</th>
-                    <th class="p-2 border text-center">% Rejects</th>
-
-                    <th class="p-2 border text-center">FG Usage</th>
-                    <th class="p-2 border text-center">Rejects</th>
-                    <th class="p-2 border text-center">QA Samples</th>
-                    <th class="p-2 border text-center">% Rejects</th>
-                </tr>
-            </thead>
-<tbody>
-@foreach ($weeklyData as $data)
-    <tr class="text-[10px] text-gray-700 whitespace-nowrap bg-white hover:bg-[#e5f4ff]">
-        <td class="p-2 border text-center font-semibold text-[#2d326b]">{{ $data['week'] }}</td>
-        <td class="p-2 border text-center">{{ number_format($data['output']) }}</td>
-
-        {{-- Preforms --}}
-        <td class="p-2 border text-center">{{ number_format($data['preform']['fg']) }}</td>
-        <td class="p-2 border text-center">{{ number_format($data['preform']['rej']) }}</td>
-        <td class="p-2 border text-center">{{ $data['preform']['qa'] ?? 0 }}</td>
-        <td class="p-2 border text-center">{{ $data['preform']['percent'] }}</td>
-
-        {{-- Caps --}}
-        <td class="p-2 border text-center">{{ number_format($data['caps']['fg']) }}</td>
-        <td class="p-2 border text-center">{{ number_format($data['caps']['rej']) }}</td>
-        <td class="p-2 border text-center">{{ $data['caps']['qa'] ?? 0 }}</td>
-        <td class="p-2 border text-center">{{ $data['caps']['percent'] }}</td>
-
-        {{-- Labels --}}
-        <td class="p-2 border text-center">{{ number_format($data['label']['fg']) }}</td>
-        <td class="p-2 border text-center">{{ number_format($data['label']['rej']) }}</td>
-        <td class="p-2 border text-center">{{ $data['label']['qa'] ?? 0 }}</td>
-        <td class="p-2 border text-center">{{ $data['label']['percent'] }}</td>
-
-        {{-- LDPE Shrinkfilm --}}
-        <td class="p-2 border text-center">{{ number_format($data['ldpe']['fg']) }}</td>
-        <td class="p-2 border text-center">{{ number_format($data['ldpe']['rej']) }}</td>
-        <td class="p-2 border text-center">0</td>
-        <td class="p-2 border text-center">{{ $data['ldpe']['percent'] }}</td>
-    </tr>
-@endforeach
-</tbody>
-
-        </table>
+    <!-- Weekly-To-Date Report Section -->
+<div x-data="{ showWeekly: false }" class="w-full mb-4">
+    <!-- Toggle Button -->
+    <div class="flex items-center justify-between cursor-pointer bg-white rounded-sm border border-gray-200 p-4 shadow-md hover:shadow-xl hover:border-[#E5E7EB]" @click="showWeekly = !showWeekly">
+        <p class="text-lg text-[#23527c] font-semibold">Weekly Report</p>
+        <svg :class="showWeekly ? 'rotate-180' : ''" class="w-5 h-5 transition-transform text-[#23527c]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
     </div>
+    <!-- Content to show/hide -->
+    <div x-show="showWeekly" x-transition>
+        <div class="bg-white rounded-sm border border-gray-200 p-6 shadow-md space-y-4 mt-2">
+                <table class="w-full text-xs text-left border border-[#E5E7EB] border-collapse">
+                    <thead class="text-[8px] text-white uppercase bg-[#35408e]">
+                        <tr>
+                            <th class="p-2 border"></th>
+                            <th class="p-2 border text-center"></th>
+                            <th colspan="4" class="p-2 border bg-[#6c6c6c] text-center">Preforms</th>
+                            <th colspan="4" class="p-2 border bg-[#1f3661] text-center">Caps</th>
+                            <th colspan="4" class="p-2 border bg-[#4d642d] text-center">OPP Label</th>
+                            <th colspan="4" class="p-2 border bg-[#8a2e2e] text-center">LDPE Shrinkfilm</th>
+                        </tr>
+                        <tr>
+                            <th class="p-2 border text-center">Week</th>
+                            
+                            <th class="p-2 border text-center">Production Output</th>
+
+                            <th class="p-2 border text-center">FG Usage</th>
+                            <th class="p-2 border text-center">Rejects</th>
+                            <th class="p-2 border text-center">QA Samples</th>
+                            <th class="p-2 border text-center">% Rejects</th>
+
+                            <th class="p-2 border text-center">FG Usage</th>
+                            <th class="p-2 border text-center">Rejects</th>
+                            <th class="p-2 border text-center">QA Samples</th>
+                            <th class="p-2 border text-center">% Rejects</th>
+
+                            <th class="p-2 border text-center">FG Usage</th>
+                            <th class="p-2 border text-center">Rejects</th>
+                            <th class="p-2 border text-center">QA Samples</th>
+                            <th class="p-2 border text-center">% Rejects</th>
+
+                            <th class="p-2 border text-center">FG Usage</th>
+                            <th class="p-2 border text-center">Rejects</th>
+                            <th class="p-2 border text-center">QA Samples</th>
+                            <th class="p-2 border text-center">% Rejects</th>
+                        </tr>
+                    </thead>
+        <tbody>
+        @foreach ($weeklyData as $data)
+            <tr class="text-[10px] text-gray-700 whitespace-nowrap bg-white hover:bg-[#e5f4ff]">
+                <td class="p-2 border text-center font-semibold text-[#2d326b]">{{ $data['week'] }}</td>
+                <td class="p-2 border text-center">{{ number_format($data['output']) }}</td>
+
+                {{-- Preforms --}}
+                <td class="p-2 border text-center">{{ number_format($data['preform']['fg']) }}</td>
+                <td class="p-2 border text-center">{{ number_format($data['preform']['rej']) }}</td>
+                <td class="p-2 border text-center">{{ $data['preform']['qa'] ?? 0 }}</td>
+                <td class="p-2 border text-center">{{ $data['preform']['percent'] }}</td>
+
+                {{-- Caps --}}
+                <td class="p-2 border text-center">{{ number_format($data['caps']['fg']) }}</td>
+                <td class="p-2 border text-center">{{ number_format($data['caps']['rej']) }}</td>
+                <td class="p-2 border text-center">{{ $data['caps']['qa'] ?? 0 }}</td>
+                <td class="p-2 border text-center">{{ $data['caps']['percent'] }}</td>
+
+                {{-- Labels --}}
+                <td class="p-2 border text-center">{{ number_format($data['label']['fg']) }}</td>
+                <td class="p-2 border text-center">{{ number_format($data['label']['rej']) }}</td>
+                <td class="p-2 border text-center">{{ $data['label']['qa'] ?? 0 }}</td>
+                <td class="p-2 border text-center">{{ $data['label']['percent'] }}</td>
+
+                {{-- LDPE Shrinkfilm --}}
+                <td class="p-2 border text-center">{{ number_format($data['ldpe']['fg']) }}</td>
+                <td class="p-2 border text-center">{{ number_format($data['ldpe']['rej']) }}</td>
+                <td class="p-2 border text-center">0</td>
+                <td class="p-2 border text-center">{{ $data['ldpe']['percent'] }}</td>
+            </tr>
+        @endforeach
+        </tbody>
+
+                </table>
+            </div>
+        </div>
 </div>
 
 <div class="w-full mb-4 bg-white rounded-sm border border-gray-300 p-6 shadow-xl">
     <!-- Header -->
     <div>
-        <p class="text-lg text-[#2d326b] font-semibold">Production Report</p>
+        <p class="text-lg text-[#23527c] font-semibold">Production Report</p>
     </div>
 
 <!-- Scrollable Container -->
@@ -290,10 +313,10 @@
             <tr>
                 <th class="p-2 border w-[120px] whitespace-nowrap"></th>
                 <th colspan="4" class="p-2 border text-center"></th>
-                <th colspan="4" class="p-2 border bg-[#6c6c6c] text-center">Preforms</th>
-                <th colspan="4" class="p-2 border bg-[#1f3661] text-center">Caps</th>
-                <th colspan="4" class="p-2 border bg-[#4d642d] text-center">OPP Label</th>
-                <th colspan="4" class="p-2 border bg-[#8a2e2e] text-center">LDPE Shrinkfilm</th>
+                <th colspan="5" class="p-2 border bg-[#6c6c6c] text-center">Preforms</th>
+                <th colspan="5" class="p-2 border bg-[#1f3661] text-center">Caps</th>
+                <th colspan="5" class="p-2 border bg-[#4d642d] text-center">OPP Label</th>
+                <th colspan="5" class="p-2 border bg-[#8a2e2e] text-center">LDPE Shrinkfilm</th>
             </tr>
             <tr>
                 <th class="p-2 border text-center w-[120px] whitespace-nowrap">Production Date</th>
@@ -303,6 +326,7 @@
                 <th class="p-2 border text-center w-[130px] whitespace-nowrap">Production Output</th>
 
                 @for ($i = 0; $i < 4; $i++)
+                    <th class="p-2 border text-center w-[120px] whitespace-nowrap">Description</th>
                     <th class="p-2 border text-center w-[120px] whitespace-nowrap">FG Usage</th>
                     <th class="p-2 border text-center w-[100px] whitespace-nowrap">Rejects</th>
                     <th class="p-2 border text-center w-[110px] whitespace-nowrap">QA Samples</th>
@@ -330,6 +354,13 @@
 
                     $calcPercent = fn($rejects, $fgUsage, $qa) =>
                         ($rejects + $fgUsage + $qa) > 0 ? number_format(($rejects / ($fgUsage + $rejects + $qa)) * 100, 2) . '%' : '0.00%';
+
+                    // Descriptions from the standard table
+                    $preformDesc = $report->standard->preform_weight ?? '';
+                    $capsDesc = $report->standard->caps ?? '';
+                    $labelDesc = $report->standard->opp_label ?? '';
+                    $ldpeDesc = $report->standard->ldpe_size ?? '';
+                
                 @endphp
 
                 <tr class="text-[10px] text-gray-700 whitespace-nowrap bg-white hover:bg-[#e5f4ff]">
@@ -340,24 +371,28 @@
                     <td class="border p-2 text-center">{{ $output }}</td>
 
                     {{-- PREFORMS --}}
+                    <td class="border p-2 text-center">{{ $preformDesc }}</td>
                     <td class="border p-2 text-center">{{ $fgUsage }}</td>
                     <td class="border p-2 text-center">{{ $preformRejects }}</td>
                     <td class="border p-2 text-center">{{ $report->total_sample ?? 0 }}</td>
                     <td class="border p-2 text-center">{{ $calcPercent($preformRejects, $fgUsage, $qaSamples) }}</td>
 
                     {{-- CAPS --}}
+                    <td class="border p-2 text-center">{{ $capsDesc }}</td>
                     <td class="border p-2 text-center">{{ $fgUsage }}</td>
                     <td class="border p-2 text-center">{{ $capsRejects }}</td>
                     <td class="border p-2 text-center">{{ $report->total_sample ?? 0 }}</td>
                     <td class="border p-2 text-center">{{ $calcPercent($capsRejects, $fgUsage, $qaSamples) }}</td>
 
                     {{-- OPP LABEL --}}
+                    <td class="border p-2 text-center">{{ $labelDesc }}</td>
                     <td class="border p-2 text-center">{{ $fgUsage }}</td>
                     <td class="border p-2 text-center">{{ $labelRejects }}</td>
                     <td class="border p-2 text-center">{{ $report->with_label ?? 0 }}</td>
                     <td class="border p-2 text-center">{{ $calcPercent($labelRejects, $fgUsage, $qaSamples) }}</td>
 
                     {{-- LDPE SHRINKFILM --}}
+                    <td class="border p-2 text-center">{{ $ldpeDesc }}</td>
                     <td class="border p-2 text-center">{{ $fgUsage }}</td>
                     <td class="border p-2 text-center">{{ $ldpeRejects }}</td>
                     <td class="border p-2 text-center">0</td>

@@ -2,11 +2,14 @@
 
 @section('content')
 
+{{-- Page Title --}}
+<h2 class="text-xl mb-2 font-bold text-[#23527c]">Line Efficiency Report</h2>
+
+
 <!-- Back Button -->
-<a href="{{ route('analytics.line.index', ['line' => request('line'), 'date' => request('date', now()->year)]) }}" class="flex items-center text-sm text-gray-500 hover:text-[#2d326b] mb-4">
-    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-    </svg>
+<a href="{{ route('analytics.line.index', ['line' => request('line'), 'date' => request('date', now()->year)]) }}"
+   class="text-xs text-gray-500 hover:text-[#23527c] mb-4 inline-flex items-center">
+    <x-icons-back-confi/>
     Analytics and Report
 </a>
 
@@ -26,14 +29,15 @@
         </p>
     </div>
     <div class="flex flex-col md:flex-row items-start md:items-center gap-3">
-        <form method="POST" action="" target="_blank">
-            @csrf
-            <input type="hidden" name="report_id" value="">
-            <button type="submit"
-                class="text-center px-3 py-2 bg-[#323B76] border border-[#444d90] hover:bg-[#444d90] text-white text-xs font-medium rounded-md shadow-sm transition duration-200">
-                Export to Excel
-            </button>
-        </form>
+<form method="GET" action="{{ route('analytics.line.exportCSV') }}" target="_blank">
+    <input type="hidden" name="month" value="{{ $month }}">
+    <input type="hidden" name="line" value="{{ $line }}">
+    <input type="hidden" name="date" value="{{ $year }}">
+    <button type="submit"
+        class="text-center px-3 py-2 bg-[#323B76] border border-[#444d90] hover:bg-[#444d90] text-white text-xs font-medium rounded-md shadow-sm transition duration-200">
+        Export to Excel
+    </button>
+</form>
     </div>
 </div>
 

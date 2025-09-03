@@ -42,36 +42,36 @@
 
 <div class="flex flex-col mb-4 ml-10">
     <form method="GET" action="{{ url()->current() }}" class="flex flex-col gap-4 text-[#23527c] mb-4">
-<!-- Year Selection -->
-<div class="flex items-center gap-6 w-36">
-    <label for="date" class="whitespace-nowrap text-sm font-bold">
-        Production Year:<span class="text-red-500">*</span>
-    </label>
-    <x-select-year 
-        name="date" 
-        :options="collect($availableYears)->mapWithKeys(fn($v) => [$v => $v])->toArray()" 
-        :selected="$year"
-        class="w-28" />
-</div>
-
-<!-- Line Selection -->
-<div class="flex items-center gap-6 text-[#23527c]">
-    <label class="whitespace-nowrap text-sm font-bold">
-        Select Line:<span class="text-red-500">*</span>
-    </label>
-    <div class="flex gap-6 ml-8">
-        @foreach($activeLines as $ln)
-            <label class="inline-flex items-center gap-2 cursor-pointer">
-                <input type="radio" 
-                       name="line" 
-                       value="{{ $ln->line_number }}" 
-                       {{ (string)$selectedLine === (string)$ln->line_number ? 'checked' : '' }}
-                       class="w-4 h-4 rounded-full bg-gray-300 text-blue-600">
-                <span class="text-sm">Line {{ $ln->line_number }}</span>
+        <!-- Year Selection -->
+        <div class="flex items-center gap-6 w-36">
+            <label for="date" class="whitespace-nowrap text-sm font-bold">
+                Production Year:<span class="text-red-500">*</span>
             </label>
-        @endforeach
-    </div>
-</div>
+            <x-select-year 
+                name="date" 
+                :options="collect($availableYears)->mapWithKeys(fn($v) => [$v => $v])->toArray()" 
+                :selected="$year"
+                class="w-28" />
+        </div>
+
+        <!-- Line Selection -->
+        <div class="flex items-center gap-6 text-[#23527c]">
+            <label class="whitespace-nowrap text-sm font-bold">
+                Select Line:<span class="text-red-500">*</span>
+            </label>
+            <div class="flex gap-6 ml-8">
+                @foreach($activeLines as $ln)
+                    <label class="inline-flex items-center gap-2 cursor-pointer">
+                        <input type="radio" 
+                               name="line" 
+                               value="{{ $ln->line_number }}" 
+                               {{ (string)$selectedLine === (string)$ln->line_number ? 'checked' : '' }}
+                               class="w-4 h-4 rounded-full bg-gray-300 text-blue-600">
+                        <span class="text-sm">Line {{ $ln->line_number }}</span>
+                    </label>
+                @endforeach
+            </div>
+        </div>
 
         <!-- Submit Button Section -->
         <div class="flex gap-4 mt-4">
@@ -90,6 +90,8 @@
     </form>
 </div>
 
+{{-- ✅ Require year and line before showing analytics --}}
+@if($year && $selectedLine)
 <h2 class="text-xl font-bold text-[#23527c] mt-4">
     Production Line {{ $selectedLine }} - Year {{ $year }}
 </h2>
@@ -427,6 +429,12 @@
         </div>
     </div>
 </div>
+@else
+    <div class="w-full inline-flex items-center gap-1 bg-[#5a9fd4] text-sm border border-[#4590ca] p-4 mt-4 text-white">
+        <x-icons-warning />
+        Please select a year and a production line, then click <b>Submit</b> to view analytics.
+    </div>
+@endif
 
 <!-- Chart.js Data Preparation -->
 @php

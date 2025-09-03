@@ -91,7 +91,7 @@
                 @keydown.delete="clearAndShowAll()"
                 @keydown.backspace="startTyping()"
                 placeholder="{{ $placeholder }}"
-                class="w-full text-sm border border-gray-300 bg-white px-3 py-[0.375rem] pr-8 focus:border-[#2d326b] focus:ring focus:ring-[#2d326b] focus:ring-0 transition focus:border-blue-500 focus:shadow-lg focus:outline-none"
+                class="w-full text-sm border border-gray-300 bg-white px-3 py-1 pr-8 focus:border-[#2d326b] focus:ring focus:ring-[#2d326b] focus:ring-0 transition focus:border-blue-500 focus:shadow-lg focus:outline-none"
                 :class="{ 'text-gray-400': search === '' }"
                 autocomplete="off"
             >

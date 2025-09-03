@@ -14,9 +14,7 @@ class DatabaseSeeder extends Seeder
             MaintenanceSeeder::class,
             LineSeeder::class,
             RoleAndPermissionSeeder::class,
-            ProductionReportSeeder::class,
-            ProductionIssueSeeder::class,
-            LineQcRejectSeeder::class
+            ProductionReportSeeder::class
         ]);
     }
 }

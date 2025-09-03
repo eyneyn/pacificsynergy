@@ -83,7 +83,7 @@ public function index(Request $request)
     /**
      * Show the form for creating a new production report.
      */
-    public function add()
+  public function add()
     {
         $lines = Line::where('status', 'Active')->orderBy('line_number')->get();
         $skus = Standard::orderBy('description')->get();
@@ -109,12 +109,6 @@ public function index(Request $request)
      */
     public function store(Request $request)
     {
-            // Convert the date format before validation
-    if ($request->has('production_date')) {
-        $request->merge([
-            'production_date' => Carbon::createFromFormat('m/d/Y', $request->production_date)->format('Y-m-d'),
-        ]);
-    }
 
         $validated = $request->validate([
             'production_date' => 'required|date',
@@ -141,7 +135,6 @@ public function index(Request $request)
             'qa_remarks' => 'nullable|string',
             'with_label' => 'nullable|integer',
             'without_label' => 'nullable|integer',
-            'line_efficiency' => 'nullable|numeric|min:0|max:999.99',
         ]);
 
         // Duplicate check: same date + sku + output
@@ -197,34 +190,24 @@ public function index(Request $request)
 
         
         // Save Line QC Rejects
-$categoryMap = [
-    'caps' => 'Caps',
-    'bottle' => 'Bottle',
-    'label' => 'Label',
-    'ldpe_shrinkfilm' => 'LDPE Shrinkfilm', // underscore in key
-];
-
-foreach ($categoryMap as $categoryKey => $normalizedCategory) {
-    $defectKeys = $request->input("qc_{$categoryKey}_defect", []);
-    $qtyKeys = $request->input("qc_{$categoryKey}_qty", []);
-
-    foreach ($defectKeys as $index => $defectName) {
-        if ($defectName) {
-            $defect = Defect::where('defect_name', $defectName)
-                ->where('category', $normalizedCategory)
-                ->first();
-
-            if ($defect) {
-                LineQcReject::create([
-                    'production_reports_id' => $report->id,
-                    'defects_id' => $defect->id,
-                    'quantity' => $qtyKeys[$index] ?? 0,
-                ]);
+        foreach (['caps', 'bottle', 'label', 'ldpe_shrinkfilm'] as $category) {
+            $defectKeys = $request->input("qc_{$category}_defect", []);
+            $qtyKeys = $request->input("qc_{$category}_qty", []);
+            foreach ($defectKeys as $index => $defectName) {
+                if ($defectName) {
+                    $defect = Defect::where('defect_name', $defectName)
+                        ->where('category', ucfirst($category))
+                        ->first();
+                    if ($defect) {
+                        LineQcReject::create([
+                            'production_reports_id' => $report->id,
+                            'defects_id' => $defect->id,
+                            'quantity' => $qtyKeys[$index] ?? 0,
+                        ]);
+                    }
+                }
             }
         }
-    }
-}
-
 
         // Insert Status entry
         Status::create([
@@ -233,7 +216,8 @@ foreach ($categoryMap as $categoryKey => $normalizedCategory) {
             'status' => 'Submitted',
         ]);
 
-        return redirect()->route('report.index')->with('success', 'Production report saved successfully.');
+        return redirect()->route('report.view', $report)
+            ->with('success', 'Production report saved successfully.');
     }
 
     /**
@@ -269,7 +253,7 @@ foreach ($categoryMap as $categoryKey => $normalizedCategory) {
             }
         }
 
-        $isValidated = Status::where('production_report_id', $report->id)
+        $isValidated = Status::where('production_report_id', $report->id,)
             ->where('status', 'Validated')
             ->exists();
 
@@ -387,12 +371,6 @@ foreach ($categoryMap as $categoryKey => $normalizedCategory) {
      */
 public function update(Request $request, ProductionReport $report)
 {
-        // 🔧 Fix: convert MM/DD/YYYY to YYYY-MM-DD
-    if ($request->has('production_date')) {
-        $request->merge([
-            'production_date' => \Carbon\Carbon::createFromFormat('m/d/Y', $request->production_date)->format('Y-m-d'),
-        ]);
-    }
 
     $validated = $request->validate([
         'production_date' => 'required|date',

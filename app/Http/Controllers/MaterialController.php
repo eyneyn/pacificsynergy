@@ -9,6 +9,11 @@ use App\Models\Line;
 use App\Models\Defect;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use App\Exports\MaterialUtilizationExport;
+use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Excel as ExcelWriter;
+
 
 class MaterialController extends Controller
 {
@@ -28,16 +33,14 @@ public function index(Request $request)
         ->orderBy('line')
         ->get();
 
-    // 👇 Auto-pick defaults if not provided
-    $year = $year ?? now()->year;
-    $line = $line ?? ($activeLines->first()->line_number ?? null);
-
+    // ✅ Fetch only "Validated" reports
     $reports = ProductionReport::with(['standard', 'lineQcRejects.defect', 'statuses'])
         ->when($year, fn ($q) => $q->whereYear('production_date', $year))
         ->when($line, fn ($q) => $q->where('line', $line))
         ->whereHas('statuses', fn ($q) => $q->where('status', 'Validated'))
         ->get();
 
+    // ✅ Compute monthly data only from validated reports
     $monthlyData = $this->computeProductionData($reports);
 
     return view('analytics.material.index', array_merge([
@@ -51,10 +54,20 @@ public function index(Request $request)
 
 
 
+
 public function monthly_report(Request $request)
 {
-    $month = $request->query('month', now()->format('F')); // e.g. January
-    $monthNumber = Carbon::parse($month)->month;
+        // Accept both month number (1–12) and month name ("January")
+    $monthInput = $request->query('month', now()->month);
+
+    if (is_numeric($monthInput)) {
+        $monthNumber = (int) $monthInput;
+        $monthName = Carbon::create()->month($monthNumber)->format('F');
+    } else {
+        $monthName = $monthInput;
+        $monthNumber = Carbon::parse("1 $monthInput")->month; // "1 January"
+    }
+
 
     $line = $request->query('line');
     $year = $request->query('date', now()->year); // 👈 accept year from query
@@ -147,9 +160,9 @@ for ($i = 1; $i <= 5; $i++) {
     $dailyPreform = $dailyCaps = $dailyLabel = $dailyLdpe = [];
 
     for ($day = 1; $day <= $daysInMonth; $day++) {
-        $report = $reports->firstWhere('production_date', function ($date) use ($day, $monthNumber) {
-            return Carbon::parse($date)->day === $day;
-        });
+$report = $reports->first(function ($r) use ($day) {
+    return Carbon::parse($r->production_date)->day === $day;
+});
 
         if ($report) {
             $output = $report->total_outputCase ?? 0;
@@ -174,10 +187,36 @@ for ($i = 1; $i <= 5; $i++) {
     }
 
     return view('analytics.material.monthly_report', compact(
-        'reports', 'weeklyData', 'month', 'line', 'year',
+        'reports', 'weeklyData', 'monthName','monthNumber' ,'line', 'year',
         'dailyLabels', 'dailyTarget', 'dailyPreform', 'dailyCaps', 'dailyLabel', 'dailyLdpe'
     ));
 }
+public function exportExcel(Request $request)
+{
+    // Accept both month number (1–12) and month name ("January")
+    $monthInput = $request->query('month', now()->month);
+
+    if (is_numeric($monthInput)) {
+        $monthNumber = (int) $monthInput;
+        $monthName   = Carbon::create()->month($monthNumber)->format('F');
+    } else {
+        $monthName   = $monthInput;
+        $monthNumber = Carbon::parse("1 $monthInput")->month;
+    }
+
+    $line = $request->query('line');
+    $year = $request->query('date', now()->year);
+
+    return Excel::download(
+        new MaterialUtilizationExport($line, $monthNumber, $year, $monthName),
+        "{$monthName} {$year} MATERIAL MONITORING Line {$line}.xlsx",
+        ExcelWriter::XLSX,
+        [
+            'withCharts' => true, // <-- REQUIRED
+        ]
+    );
+}
+
  private function computeProductionData($reports)
     {
         $categories = ['Bottle' => 'preform', 'Caps' => 'caps', 'Label' => 'opp', 'LDPE Shrinkfilm' => 'ldpe'];

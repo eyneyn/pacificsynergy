@@ -108,10 +108,13 @@ Route::prefix('analytics')->name('analytics.')->group(function () {
     // Material Analytics
     Route::get('/material/index', [MaterialController::class, 'index'])->name('material.index'); // Permission: analytics.materials.index
     Route::get('/material/monthly_report', [MaterialController::class, 'monthly_report'])->name('material.monthly_report');
+Route::get('/material/export_excel', [MaterialController::class, 'exportExcel'])->name('material.export_excel');
+
 
     //Line Analytics
     Route::get('/line/index', [LineController::class, 'index'])->name('line.index'); // Permission: analytics.materials.index
     Route::get('/line/monthly_report', [LineController::class, 'monthly_report'])->name('line.monthly_report');
+Route::get('/line/export-csv', [LineController::class, 'exportCSV'])->name('line.exportCSV');
 
     // Material Dashboard Analytics
     Route::get('/material_utilization', [MaterialController::class, 'material_utilization'])->name('material_utilization'); // Permission: analytics.materials.index

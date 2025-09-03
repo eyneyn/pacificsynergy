@@ -10,6 +10,8 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use App\Models\Maintenance;
 use App\Models\ProductionIssues;
+use App\Exports\LineEfficiencyExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class LineController extends Controller
 {
@@ -19,223 +21,193 @@ class LineController extends Controller
     public function index(Request $request)
     {
         $line = $request->query('line');
-        $year = $request->query('date', now()->year);
+        $year = $request->query('date');
 
-        // Get available years from production reports
-        $availableYears = ProductionReport::selectRaw('YEAR(production_date) as year')
-            ->distinct()
-            ->orderByDesc('year')
-            ->pluck('year')
-            ->toArray();
+    $availableYears = ProductionReport::selectRaw('YEAR(production_date) as year')
+        ->distinct()
+        ->orderByDesc('year')
+        ->pluck('year')
+        ->toArray();
 
-        // Get reports for the selected year and line
-        $reports = ProductionReport::with(['standard', 'lineQcRejects.defect', 'statuses'])
-            ->whereYear('production_date', $year)
-            ->when($line, fn($q) => $q->where('line', $line))
-            ->whereHas('statuses', fn($q) => $q->where('status', 'Validated'))
-            ->get();
+    $activeLines = ProductionReport::select('line as line_number')
+        ->distinct()
+        ->orderBy('line')
+        ->get();
 
-        return view('analytics.line.index', [
-            'line' => $line,
-            'year' => $year,
-            'reports' => $reports,
-            'availableYears' => $availableYears
-        ]);
+    // 👇 Auto-pick defaults if not provided
+    $year = $year ?? now()->year;
+    $line = $line ?? ($activeLines->first()->line_number ?? null);
+
+
+
+    return view('analytics.line.index', array_merge([
+        'selectedLine' => $line,
+        'year' => $year,
+        'availableYears' => $availableYears,
+        'activeLines' => $activeLines,
+    ]));
     }
 
     /**
      * Display the monthly report for a line, month, and year.
      */
-    public function monthly_report(Request $request)
-    {
-        $month = $request->query('month', now()->format('F')); // e.g. January
-        $monthNumber = Carbon::parse($month)->month;
-        $line = $request->query('line');
-        $year = $request->query('date', now()->year);
+public function monthly_report(Request $request)
+{
+    $month = $request->query('month', now()->format('F'));
+    $monthNumber = Carbon::parse($month)->month;
+    $line = $request->query('line');
+    $year = $request->query('date', now()->year);
 
-        // Get production reports for the selected month/year/line
-        $reports = ProductionReport::with(['standard', 'lineQcRejects.defect', 'statuses'])
-            ->whereMonth('production_date', $monthNumber)
-            ->whereYear('production_date', $year)
-            ->when($line, fn($q) => $q->where('line', $line))
-            ->whereHas('statuses', fn($q) => $q->where('status', 'Validated'))
-            ->orderBy('production_date')
-            ->get();
+    // ✅ Get reports
+    $reports = ProductionReport::with(['standard', 'productionIssues.maintenance', 'statuses'])
+        ->whereMonth('production_date', $monthNumber)
+        ->whereYear('production_date', $year)
+        ->when($line, fn($q) => $q->where('line', $line))
+        ->whereHas('statuses', fn($q) => $q->where('status', 'Validated'))
+        ->orderBy('production_date')
+        ->get();
 
-        $reportIds = $reports->pluck('id');
+    $reportIds = $reports->pluck('id');
 
-        // Get all OPL Maintenance categories (fixed columns)
-        $oplCategories = Maintenance::where('type', 'OPL')
-            ->orderBy('name')
-            ->pluck('name')
-            ->toArray();
+    // ✅ Categories
+    $oplCategories = Maintenance::where('type', 'OPL')->orderBy('name')->pluck('name')->toArray();
+    $eplCategories = Maintenance::where('type', 'EPL')->orderBy('name')->pluck('name')->toArray();
 
-        // Load OPL-type production issues
-        $oplIssues = ProductionIssues::with('maintenance', 'productionReport')
-            ->whereIn('production_reports_id', $reportIds)
-            ->whereHas('maintenance', fn($q) => $q->where('type', 'OPL'))
-            ->get();
+    // ✅ Issues
+    $oplIssues = ProductionIssues::with(['maintenance', 'productionReport'])
+        ->whereIn('production_reports_id', $reportIds)
+        ->whereHas('maintenance', fn($q) => $q->where('type', 'OPL'))
+        ->get();
 
-        // Group OPL issues by date and category
-        $oplDowntimes = [];
-        foreach ($oplIssues as $issue) {
-            $date = Carbon::parse($issue->productionReport->production_date)->format('Y-m-d');
-            $category = $issue->maintenance->name;
-            $oplDowntimes[$date][$category] = ($oplDowntimes[$date][$category] ?? 0) + $issue->minutes;
-        }
+    $eplIssues = ProductionIssues::with(['maintenance', 'productionReport'])
+        ->whereIn('production_reports_id', $reportIds)
+        ->whereHas('maintenance', fn($q) => $q->where('type', 'EPL'))
+        ->get();
 
-        // Normalize OPL data for Blade view
-        $oplData = [];
-        foreach ($oplDowntimes as $date => $categories) {
-            $entry = ['date' => $date, 'categories' => []];
-            foreach ($oplCategories as $cat) {
-                $entry['categories'][$cat] = $categories[$cat] ?? 0;
-            }
-            $oplData[] = $entry;
-        }
-
-        // Get all EPL Maintenance categories (fixed columns)
-        $eplCategories = Maintenance::where('type', 'EPL')
-            ->orderBy('name')
-            ->pluck('name')
-            ->toArray();
-
-        // Load EPL-type production issues
-        $eplIssues = ProductionIssues::with('maintenance', 'productionReport')
-            ->whereIn('production_reports_id', $reportIds)
-            ->whereHas('maintenance', fn($q) => $q->where('type', 'EPL'))
-            ->get();
-
-        // Group EPL issues by date and category
-        $eplDowntimes = [];
-        foreach ($eplIssues as $issue) {
-            $date = Carbon::parse($issue->productionReport->production_date)->format('Y-m-d');
-            $category = $issue->maintenance->name;
-            $eplDowntimes[$date][$category] = ($eplDowntimes[$date][$category] ?? 0) + $issue->minutes;
-        }
-
-        // Normalize EPL data for Blade view
-        $eplData = [];
-        foreach ($eplDowntimes as $date => $categories) {
-            $entry = ['date' => $date, 'categories' => []];
-            foreach ($eplCategories as $cat) {
-                $entry['categories'][$cat] = $categories[$cat] ?? 0;
-            }
-            $eplData[] = $entry;
-        }
-
-// --- Initialize Variables ---
-$totalDt = $totalOpl = $totalEpl = $totalMOP = 0;
-$ptdOplImpact = $ptdEplImpact = 0;
-$ptdImpactCount = 0;
-$weeklySummary = [];
-$weeklyMinutes = [];
-$dailyRows = [];
-
-// Loop through each report
-foreach ($reports as $report) {
-    $date = Carbon::parse($report->production_date)->format('Y-m-d');
-    $le = $report->line_efficiency ?? 0;
-    $dt = 100 - $le;
-
-    $oplMins = collect($oplData)->firstWhere('date', $date)['categories'] ?? [];
-    $eplMins = collect($eplData)->firstWhere('date', $date)['categories'] ?? [];
-
-    $oplSum = array_sum($oplMins);
-    $eplSum = array_sum($eplMins);
-    $totalMins = $oplSum + $eplSum;
-
-    $oplPercent = $totalMins > 0 ? ($oplSum / $totalMins) * $dt : 0;
-    $eplPercent = $totalMins > 0 ? ($eplSum / $totalMins) * $dt : 0;
-
-    // Store daily row data
-    $dailyRows[] = [
-        'date' => Carbon::parse($report->production_date)->format('n/j/y'),
-        'sku' => $report->standard->description ?? 'N/A',
-        'size' => $report->standard->size ?? '',
-        'target_le' => '80%',
-        'le' => number_format($le, 2) . '%',
-        'opl_percent' => number_format($oplPercent, 2) . '%',
-        'epl_percent' => number_format($eplPercent, 2) . '%',
-        'opl_mins' => round($oplSum),
-        'epl_mins' => round($eplSum),
-        'total_mins' => round($totalMins),
-        'dt' => round($dt) . '%',
-    ];
-
-    $totalDt += $dt;
-    $totalOpl += $oplSum;
-    $totalEpl += $eplSum;
-    $totalMOP += ($oplSum + $eplSum);
-
-    if ($totalMins > 0) {
-        $ptdOplImpact += $oplPercent;
-        $ptdEplImpact += $eplPercent;
-        $ptdImpactCount++;
+    // ✅ Group by date
+    $oplDowntimes = [];
+    foreach ($oplIssues as $issue) {
+        $date = $issue->productionReport->production_date->format('Y-m-d');
+        $cat = $issue->maintenance->name;
+        $oplDowntimes[$date][$cat] = ($oplDowntimes[$date][$cat] ?? 0) + $issue->minutes;
     }
 
-    $week = 'W' . Carbon::parse($report->production_date)->weekOfMonth;
+    $eplDowntimes = [];
+    foreach ($eplIssues as $issue) {
+        $date = $issue->productionReport->production_date->format('Y-m-d');
+        $cat = $issue->maintenance->name;
+        $eplDowntimes[$date][$cat] = ($eplDowntimes[$date][$cat] ?? 0) + $issue->minutes;
+    }
 
-    // Weekly Summary
-    $weeklySummary[$week]['le_total'] = ($weeklySummary[$week]['le_total'] ?? 0) + $le;
-    $weeklySummary[$week]['opl_total'] = ($weeklySummary[$week]['opl_total'] ?? 0) + $report->opl_percent ?? 0;
-    $weeklySummary[$week]['epl_total'] = ($weeklySummary[$week]['epl_total'] ?? 0) + $report->epl_percent ?? 0;
-    $weeklySummary[$week]['count'] = ($weeklySummary[$week]['count'] ?? 0) + 1;
+    // ✅ Normalize to view format
+    $oplData = [];
+    foreach ($oplDowntimes as $date => $categories) {
+        $oplData[] = [
+            'date' => $date,
+            'categories' => collect($oplCategories)->mapWithKeys(fn($cat) => [$cat => $categories[$cat] ?? 0])->toArray()
+        ];
+    }
 
-    // Weekly Minutes
-    $weeklyMinutes[$week]['dt_mins'] = ($weeklyMinutes[$week]['dt_mins'] ?? 0) + $totalMins;
-    $weeklyMinutes[$week]['opl_mins'] = ($weeklyMinutes[$week]['opl_mins'] ?? 0) + $oplSum;
-    $weeklyMinutes[$week]['epl_mins'] = ($weeklyMinutes[$week]['epl_mins'] ?? 0) + $eplSum;
-    $weeklyMinutes[$week]['dt_percent_total'] = ($weeklyMinutes[$week]['dt_percent_total'] ?? 0) + $dt;
-    $weeklyMinutes[$week]['opl_impact'] = ($weeklyMinutes[$week]['opl_impact'] ?? 0) + $oplPercent;
-    $weeklyMinutes[$week]['epl_impact'] = ($weeklyMinutes[$week]['epl_impact'] ?? 0) + $eplPercent;
-    $weeklyMinutes[$week]['count'] = ($weeklyMinutes[$week]['count'] ?? 0) + 1;
-}
+    $eplData = [];
+    foreach ($eplDowntimes as $date => $categories) {
+        $eplData[] = [
+            'date' => $date,
+            'categories' => collect($eplCategories)->mapWithKeys(fn($cat) => [$cat => $categories[$cat] ?? 0])->toArray()
+        ];
+    }
 
-// PTD Calculations
-$ptdLEFloat = $reports->avg('line_efficiency');
-$ptdLEP = 100 - $ptdLEFloat;
-$ptdLE = $ptdLEFloat ? number_format($ptdLEFloat, 2) . '%' : '0.00%';
-$ptdOPL = $totalMOP > 0 ? number_format($totalOpl / $totalMOP * $ptdLEP, 2) . '%' : '0.00%';
-$ptdEPL = $totalMOP > 0 ? number_format($totalEpl / $totalMOP * $ptdLEP, 2) . '%' : '0.00%';
+    // ✅ Build Daily Rows (for left + right table)
+    $dailyRows = [];
+    foreach ($reports as $r) {
+        $oplMins = $oplIssues->where('production_reports_id', $r->id)->sum('minutes');
+        $eplMins = $eplIssues->where('production_reports_id', $r->id)->sum('minutes');
+        $totalMins = $oplMins + $eplMins;
 
-// Weekly Rows
-$weeklyRows = [];
-$finalRows = [];
-for ($i = 1; $i <= 5; $i++) {
-    $weekKey = 'W' . $i;
-    $summary = $weeklySummary[$weekKey] ?? ['count' => 0];
-    $minutes = $weeklyMinutes[$weekKey] ?? ['count' => 0];
+        $dailyRows[] = [
+            'date' => $r->production_date->format('Y-m-d'),
+            'sku' => $r->standard->sku ?? '',
+            'size' => $r->standard->size ?? '',
+            'target_le' => $r->standard->target_le ?? 0,
+            'le' => $r->line_efficiency ?? 0,
+            'opl_percent' => $totalMins > 0 ? round(($oplMins / $totalMins) * 100, 2) : 0,
+            'epl_percent' => $totalMins > 0 ? round(($eplMins / $totalMins) * 100, 2) : 0,
+            'total_mins' => $totalMins,
+            'opl_mins' => $oplMins,
+            'epl_mins' => $eplMins,
+            'dt' => $totalMins > 0 ? 100 : 0,
+        ];
+    }
 
-    // Left table (percent summary)
-    $finalRows[] = [
-        $weekKey,
-        $summary['count'] ? number_format($summary['le_total'] / $summary['count'], 2) . '%' : '0%',
-        $summary['count'] ? number_format($summary['opl_total'] / $summary['count'], 2) . '%' : '0%',
-        $summary['count'] ? number_format($summary['epl_total'] / $summary['count'], 2) . '%' : '0%',
-    ];
+    // ✅ Weekly aggregation
+    $weeklyRows = [];
+    $finalRows = [];
+    $weekGroups = $dailyRows ? collect($dailyRows)->groupBy(fn($r) => Carbon::parse($r['date'])->weekOfMonth) : collect();
 
-    // Right table (minutes summary)
-    $weeklyRows[] = [
-        'week' => $weekKey,
-        'dt' => number_format($minutes['dt_mins'] ?? 0),
-        'opl' => number_format($minutes['opl_mins'] ?? 0),
-        'epl' => number_format($minutes['epl_mins'] ?? 0),
-        'dt_percent' => $minutes['count'] ? round($minutes['dt_percent_total'] / $minutes['count']) . '%' : '0%',
-        'opl_percent' => $minutes['count'] ? round($minutes['opl_impact'] / $minutes['count']) . '%' : '0%',
-        'epl_percent' => $minutes['count'] ? round($minutes['epl_impact'] / $minutes['count']) . '%' : '0%',
-    ];
+    foreach ($weekGroups as $week => $rows) {
+        $totalDt = $rows->sum('total_mins');
+        $totalOpl = $rows->sum('opl_mins');
+        $totalEpl = $rows->sum('epl_mins');
+        $weeklyRows[] = [
+            'dt' => $totalDt,
+            'opl' => $totalOpl,
+            'epl' => $totalEpl,
+            'dt_percent' => $totalDt ? round(($totalDt / ($totalDt)) * 100, 2) : 0,
+            'opl_percent' => $totalDt ? round(($totalOpl / $totalDt) * 100, 2) : 0,
+            'epl_percent' => $totalDt ? round(($totalEpl / $totalDt) * 100, 2) : 0,
+        ];
+        $finalRows[] = [$week, $rows->avg('le'), $rows->avg('opl_percent'), $rows->avg('epl_percent')];
+    }
+
+    // ✅ PTD values
+    $ptdLE = $reports->avg('line_efficiency') ?? 0;
+    $ptdOPL = collect($dailyRows)->avg('opl_percent') ?? 0;
+    $ptdEPL = collect($dailyRows)->avg('epl_percent') ?? 0;
+    $totalOpl = collect($dailyRows)->sum('opl_mins');
+    $totalEpl = collect($dailyRows)->sum('epl_mins');
+    $totalDt = $totalOpl + $totalEpl;
+
+    return view('analytics.line.monthly_report', compact(
+        'reports', 'oplCategories', 'oplData', 'eplCategories', 'eplData',
+        'dailyRows', 'weeklyRows', 'finalRows',
+        'ptdLE', 'ptdOPL', 'ptdEPL',
+        'totalOpl', 'totalEpl', 'totalDt','line' ,'month','year'
+    ));
 }
 
 
-return view('analytics.line.monthly_report', compact(
-    'reports', 'month', 'line', 'year',
-    'oplCategories', 'oplData',
-    'eplCategories', 'eplData',
-    'dailyRows', 'finalRows', 'weeklyRows',
-    'ptdLE', 'ptdOPL', 'ptdEPL',
-    'totalDt', 'totalOpl', 'totalEpl'
-));
+    public function exportCSV(Request $request)
+{
+    $month = $request->query('month', now()->format('F'));
+    $monthNumber = Carbon::parse($month)->month;
+    $line = $request->query('line');
+    $year = $request->query('date', now()->year);
 
+    // --- get the same data as monthly_report ---
+    $reports = ProductionReport::with(['standard', 'lineQcRejects.defect', 'statuses'])
+        ->whereMonth('production_date', $monthNumber)
+        ->whereYear('production_date', $year)
+        ->when($line, fn($q) => $q->where('line', $line))
+        ->whereHas('statuses', fn($q) => $q->where('status', 'Validated'))
+        ->orderBy('production_date')
+        ->get();
+
+    $data = []; // build the table rows
+    foreach ($reports as $report) {
+        $data[] = [
+            Carbon::parse($report->production_date)->format('n/j/y'),
+            $report->standard->description ?? 'N/A',
+            $report->standard->size ?? '',
+            number_format($report->line_efficiency, 2) . '%',
+        ];
     }
+
+    // headers for table
+    $tableHeaders = ['Date', 'SKU', 'Size', 'Line Efficiency'];
+
+    // return Excel download
+    return Excel::download(
+        new LineEfficiencyExport($line, $month, $year, $data, $tableHeaders),
+        "LineEfficiency_{$line}_{$month}_{$year}.xlsx"
+    );
+}
 }

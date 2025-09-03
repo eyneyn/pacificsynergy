@@ -2,16 +2,8 @@
 
 @section('content')
 
-<!-- Back Button -->
-<a href="{{ url('report/index') }}" class="flex items-center text-sm text-gray-500 hover:text-[#2d326b] mb-4">
-    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-    </svg>
-    Production Report
-</a>
+<div class="container mx-auto px-4">
 
-<!-- Card Container -->
-<div class="bg-white rounded-sm border border-gray-200 p-6 shadow-md space-y-5 transition-all duration-300 hover:shadow-xl hover:border-[#E5E7EB]">
 
     <!-- Edit Production Report Form -->
     <form id="update-report-form" action="{{ route('report.update', $report->id) }}" method="POST">
@@ -20,53 +12,51 @@
 
         <!-- Title -->
         <div class="flex-1 text-center">
-            <h2 class="text-2xl m-4 font-bold text-[#2d326b]">Edit Production Report</h2>
+            <h2 class="text-2xl m-4 font-bold text-[#23527c]">Edit Production Report</h2>
         </div>
 
         <div class="space-y-5">
 
             <!-- Basic Production Details Header -->
-            <div class="mb-6 flex items-center justify-between">
-                <h4 class="text-lg font-semibold text-[#2d326b]">Basic Production Details</h4>
-                <button type="button"
-                    id="open-update-modal-btn"
-                    class="inline-flex items-center gap-2 p-3 py-2 bg-[#323B76] hover:bg-[#444d90] border border-[#323B76] text-white text-sm font-medium rounded-md">
-                    Update Report
-                </button>
-            </div>
+                <div class="mb-6 flex items-center justify-between">
+                    <a href="{{ url('report/index') }}" class="inline-flex items-center px-3 py-2 bg-[#5a9fd4] hover:bg-[#4a8bc2] text-white text-sm font-medium transition-colors duration-200 border border-[#4590ca] hover:border-[#4a8bc2]">
+                        <x-icons-back class="w-2 h-2 text-white" />
+                        Back
+                    </a>                
+                    <button type="submit"
+                        class="inline-flex items-center justify-center gap-1 bg-[#5bb75b] border border-[#43a143] text-white px-3 py-2 hover:bg-[#42a542] text-sm">
+                        <x-icons-save class="w-2 h-2 text-white" />
+                        Update
+                    </button>
+                </div>
 
-<!-- Line Efficiency Input (One Row) -->
-<div class="mb-4 space-x-4">
-    <label for="line_efficiency" class="w-full text-sm font-medium text-[#2d326b]">
-        Line Efficiency (%)
-    </label>
-    <input 
-        type="number"
-        name="line_efficiency"
-        id="line_efficiency"
-        step="0.01"
-        min="0"
-        max="100"
-        inputmode="decimal"
-        oninput="
-            const val = parseFloat(this.value);
-            if (val > 100) this.value = 100;
-            if (val < 0) this.value = 0;
-        "
-        class="w-1/6 border border-gray-300 rounded placeholder-gray-400 px-2 py-1 text-sm text-center"
-        value="{{ old('line_efficiency', $report->line_efficiency) }}"
-        placeholder="(e.g. 98.75)"
-    >
-</div>
-
-
-
-
-
+                <!-- Line Efficiency Input (One Row) -->
+                <div class="mb-4 mt-10">
+                    <label for="line_efficiency" class="w-full text-sm font-medium text-[#2d326b]">
+                        Line Efficiency (%)
+                    </label>
+                    <input 
+                        type="number"
+                        name="line_efficiency"
+                        id="line_efficiency"
+                        step="0.01"
+                        min="0"
+                        max="100"
+                        inputmode="decimal"
+                        oninput="
+                            const val = parseFloat(this.value);
+                            if (val > 100) this.value = 100;
+                            if (val < 0) this.value = 0;
+                        "
+                        class="w-1/6 ml-2 h-[30px] text-sm border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400"
+                        value="{{ old('line_efficiency', $report->line_efficiency) }}"
+                        placeholder="(e.g. 98.75)"
+                    >
+                </div>
 
             <!-- Basic Production Form Table -->
-            <table class="min-w-full text-sm border border-gray-200 shadow-sm">
-                <thead class="bg-gray-100 text-[#2d326b]">
+            <table class="min-w-full text-sm border border-[#E5E7EB] shadow-sm">
+                <thead class="uppercase text-[#23527c] bg-[#e2f2ff]">
                     <tr>
                         <th class="text-left px-4 py-3 w-1/4">Field</th>
                         <th class="text-left px-4 py-3 w-1/4">Value</th>
@@ -76,36 +66,21 @@
                 </thead>
                 <tbody class="text-gray-700 divide-y divide-gray-200">
                     <tr>
-                        <td class="font-medium text-[#2d326b] px-4 py-2">Running SKU</td>
+                        <td class="font-medium text-[#23527c] px-4 py-2">Running SKU</td>
                         <td class="px-4 py-2">
-                            <x-select-dropdown name="sku" value="{{ old('sku', $report->sku) }}" :options="$skus->pluck('description', 'description')->toArray()" placeholder="Select SKU"   />
+                            <x-select-dropdown name="sku" value="{{ old('sku', $report->sku) }}" :options="$skus->pluck('description', 'description')->toArray()" placeholder="Select SKU" required />
                         </td>
-                        <td class="font-medium text-[#2d326b] px-4 py-2">Production Date</td>
+                        <td class="font-medium text-[#23527c] px-4 py-2">Production Date</td>
                         <td class="px-4 py-2">
-
-@php
-    $formattedDate = old('production_date') 
-        ?? (\Carbon\Carbon::parse($report->production_date)->format('m/d/Y'));
-@endphp
-
-<input 
-    type="text" 
-    id="production_date" 
-    name="production_date" 
-    datepicker 
-    datepicker-autohide  
-    value="{{ $formattedDate }}" 
-    class="w-full border border-gray-300 rounded px-3 py-1 text-sm" 
->
-
+                            <input type="date" name="production_date" value="{{ old('production_date', $report->production_date) }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-3 py-1 text-sm" required>
                         </td>
                     </tr>
                     <tr>
-                        <td class="font-medium text-[#2d326b] px-4 py-2">Shift</td>
+                        <td class="font-medium text-[#23527c] px-4 py-2">Shift</td>
                         <td class="px-4 py-2">
-                            <x-select-dropdown name="shift" value="{{ old('shift', $report->shift) }}" :options="['00:00H - 24:00H' => '00:00H - 24:00H']"   />
+                            <x-select-dropdown name="shift" value="{{ old('shift', $report->shift) }}" :options="['00:00H - 24:00H' => '00:00H - 24:00H']" required />
                         </td>
-                        <td class="font-medium text-[#2d326b] px-4 py-2">AC Temperatures</td>
+                        <td class="font-medium text-[#23527c] px-4 py-2">AC Temperatures</td>
                         <td class="px-4 py-2">
                             <div class="grid grid-cols-4 gap-1">
                                 @for ($i = 1; $i <= 4; $i++)
@@ -114,28 +89,28 @@
                                         name="ac{{ $i }}" 
                                         placeholder="AC {{ $i }}" 
                                         value="{{ old('ac' . $i, $report->{'ac' . $i}) }}" 
-                                        class="w-full border border-gray-300 rounded placeholder-gray-400 px-2 py-1 text-sm text-center"
+                                        class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center"
                                     >
                                 @endfor
                             </div>
                         </td>
                     </tr>
                     <tr>
-                        <td class="font-medium text-[#2d326b] px-4 py-2">Line #</td>
+                        <td class="font-medium text-[#23527c] px-4 py-2">Line #</td>
                         <td class="px-4 py-2">
-                            <x-select-dropdown name="line" value="{{ old('line', $report->line) }}" :options="$lineOptions->toArray()"   />
+                            <x-select-dropdown name="line" value="{{ old('line', $report->line) }}" :options="$lineOptions->toArray()" required />
                         </td>
-                        <td class="font-medium text-[#2d326b] px-4 py-2">Total Output (Cases)</td>
+                        <td class="font-medium text-[#23527c] px-4 py-2">Total Output (Cases)</td>
                         <td class="px-4 py-2">
-                            <input type="text" name="total_outputCase" value="{{ old('total_outputCase', $report->total_outputCase) }}" class="w-full border border-gray-300 placeholder-gray-400 rounded px-3 py-1 text-sm text-center">
+                            <input type="text" name="total_outputCase" value="{{ old('total_outputCase', $report->total_outputCase) }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
                         </td>
                     </tr>
                     <tr>
-                        <td class="font-medium text-[#2d326b] px-4 py-2">FBO/FCO</td>
+                        <td class="font-medium text-[#23527c] px-4 py-2">FBO/FCO</td>
                         <td class="px-4 py-2">
                             <x-select-dropdown name="fbo_fco" value="{{ old('fbo_fco', $report->fbo_fco) }}"  :options="['00:00H - 00:00H' => '00:00H - 00:00H']" />
                         </td>
-                        <td class="font-medium text-[#2d326b] px-4 py-2">LBO/LCO</td>
+                        <td class="font-medium text-[#23527c] px-4 py-2">LBO/LCO</td>
                         <td class="px-4 py-2">
                             <x-select-dropdown name="lbo_lco" value="{{ old('lbo_lco', $report->lbo_lco) }}" :options="['24:00H - 24:00H' => '24:00H - 24:00H']" />
                         </td>
@@ -144,9 +119,8 @@
             </table>
 
             <!-- Filling Line and Blow Molding Section -->
-            <h4 class="text-lg font-semibold text-[#2d326b]">Filling Line and Blow Molding</h4>
-            <table class="min-w-full text-sm border border-gray-200 shadow-sm">
-                <thead class="bg-gray-100 text-[#2d326b]">
+            <table class="min-w-full text-sm border border-[#E5E7EB] shadow-sm">
+                <thead class="uppercase text-[#23527c] bg-[#e2f2ff]">
                     <tr>
                         <th class="text-left px-4 py-3 w-1/6">Filling Line</th>
                         <th class="text-left px-4 py-3 w-1/6"></th>
@@ -158,35 +132,35 @@
                 </thead>
                 <tbody class="text-gray-700 divide-y divide-gray-200">
                     <tr>
-                        <td class="font-medium text-[#2d326b] px-4 py-2 text-xs">Speed (Bottles per Hour) <span class="text-sm">Filler Speed</span></td>
+                        <td class="font-medium text-[#23527c] px-4 py-2 text-xs">Speed (Bottles per Hour) <span class="text-sm">Filler Speed</span></td>
                         <td class="px-4 py-2">
-                            <input type="text" name="filler_speed" value="{{ old('filler_speed', $report->filler_speed) }}" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
+                            <input type="text" name="filler_speed" value="{{ old('filler_speed', $report->filler_speed) }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
                         </td>
-                        <td class="font-medium text-[#2d326b] px-4 py-2 text-xs">RM Rejects <br><span class="text-sm">Opp/Labels</span></td>
+                        <td class="font-medium text-[#23527c] px-4 py-2 text-xs">RM Rejects <br><span class="text-sm">Opp/Labels</span></td>
                         <td class="px-4 py-2">
-                            <input type="text" name="opp_labels" value="{{ old('opp_labels', $report->opp_labels) }}" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
+                            <input type="text" name="opp_labels" value="{{ old('opp_labels', $report->opp_labels) }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
                         </td>
-                        <td class="font-medium text-[#2d326b] px-4 py-2">Bottle</td>
+                        <td class="font-medium text-[#23527c] px-4 py-2">Bottle</td>
                         <td class="px-4 py-2">
-                            <input type="text" name="bottle_filling" value="{{ old('bottle_filling', $report->bottle_filling) }}" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
+                            <input type="text" name="bottle_filling" value="{{ old('bottle_filling', $report->bottle_filling) }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
                         </td>
                     </tr>
                     <tr>
-                        <td class="font-medium text-[#2d326b] px-4 py-2">OPP/Labeler Speed</td>
+                        <td class="font-medium text-[#23527c] px-4 py-2">OPP/Labeler Speed</td>
                         <td class="px-4 py-2">
-                            <input type="text" name="opp_labeler_speed" value="{{ old('opp_labeler_speed', $report->opp_labeler_speed) }}" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
+                            <input type="text" name="opp_labeler_speed" value="{{ old('opp_labeler_speed', $report->opp_labeler_speed) }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
                         </td>
-                        <td class="font-medium text-[#2d326b] px-4 py-2">Shrinkfilm</td>
+                        <td class="font-medium text-[#23527c] px-4 py-2">Shrinkfilm</td>
                         <td class="px-4 py-2">
-                            <input type="text" name="shrinkfilm" value="{{ old('shrinkfilm', $report->shrinkfilm) }}" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
+                            <input type="text" name="shrinkfilm" value="{{ old('shrinkfilm', $report->shrinkfilm) }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
                         </td>
-                        <td class="font-medium text-[#2d326b] px-4 py-2">Caps</td>
+                        <td class="font-medium text-[#23527c] px-4 py-2">Caps</td>
                         <td class="px-4 py-2">
-                            <input type="text" name="caps_filling" value="{{ old('caps_filling', $report->caps_filling) }}" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
+                            <input type="text" name="caps_filling" value="{{ old('caps_filling', $report->caps_filling) }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
                         </td>
                     </tr>
                     <!-- Blow Molding Section Header -->
-                    <thead class="bg-gray-100 text-[#2d326b]">
+                    <thead class="uppercase text-[#23527c] bg-[#e2f2ff]">
                         <tr>
                             <th class="text-left px-4 py-3 w-1/6">Blow Molding</th>
                             <th class="text-left px-4 py-3 w-1/6"></th>
@@ -197,23 +171,23 @@
                         </tr>
                     </thead>
                     <tr>
-                        <td class="font-medium text-[#2d326b] px-4 py-2">Blow Molding Output</td>
+                        <td class="font-medium text-[#23527c] px-4 py-2">Blow Molding Output</td>
                         <td class="px-4 py-2">
-                            <input type="text" name="blow_molding_output" value="{{ old('blow_molding_output', $report->blow_molding_output) }}"  class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
+                            <input type="text" name="blow_molding_output" value="{{ old('blow_molding_output', $report->blow_molding_output) }}"  class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
                         </td>
-                        <td class="font-medium text-[#2d326b] px-4 py-2 text-xs">Blow Molding Rejects <span class="text-sm">Preform</span></td>
+                        <td class="font-medium text-[#23527c] px-4 py-2 text-xs">Blow Molding Rejects <span class="text-sm">Preform</span></td>
                         <td class="px-4 py-2">
-                            <input type="text" name="preform_blow_molding" value="{{ old('preform_blow_molding', $report->preform_blow_molding) }}"  class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
+                            <input type="text" name="preform_blow_molding" value="{{ old('preform_blow_molding', $report->preform_blow_molding) }}"  class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
                         </td>
-                        <td class="font-medium text-[#2d326b] px-4 py-2">Bottles</td>
+                        <td class="font-medium text-[#23527c] px-4 py-2">Bottles</td>
                         <td class="px-4 py-2">
-                            <input type="text" name="bottles_blow_molding" value="{{ old('bottles_blow_molding', $report->bottles_blow_molding) }}"  class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
+                            <input type="text" name="bottles_blow_molding" value="{{ old('bottles_blow_molding', $report->bottles_blow_molding) }}"  class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
                         </td>
                     </tr>
                     <tr>
-                        <td class="font-medium text-[#2d326b] px-4 py-2">Speed (Bottles/Hour)</td>
+                        <td class="font-medium text-[#23527c] px-4 py-2">Speed (Bottles/Hour)</td>
                         <td class="px-4 py-2">
-                            <input type="text" name="speed_blow_molding" value="{{ old('speed_blow_molding', $report->speed_blow_molding) }}"  class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
+                            <input type="text" name="speed_blow_molding" value="{{ old('speed_blow_molding', $report->speed_blow_molding) }}"  class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
                         </td>
                         <td colspan="4"></td>
                     </tr>
@@ -222,9 +196,8 @@
 
             <!-- Issues/Down Time/Remarks Section -->
             <div x-data="issueTable()" class="space-y-4">
-                <h4 class="text-lg font-semibold text-[#2d326b]">Issues/ Down Time / Remarks</h4>
-                <table class="min-w-full text-sm border border-gray-200 shadow-sm">
-                    <thead class="bg-gray-100 text-[#2d326b]">
+                <table class="min-w-full text-sm border border-[#E5E7EB] shadow-sm">
+                    <thead class="uppercase text-[#23527c] bg-[#e2f2ff]">
                         <tr>
                             <th class="text-left px-4 py-3 text-center w-1/4">Machine / Others</th>
                             <th class="text-left px-4 py-3 text-center">Description</th>
@@ -234,22 +207,24 @@
                     </thead>
                     <tbody>
                         <!-- Dynamic Issue Rows -->
-                        <template x-for="(issue, index) in issues" :key="index">
+                        <template x-for="issue in issues" :key="issue._uid">
                             <tr>
                                 <td class="px-4 py-2">
                                     <x-select-material name="materials[]" :options="$materialsOptions" />
                                 </td>
                                 <td class="px-2 py-2">
-                                    <input type="text" :name="`description[]`" x-model="issue.description"
-                                        class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
+                                    <input type="text" name="description[]" x-model="issue.description"
+                                        placeholder="Describe the issue or remark"
+                                        class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
                                 </td>
                                 <td class="px-2 py-2 text-center">
-                                    <input type="text" :name="`minutes[]`" x-model="issue.minutes" placeholder="mins"
-                                        class="w-20 border border-gray-300 placeholder-gray-400 rounded  px-2 py-1 text-sm text-center">
+                                    <input type="text" name="minutes[]" x-model="issue.minutes"
+                                        placeholder="mins"
+                                        class="w-20 border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
                                 </td>
                                 <td class="px-2 py-2 text-center">
-                                    <button type="button" @click="removeIssue(index)"
-                                        class="text-red-600 border border-red-600 py-1 px-2 rounded hover:text-red-800 text-sm font-medium">
+                                    <button type="button" @click="removeIssue(issue._uid)"
+                                        class="bg-red-600 hover:bg-red-700 border border-red-700 text-white py-1 px-2 text-sm font-medium">
                                         Delete
                                     </button>
                                 </td>
@@ -260,7 +235,7 @@
                             <td></td>
                             <td class="px-4 py-3 text-center">
                                 <button type="button" @click="addIssue()"
-                                    class="inline-flex items-center gap-2 bg-[#323B76] hover:bg-[#2d326b] text-white p-2 text-xs rounded shadow">
+                                    class="inline-flex items-center gap-2 bg-[#323B76] hover:bg-[#444d90] text-white p-2 text-xs shadow">
                                     Add Issue
                                 </button>
                             </td>
@@ -271,8 +246,8 @@
                 </table>
 
                 <!-- QA Remarks and QC Rejects Section -->
-                <table class="min-w-full text-sm border border-gray-200 shadow-sm">
-                    <thead class="bg-gray-100 text-[#2d326b]">
+                <table class="min-w-full text-sm border border-[#E5E7EB] shadow-sm">
+                    <thead class="uppercase text-[#23527c] bg-[#e2f2ff]">
                         <tr>
                             <th class="text-left px-4 py-3 w-1/6">QA Remarks</th>
                             <th class="text-left px-4 py-3 w-1/6"></th>
@@ -284,45 +259,45 @@
                     </thead>
                     <tbody class="text-gray-700 divide-y divide-gray-200">
                         <tr>
-                            <td class="font-medium text-[#2d326b] px-4 py-2">Ozone</td>
+                            <td class="font-medium text-[#23527c] px-4 py-2">Ozone</td>
                             <td class="px-4 py-2">
                                 <x-select-dropdown name="qa_remarks" 
                                     value="{{ old('qa_remarks', $report->qa_remarks) }}"
                                     :options="[ 'Passed' => 'Passed']" />
                             </td>
-                            <td class="font-medium text-[#2d326b] px-4 py-2">With Label</td>
+                            <td class="font-medium text-[#23527c] px-4 py-2">With Label</td>
                             <td class="px-4 py-2">
-                                <input type="text" name="with_label" value="{{ old('with_label', $report->with_label) }}" placeholder="pcs" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
+                                <input type="text" name="with_label" value="{{ old('with_label', $report->with_label) }}" placeholder="pcs" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
                             </td>
-                            <td class="font-medium text-[#2d326b] px-4 py-2">Without Label</td>
+                            <td class="font-medium text-[#23527c] px-4 py-2">Without Label</td>
                             <td class="px-4 py-2">
-                                <input type="text" name="without_label" value="{{ old('without_label', $report->without_label) }}" placeholder="pcs" class="w-full border border-gray-300 placeholder-gray-400 rounded px-2 py-1 text-sm text-center">
+                                <input type="text" name="without_label" value="{{ old('without_label', $report->without_label) }}" placeholder="pcs" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
                             </td>
                         </tr>
                 <!-- Line QC Rejects Section Header -->
-                <thead class="bg-gray-100 text-[#2d326b]">
+                <thead class="uppercase text-[#23527c] bg-[#e2f2ff]">
                     <tr>
                         <th colspan="6" class="text-left px-4 py-3">Line QC Rejects</th>
                     </tr>
                 </thead>
                 <tr>
                     <td colspan="6">
-                        <div class="grid md:grid-cols-2 gap-2">
+                        <div class="grid md:grid-cols-2 gap-4">
                             @foreach (['Caps', 'Bottle', 'Label', 'LDPE Shrinkfilm'] as $category)
-                                <div class="pl-3 pr-3 p-3 border-l border-r border-gray-200 flex flex-col gap-2">
+                                <div class="p-4 border border-gray-200 flex flex-col gap-4">
                                     <!-- QC Rejects Category Header and Add Button -->
                                     <div class="flex items-center justify-between">
-                                        <h5 class="text-sm font-bold text-[#2d326b]">{{ $category }}</h5>
+                                        <h5 class="text-sm font-bold text-[#23527c]">{{ $category }}</h5>
                                         <button type="button"
-                                            class="text-xs px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                                            class="text-xs px-2 py-1 bg-[#323B76] hover:bg-[#444d90] text-white"
                                             @click="addQcReject('{{ $category }}')">
                                             Add
                                         </button>
                                     </div>
 
                                     <!-- Dynamic QC Rejects Items -->
-                                    <template x-for="(item, index) in form.qcRejects['{{ $category }}']" :key="index">
-                                        <div class="flex items-center gap-2">
+                                    <template x-for="item in form.qcRejects['{{ $category }}']" :key="item._uid">
+                                        <div class="flex items-center gap-1">
                                             <x-select-defect
                                                 class="w-[160px]"
                                                 :name="'qc_' . strtolower($category) . '_defect[]'"
@@ -332,11 +307,11 @@
                                             />
                                             <input type="text" x-model="item.qty" name="qc_{{ strtolower($category) }}_qty[]"
                                                 placeholder="pcs"
-                                                class="w-[50px] text-sm text-center rounded-md border border-gray-300 placeholder-gray-400 shadow-sm focus:ring-[#323B76] focus:border-[#323B76]">
+                                                class="w-[60px] h-[30px] text-sm text-center border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400">
                                             <button type="button"
-                                                @click="removeQcReject('{{ $category }}', index)"
+                                                @click="removeQcReject('{{ $category }}', item._uid)"
                                                 :class="form.qcRejects['{{ $category }}'].length > 1 ? 'visible' : 'invisible'"
-                                                class="w-[32px] h-[20px] text-white bg-red-600 rounded hover:bg-red-700 text-sm flex items-center justify-center">
+                                                class="w-[32px] h-[30px] bg-red-600 hover:bg-red-700 border border-red-700 text-white text-sm flex items-center justify-center">
                                                 ×
                                             </button>
                                         </div>
@@ -351,39 +326,38 @@
 
                 <!-- Alpine.js Data and Methods for Dynamic Sections -->
                 <script>
-                    function issueTable() {
-                        return {
-                            // Issues array for dynamic issue rows
-                            issues: @json($issues),
-                            // QC Rejects data structure for each category
-                            form: {
-                                qcRejects: {
-                                    'Caps': @json($qcRejects['Caps']),
-                                    'Bottle': @json($qcRejects['Bottle']),
-                                    'Label': @json($qcRejects['Label']),
-                                    'LDPE Shrinkfilm': @json($qcRejects['LDPE Shrinkfilm']),
-                                }
-                            },
-                            // Add new issue row
-                            addIssue() {
-                                this.issues.push({ material: '', description: '', minutes: '' });
-                            },
-                            // Remove issue row
-                            removeIssue(index) {
-                                this.issues.splice(index, 1);
-                            },
-                            // Add new QC reject row for a category
-                            addQcReject(category) {
-                                this.form.qcRejects[category].push({ defect: '', qty: '' });
-                            },
-                            // Remove QC reject row for a category
-                            removeQcReject(category, index) {
-                                if (this.form.qcRejects[category].length > 1) {
-                                    this.form.qcRejects[category].splice(index, 1);
-                                }
+                function issueTable() {
+                    return {
+                        // Inject server-provided arrays, but enrich them with _uid
+                        issues: (@json($issues) || []).map(i => ({ ...i, _uid: crypto.randomUUID() })),
+                        form: {
+                            qcRejects: {
+                                'Caps': (@json($qcRejects['Caps']) || []).map(i => ({ ...i, _uid: crypto.randomUUID() })),
+                                'Bottle': (@json($qcRejects['Bottle']) || []).map(i => ({ ...i, _uid: crypto.randomUUID() })),
+                                'Label': (@json($qcRejects['Label']) || []).map(i => ({ ...i, _uid: crypto.randomUUID() })),
+                                'LDPE Shrinkfilm': (@json($qcRejects['LDPE Shrinkfilm']) || []).map(i => ({ ...i, _uid: crypto.randomUUID() })),
                             }
-                        };
-                    }
+                        },
+
+                        // --- Issue actions ---
+                        addIssue() {
+                            this.issues.push({ _uid: crypto.randomUUID(), material: '', description: '', minutes: '' });
+                        },
+                        removeIssue(uid) {
+                            this.issues = this.issues.filter(i => i._uid !== uid);
+                        },
+
+                        // --- QC Reject actions ---
+                        addQcReject(category) {
+                            this.form.qcRejects[category].push({ _uid: crypto.randomUUID(), defect: '', qty: '' });
+                        },
+                        removeQcReject(category, uid) {
+                            if (this.form.qcRejects[category].length > 1) {
+                                this.form.qcRejects[category] = this.form.qcRejects[category].filter(i => i._uid !== uid);
+                            }
+                        }
+                    };
+                }
                 </script>
             </div>
         </div>
