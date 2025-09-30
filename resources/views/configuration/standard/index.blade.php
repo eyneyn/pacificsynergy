@@ -1,5 +1,5 @@
 @extends('layouts.app')
-
+@section('title', content: 'Standard')
 @section('content')
 
 {{-- Page Title --}}
@@ -91,42 +91,10 @@
                         route="configuration.standard.index"
                     />
                 </th>
-                <th class="p-2 border border-[#d9d9d9] text-center w-[10%]">
-                    <x-table-sort-link 
-                        field="mat_no" 
-                        label="Mat No" 
-                        :currentSort="$currentSort ?? null" 
-                        :currentDirection="$currentDirection ?? null"
-                        route="configuration.standard.index"
-                    />
-                </th>
-                <th class="p-2 border border-[#d9d9d9] text-center w-[10%]">
-                    <x-table-sort-link 
-                        field="group" 
-                        label="Group" 
-                        :currentSort="$currentSort ?? null" 
-                        :currentDirection="$currentDirection ?? null"
-                        route="configuration.standard.index"
-                    />
-                </th>
-                <th class="p-2 border border-[#d9d9d9] text-center w-[20%]">
-                    <x-table-sort-link 
-                        field="preform_weight" 
-                        label="Preform Weight" 
-                        :currentSort="$currentSort ?? null" 
-                        :currentDirection="$currentDirection ?? null"
-                        route="configuration.standard.index"
-                    />
-                </th>
-                <th class="p-2 border border-[#d9d9d9] text-center w-[10%]">
-                    <x-table-sort-link 
-                        field="ldpe_size" 
-                        label="LDPE Size" 
-                        :currentSort="$currentSort ?? null" 
-                        :currentDirection="$currentDirection ?? null"
-                        route="configuration.standard.index"
-                    />
-                </th>
+                <th class="p-2 border border-[#d9d9d9] text-center w-[10%]">Mat No</th>
+                <th class="p-2 border border-[#d9d9d9] text-center w-[10%]">Group</th>
+                <th class="p-2 border border-[#d9d9d9] text-center w-[20%]">Preform Weight</th>
+                <th class="p-2 border border-[#d9d9d9] text-center w-[10%]">LDPE Size</th>
             </tr>
         </thead>
         <tbody>
@@ -149,7 +117,25 @@
         </tbody>
     </table>
 </form>
+{{-- Entries Info + Pagination --}}
+<div class="mt-4 flex flex-col md:flex-row items-center justify-between text-sm text-gray-600 gap-2">
+    {{-- Entries Information --}}
+    <div>
+        @if($standards->total() > 0)
+            Showing {{ $standards->firstItem() }} to {{ $standards->lastItem() }} of {{ $standards->total() }} entries
+            @if($standards->total() < $totalStandards)
+                (filtered from {{ $totalStandards }} total entries)
+            @endif
+        @else
+            Showing 0 to 0 of 0 entries (filtered from {{ $totalStandards }} total entries)
+        @endif
+    </div>
 
+    {{-- Pagination --}}
+    <div>
+        {{ $standards->appends(request()->query())->links('pagination::tailwind') }}
+    </div>
+</div>
 {{-- Delete Modal Component --}}
 <x-delete-modal />
 

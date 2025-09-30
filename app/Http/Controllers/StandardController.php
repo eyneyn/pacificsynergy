@@ -5,53 +5,53 @@ namespace App\Http\Controllers;
 use App\Models\ProductionReport;
 use Illuminate\Http\Request;
 use App\Models\Standard;
+use App\Models\Notification;
+use App\Models\AuditLog;
+use Illuminate\Support\Facades\Auth;
 
 class StandardController extends Controller
 {
     /**
      * Display a listing of the standards, with optional search.
      */
-public function index(Request $request)
-{
-    $query = Standard::query();
+    public function index(Request $request)
+    {
+        $query = Standard::query();
 
-    // 🔍 Apply search filter if provided
-    if ($request->filled('search')) {
-        $search = $request->search;
-        $query->where(function ($q) use ($search) {
-            $q->where('description', 'like', "%{$search}%")
-              ->orWhere('size', 'like', "%{$search}%")
-              ->orWhere('bottles_per_case', 'like', "%{$search}%")
-              ->orWhere('mat_no', 'like', "%{$search}%")
-              ->orWhere('group', 'like', "%{$search}%")
-              ->orWhere('preform_weight', 'like', "%{$search}%")
-              ->orWhere('ldpe_size', 'like', "%{$search}%");
-        });
+        // 🔍 Apply search filter if provided
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('description', 'like', "%{$search}%")
+                ->orWhere('size', 'like', "%{$search}%")
+                ->orWhere('bottles_per_case', 'like', "%{$search}%");
+            });
+        }
+
+        // 📌 Sorting
+        $sort = $request->get('sort', 'created_at');
+        $direction = $request->get('direction', 'desc');
+
+        if (in_array($sort, [
+            'description','size','bottles_per_case'
+        ])) {
+            $query->orderBy($sort, $direction);
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
+
+        // Pagination (✅ move after sorting)
+        $perPage  = $request->get('per_page', 25);
+        $standards  = $query->paginate($perPage)->appends($request->query());
+        $totalStandards = Standard::count();
+
+        return view('configuration.standard.index', [
+            'standards' => $standards,
+            'currentSort' => $sort,
+            'currentDirection' => $direction,
+            'totalStandards' => $totalStandards
+        ]);
     }
-
-    // 📌 Sorting
-    $sort = $request->get('sort', 'created_at');
-    $direction = $request->get('direction', 'desc');
-
-    if (in_array($sort, [
-        'description','size','bottles_per_case',
-        'mat_no','group','preform_weight','ldpe_size'
-    ])) {
-        $query->orderBy($sort, $direction);
-    } else {
-        $query->orderBy('created_at', 'desc');
-    }
-
-    $standards = $query->paginate(20);
-
-    return view('configuration.standard.index', [
-        'standards' => $standards,
-        'currentSort' => $sort,
-        'currentDirection' => $direction
-    ]);
-}
-
-
 
     /**
      * Show the form for creating a new standard.
@@ -72,10 +72,10 @@ public function index(Request $request)
             'mat_no' => 'nullable|string',
             'size' => 'required|string',
             'description' => 'required|string',
-            'bottles_per_case' => 'required|integer|min:1',
+            'bottles_per_case' => 'required|integer|min:0',
             'preform_weight' => 'required|string',
             'ldpe_size' => 'required|string',
-            'cases_per_roll' => 'required|integer|min:1',
+            'cases_per_roll' => 'required|integer|min:0',
             'caps' => 'required|string',
             'opp_label' => 'required|string',
             'barcode_sticker' => 'required|string',
@@ -84,6 +84,18 @@ public function index(Request $request)
         ]);
 
         $standard = Standard::create($validated);
+       Notification::standardEvent('added', $standard);
+
+
+        AuditLog::create([
+            'user_id'    => Auth::id(),
+            'event'      => 'standard_add',
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+            'context'    => [
+                'standard'  => $standard->description ?? 'Unknown Standard',
+            ],
+        ]);
 
         return view('configuration.standard.view', compact('standard'))
             ->with('success', 'Standard saved successfully!');
@@ -128,6 +140,17 @@ public function index(Request $request)
         ]);
 
         $standard->update($validated);
+       Notification::standardEvent('updated', $standard);
+
+        AuditLog::create([
+            'user_id'    => Auth::id(),
+            'event'      => 'standard_update',
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+            'context'    => [
+                'standard'  => $standard->description ?? 'Unknown Standard',
+            ],
+        ]);
 
         return redirect()
             ->route('configuration.standard.view', $standard)
@@ -152,6 +175,17 @@ public function index(Request $request)
         }
 
         $standard->delete();
+        Notification::standardEvent('deleted', $standard);
+
+        AuditLog::create([
+            'user_id'    => Auth::id(),
+            'event'      => 'standard_delete',
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+            'context'    => [
+                'standard'  => $standard->description ?? 'Unknown Standard',
+            ],
+        ]);
 
         return redirect()
             ->route('configuration.standard.index')

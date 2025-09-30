@@ -37,11 +37,10 @@ return new class extends Migration
             $table->integer('ac4')->nullable();
 
             // Foreign key to standards table (description)
-            $table->string('sku');
-            $table->foreign('sku')
-                ->references('description')
-                ->on('standards')
-                ->onDelete('cascade');
+            $table->foreignId('sku_id')
+                ->nullable()
+                ->constrained('standards') // by default references id
+                ->nullOnDelete();
 
             // Production figures
             $table->string('fbo_fco')->nullable();

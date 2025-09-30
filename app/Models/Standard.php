@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\ProductionReport;
 
 class Standard extends Model
 {
@@ -25,4 +26,9 @@ class Standard extends Model
         'alt_preform_for_350ml',
         'preform_weight2',
     ];
+    public function reports()
+{
+    return $this->hasMany(ProductionReport::class, 'sku_id');
+}
+
 }

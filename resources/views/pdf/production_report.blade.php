@@ -26,7 +26,7 @@
     <tr style="height: 80px;">
         <!-- Logo Section -->
         <td style="width: 10%; border-bottom: 1px solid #000; border-right: 1px solid #000; text-align: center; vertical-align: middle; background-color: white;">
-            <img src="{{ public_path('img/logowName.jpg') }}" alt="Logo" style="width: 45px;">
+            <img src="{{ public_path('img/default.jpg') }}" alt="Default" style="width: 45px;">
         </td>
 
         <!-- Center Title Section -->
@@ -428,16 +428,15 @@
                     <tr>
                         <td style="font-weight: bold; padding-bottom: 2px; padding-bottom: 20px;">Prepared by:</td>
                     </tr>
+                    @if ($report->user)
+                        <tr>
+                            <td style="border-bottom: 0.5px solid #000; padding: 4px 0; text-align: center">
+                                {{ $report->user->first_name }} {{ $report->user->last_name }} - {{ $report->user->getRoleNames()->first() ?? '' }}
+                            </td>
+                        </tr>
+                    @endif
                     <tr>
-                        <td style="border-bottom: 0.5px solid #000; padding: 4px 0; text-align: center">
-                            {{ $report->prepared_by ?? 'Nemesio Mendoza Jr.' }}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="text-align: center">Production Line Head</td>
-                    </tr>
-                    <tr>
-                        <td style="text-align: center">Name/Signature/Date</td>
+                        <td style="text-align: center">Printed Name and Signature</td>
                     </tr>
                 </table>
             </td>
@@ -453,15 +452,15 @@
                         <td style="text-align: right; font-weight: bold; padding-bottom: 20px;">Noted by:</td>
                     </tr>
                     <tr>
-                        <td style="border-bottom: 0.5px solid #000; padding: 4px 0; text-align: center;">
-                            {{ $report->noted_by ?? 'Production Manager' }}
+                        <td style="border-bottom: 0.5px solid #000; padding: 4px 0; text-align: center; color: white;">
+                            .
                         </td>
                     </tr>
                     <tr>
-                        <td style="text-align: center">Production Manager</td>
+                        
                     </tr>
                     <tr>
-                        <td style="text-align: center">Name/Signature/Date</td>
+                        <td style="text-align: center">Printed Name and Signature</td>
                     </tr>
                 </table>
             </td>

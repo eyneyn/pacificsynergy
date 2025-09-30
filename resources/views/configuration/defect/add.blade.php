@@ -1,5 +1,5 @@
 @extends('layouts.app')
-
+@section('title', content: 'Defect')
 @section('content')
 <div class="container mx-auto px-4">
     <!-- Header with Icon and Title -->
@@ -17,7 +17,7 @@
                 <!-- Defect Name Field -->
                 <div class="flex items-center mb-2">
                     <label class="text-[#23527c] font-bold w-40 text-right mr-8" for="defect_name">
-                        Defect Name:
+                        Defect Name: <span style="color: red;">*</span>
                     </label>
                     <div class="flex-1">
                         <input type="text"
@@ -25,7 +25,7 @@
                                id="defect_name"
                                value="{{ old('defect_name') }}"
                                required
-                               class="text-sm w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none">
+                               class="w-full text-sm border border-gray-300 bg-white px-3 py-1 pr-8 focus:border-[#2d326b] focus:ring focus:ring-[#2d326b] focus:ring-0 transition focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400">
                         @error('defect_name')
                             <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                         @enderror
@@ -35,7 +35,7 @@
                 <!-- Category Field -->
                 <div class="flex items-center mb-2">
                     <label class="text-[#23527c] font-bold w-40 text-right mr-8" for="category">
-                        Defect Category:
+                        Defect Category: <span style="color: red;">*</span>
                     </label>
                     <div class="flex-1">
                         <!-- Custom select dropdown component -->
@@ -54,13 +54,13 @@
                 <!-- Description Field -->
                 <div class="flex items-start">
                     <label class="text-[#23527c] font-bold w-40 text-right mr-8" for="description">
-                        Description:
+                        Description: <span style="color: red;">*</span>
                     </label>
                     <div class="flex-1">
                         <textarea name="description"
                                   id="description"
                                   rows="3"
-                                  class="text-sm w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none">{{ old('description') }}</textarea>
+                                  class="w-full text-sm border border-gray-300 bg-white px-3 py-1 pr-8 focus:border-[#2d326b] focus:ring focus:ring-[#2d326b] focus:ring-0 transition focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400">{{ old('description') }}</textarea>
                         @error('description')
                             <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                         @enderror

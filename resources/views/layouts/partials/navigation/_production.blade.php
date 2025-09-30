@@ -7,6 +7,7 @@
 @endphp
 
 <li>
+    @can('analytics.dashboard')
     <!-- Clickable Dashboard Toggle -->
     <button
         id="dashboard-toggle"
@@ -36,7 +37,7 @@
     <!-- Submenu - Show based on click state or active page -->
     <ul id="dashboard-submenu" class="{{ $isDashboardActive ? 'block' : 'hidden' }} py-2 space-y-2">
         <li>
-            <a href="{{ url('analytics/line-efficiency') }}"
+            <a href="{{ url('analytics/line_efficiency') }}"
                class="block p-2 pl-10 text-white rounded-lg transition
                hover:bg-[#444d90] 
                {{ request()->is('analytics/line-efficiency') ? 'bg-[#444d90]' : '' }}">
@@ -52,6 +53,7 @@
             </a>
         </li>
     </ul>
+                @endcan
 </li>
 
 {{-- JavaScript for Dashboard Toggle Functionality --}}

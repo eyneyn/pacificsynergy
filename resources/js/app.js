@@ -245,4 +245,23 @@ function setupDeleteHandler(form) {
             }
         });
     });
+
+document.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById('btnNoReport');
+  if (!btn) return;
+
+  btn.addEventListener('click', function (e) {
+    const dateEl = document.querySelector('input[name="production_date"]');
+    // allow select or hidden input produced by x-select-dropdown
+    const lineEl = document.querySelector('select[name="line"], input[name="line"]');
+
+    const date = (dateEl?.value || '').trim();
+    const line = (lineEl?.value || '').toString().trim();
+
+    if (!date || !line) {
+      e.preventDefault();
+      alert('Please select both Production Date and Line.');
+    }
+  });
+});
 });

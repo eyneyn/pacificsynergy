@@ -14,7 +14,7 @@ class ProductionReport extends Model
         'line', 
         'ac1', 'ac2', 'ac3', 'ac4',
         'manpower_present', 'manpower_absent',
-        'sku', 
+        'sku_id',   // ✅ use sku_id, not sku
         'fbo_fco', 
         'lbo_lco', 
         'total_outputCase',
@@ -40,45 +40,59 @@ class ProductionReport extends Model
         'bottle_code',
 
         'line_efficiency',
-        
-        'user_id'
+        'user_id',
+    ];
+
+    protected $casts = [
+        'production_date' => 'date',
     ];
     public function user()
     {
-        return $this->belongsTo('App\Models\User', 'user_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
+
     public function issues()
     {
-        return $this->hasMany('App\Models\ProductionIssues', 'production_reports_id');
+        return $this->hasMany(ProductionIssues::class, 'production_reports_id');
     }
     public function line()
     {
         return $this->belongsTo(Line::class, 'line', 'line_number');
     }
-    public function standard()
-    {
-        return $this->belongsTo('App\Models\Standard', 'sku', 'description');
-    }
     public function defects()
     {
-        return $this->belongsToMany('App\Models\Defect', 'production_report_defect', 'production_report_id', 'defect_id');
+        return $this->belongsToMany(
+            Defect::class,
+            'production_report_defect',
+            'production_report_id',
+            'defect_id'
+        );
     }
-public function lineQcRejects()
-{
-    return $this->hasMany(LineQcReject::class, 'production_reports_id')->with('defect');
-}
+    public function lineQcRejects()
+    {
+        return $this->hasMany(LineQcReject::class, 'production_reports_id')->with('defect');
+    }
 
-public function maintenances()
-{
-    return $this->belongsToMany(Maintenance::class, 'maintenance_production_report', 'production_report_id', 'maintenance_id');
-}
-
+    public function maintenances()
+    {
+        return $this->belongsToMany(
+            Maintenance::class,
+            'maintenance_production_report',
+            'production_report_id',
+            'maintenance_id'
+        );
+    }
     public function statuses()
-{
-    return $this->hasMany(Status::class);
-}
-public function histories()
-{
-    return $this->hasMany(ProductionReportHistory::class);
-}
+    {
+        return $this->hasMany(Status::class);
+    }
+
+    public function histories()
+    {
+        return $this->hasMany(ProductionReportHistory::class);
+    }
+    public function standard()
+    {
+        return $this->belongsTo(Standard::class, 'sku_id'); 
+    }
 }

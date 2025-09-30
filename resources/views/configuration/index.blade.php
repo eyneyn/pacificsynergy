@@ -1,10 +1,10 @@
 @extends('layouts.app')
-
+@section('title', content: 'Configuration')
 @section('content')
 {{-- Production Configuration Page --}}
 <div class="mx-32">
     <div class="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <h2 class="text-xl font-bold text-[#2d326b]">Production Configuration</h2>
+        <h2 class="text-xl font-bold text-[#23527c]">Production Configuration</h2>
     </div>
 
     <div class="border-b border-gray-200 mb-6"></div>

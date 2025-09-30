@@ -1,5 +1,5 @@
 @extends('layouts.app')
-
+@section('title', content: 'Defect')
 @section('content')
 <div class="container mx-auto px-4">
     <!-- Page Header -->
@@ -49,7 +49,7 @@
         </a>
         <!-- Edit Button -->
         <a href="{{ route('configuration.defect.edit', $defect->id) }}"
-           class="inline-flex items-center gap-2 p-2 bg-[#323B76] hover:bg-[#444d90] border border-[#323B76] text-white text-sm font-medium transition-colors duration-200">
+           class="inline-flex items-center gap-2 p-2 border border-[#323B76] bg-[#323B76] hover:bg-[#444d90] border border-[#323B76] text-white text-sm font-medium transition-colors duration-200">
             <x-icons-edit class="w-4 h-4" />
             Edit
         </a>

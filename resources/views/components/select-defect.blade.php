@@ -1,10 +1,10 @@
-@props(['name', 'options' => [], 'category'])
+@props(['name', 'options' => []])
 
 <div
     x-data="{
         open: false,
         search: '',
-        selected: item.defect,
+        selected: reject.defect,   // 👈 use reject.defect instead of issue.material
         label: '',
         focusedIndex: -1,
         options: @js($options),
@@ -18,7 +18,7 @@
             this.selected = value;
             this.label = label;
             this.search = label;
-            item.defect = value;
+            reject.defect = value;   // 👈 bind to reject.defect
             this.open = false;
         },
         moveFocus(dir) {
@@ -41,8 +41,8 @@
         }
     }"
     x-init="
-        label = item.defect && {{ Js::from($options) }}[item.defect] 
-            ? {{ Js::from($options) }}[item.defect] 
+        label = reject.defect && {{ Js::from($options) }}[reject.defect] 
+            ? {{ Js::from($options) }}[reject.defect] 
             : '';
         search = label;
     "
@@ -68,7 +68,7 @@
         <div
             x-show="open"
             x-transition
-            class="absolute z-10 w-full bottom-full mb-1 bg-white border border-gray-300 shadow-lg max-h-60 overflow-auto"
+            class="absolute z-10 w-full mt-1 bg-white border border-gray-300 shadow-lg max-h-60 overflow-auto"
             x-ref="dropdownOptions"
         >
             <template x-for="([value, label], index) in filteredOptions()" :key="value">
@@ -90,5 +90,5 @@
     </div>
 
     <!-- Hidden Input -->
-    <input type="hidden" :name="'{{ $name }}'" :value="selected" required>
+    <input type="hidden" :name="'{{ $name }}'" :value="selected">
 </div>

@@ -1,5 +1,5 @@
 @extends('layouts.app')
-
+@section('title', content: 'Line')
 @section('content')
 <div class="mx-32">
     <h2 class="text-xl mb-2 font-bold text-[#23527c]">Line Production</h2>
@@ -13,14 +13,13 @@
     <!-- Main Layout: Form + Table -->
     <div class="flex flex-col md:flex-row gap-8 items-start">
         <!-- Left Column: Add Line Form -->
-        <div class="w-full md:w-auto md:min-w-[300px] space-y-4">
-            <div class="bg-white border border-gray-200 p-6 shadow-md space-y-5 transition-all duration-300 hover:shadow-xl hover:border-[#E5E7EB]">
+        <div class="w-full md:w-[320px] bg-white p-6 shadow-md border border-gray-200 self-start">
                 <h3 class="text-lg font-semibold mb-4 text-[#23527c]">Add Line</h3>
                 <form action="{{ route('configuration.line.store') }}" method="POST">
                     @csrf
                     <!-- Line Number Input -->
                     <div class="mb-4">
-                        <label for="line_number" class="block text-sm font-medium text-gray-700">Line Number</label>
+                        <label for="line_number" class="block text-sm font-medium text-gray-700">Line Number <span style="color: red;">*</span></label>
                         <input type="number" name="line_number" id="line_number" required
                             class="mt-1 block w-full px-3 py-2 border border-gray-300 shadow-sm text-sm focus:border-blue-500 focus:shadow-lg focus:outline-none">
                         @error('line_number')
@@ -29,7 +28,7 @@
                     </div>
                     <!-- Status Dropdown -->
                     <div class="mb-4">
-                        <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+                        <label for="status" class="block text-sm font-medium text-gray-700">Status <span style="color: red;">*</span></label>
                         <x-select-dropdown name="status" id="status" required
                             :options="['Active' => 'Active', 'Inactive' => 'Inactive']" />
                     </div>
@@ -38,6 +37,11 @@
                         Add Line
                     </button>
                 </form>
+
+            {{-- 📌 Note Section --}}
+            <div class="mt-4 p-3 text-xs bg-blue-50 border border-blue-200 text-blue-700 rounded">
+                <p><strong>Note:</strong> Use this form to add new <span class="font-semibold">production line</span>.</p>
+                <p class="mt-2">For editing existing production line records, update them directly in the table on the right.</p>
             </div>
         </div>
         
@@ -56,7 +60,7 @@
                 <tbody>
                     @foreach($lines as $line)
                     <tr class="bg-white border-b border-gray-200 hover:bg-[#e5f4ff] transition-colors duration-200">
-                        <td class="p-1 border border-[#d9d9d9] text-[#23527c] font-bold text-center">
+                        <td class="p-1 border border-[#d9d9d9] text-[#23527c] text-center">
                             Line {{ $line->line_number }}
                         </td>
                         <td class="p-1 border border-[#d9d9d9] text-[#23527c]">

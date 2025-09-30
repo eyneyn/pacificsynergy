@@ -1,5 +1,5 @@
 @extends('layouts.app')
-
+@section('title', content: 'Standard')
 @section('content')
 <div class="container mx-auto px-4">
     <!-- Header with Icon and Title -->
@@ -116,7 +116,7 @@
         </a>
         <!-- Edit Button -->
         <a href="{{ route('configuration.standard.edit', $standard->id) }}"
-           class="inline-flex items-center gap-2 px-3 py-2 bg-[#323B76] hover:bg-[#444d90] text-white text-sm font-medium transition-colors duration-200">
+           class="inline-flex items-center gap-2 px-3 py-2 border border-[#323B76] bg-[#323B76] hover:bg-[#444d90] text-white text-sm font-medium transition-colors duration-200">
             <x-icons-edit class="w-4 h-4" />
             Edit
         </a>

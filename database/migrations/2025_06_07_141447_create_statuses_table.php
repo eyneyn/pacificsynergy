@@ -20,7 +20,10 @@ return new class extends Migration {
 
             $table->enum('status', ['Submitted', 'Reviewed', 'Validated']);
 
-            $table->timestamps();
+            // Single timestamp for when status happened
+            $table->timestamp('created_at')->useCurrent();
+
+            // No updated_at column (we don’t update statuses)
         });
     }
 

@@ -1,4 +1,5 @@
 @extends('layouts.app')
+@section('title', content: 'Maintenance')
 @section('content')
 
 {{-- Page Title --}}
@@ -17,9 +18,12 @@
         <form action="{{ route('configuration.maintenance.store') }}" method="POST">
             @csrf
             <input type="hidden" name="_context" value="add">
+
             {{-- Name Input --}}
             <div class="mb-4">
-                <label for="name" class="block text-sm font-medium text-gray-700">Machine / Others</label>
+                <label for="name" class="block text-sm font-medium text-gray-700">
+                    Machine / Others <span style="color: red;">*</span>
+                </label>
                 <input type="text" name="name" id="name"
                     value="{{ session('error_source') === 'add' && old('_context') === 'add' ? old('name') : '' }}"
                     class="mt-1 block w-full px-3 py-2 border border-gray-300 shadow-sm text-sm text-gray-700 focus:border-blue-500 focus:shadow-lg focus:outline-none"
@@ -28,9 +32,12 @@
                     <p class="text-sm text-red-600 mt-1">{{ $errors->addForm->first('name') }}</p>
                 @endif
             </div>
+
             {{-- Type Dropdown --}}
             <div class="mb-4">
-                <label for="type" class="mb-1 block text-sm font-medium text-gray-700">Type</label>
+                <label for="type" class="mb-1 block text-sm font-medium text-gray-700">
+                    Type <span style="color: red;">*</span>
+                </label>
                 <x-select-dropdown
                     name="type"
                     id="type"
@@ -42,12 +49,20 @@
                     <p class="text-sm text-red-600 mt-1">{{ $errors->addForm->first('type') }}</p>
                 @endif
             </div>
+
             <button type="submit"
                 class="w-full bg-[#5bb75b] border border-[#43a143] text-white px-3 py-1 hover:bg-[#42a542] text-sm">
                 Add Maintenance
             </button>
         </form>
+
+        {{-- 📌 Note Section --}}
+        <div class="mt-4 p-3 text-xs bg-blue-50 border border-blue-200 text-blue-700 rounded">
+            <p><strong>Note:</strong> Use this form to add new <span class="font-semibold">maintenance items</span>.</p>
+            <p class="mt-2">For editing existing maintenance records, update them directly in the table on the right.</p>
+        </div>
     </div>
+
 
     {{-- Maintenance Table Section --}}
     <div class="flex-1">

@@ -34,7 +34,7 @@
     <button
         id="user-management-toggle"
         class="flex items-center w-full p-2 text-base text-white transition duration-75 rounded-lg cursor-pointer
-            hover:bg-[#444d90] {{ $isUserManagementActive ? 'bg-[#444d90]' : '' }}">
+            hover:bg-[#444d90] {{ $isUserManagementActive ? ' ' : '' }}">
         {{-- User Management Icon --}}
         <svg class="shrink-0 w-5 h-5 text-gray-300 transition duration-75"
              aria-hidden="true"
@@ -66,7 +66,7 @@
                 <a href="{{ route('employees.index') }}"
                    class="block p-2 pl-10 text-white rounded-lg transition hover:bg-[#444d90]
                    {{ request()->is('employees*') ? 'bg-[#444d90]' : '' }}">
-                    Employees
+                    Users
                 </a>
             </li>
         @endcan

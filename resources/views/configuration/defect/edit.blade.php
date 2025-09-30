@@ -1,5 +1,5 @@
 @extends('layouts.app')
-
+@section('title', content: 'Defect')
 @section('content')
 <div class="container mx-auto px-4">
     <!-- Page Header -->
@@ -25,7 +25,7 @@
                             id="defect_name"
                             value="{{ old('defect_name', $defect->defect_name) }}"
                             required 
-                            class="text-sm w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none">
+                            class="w-full text-sm border border-gray-300 bg-white px-3 py-1 pr-8 focus:border-[#2d326b] focus:ring focus:ring-[#2d326b] focus:ring-0 transition focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400">
                         @error('defect_name')
                             <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                         @enderror

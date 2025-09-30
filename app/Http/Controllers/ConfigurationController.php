@@ -11,6 +11,9 @@ use App\Models\Line;
 use App\Models\LineQcReject;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Validator;
+use App\Models\Notification;
+use App\Models\AuditLog;
+use Illuminate\Support\Facades\Auth;
 
 class ConfigurationController extends Controller
 {
@@ -30,60 +33,61 @@ class ConfigurationController extends Controller
     /**
      * List defects with search and sort.
      */
-public function defect(Request $request)
-{
-    $query = Defect::query();
+    public function defect(Request $request)
+    {
+        $query = Defect::query();
 
-    // Global search
-    if ($request->filled('search')) {
-        $search = $request->search;
-        $query->where(function ($q) use ($search) {
-            $q->where('defect_name', 'like', "%{$search}%")
-              ->orWhere('category', 'like', "%{$search}%")
-              ->orWhere('description', 'like', "%{$search}%");
-        });
+        // 🔍 Global search
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('defect_name', 'like', "%{$search}%")
+                ->orWhere('category', 'like', "%{$search}%")
+                ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        // 🔍 Column-specific searches
+        if ($request->filled('defect_name_search')) {
+            $query->where('defect_name', 'like', "%{$request->defect_name_search}%");
+        }
+
+        if ($request->filled('category_search')) {
+            $query->where('category', 'like', "%{$request->category_search}%");
+        }
+
+        if ($request->filled('description_search')) {
+            $query->where('description', 'like', "%{$request->description_search}%");
+        }
+
+        // 📌 Sorting
+        $sort = $request->get('sort', 'created_at');
+        $direction = strtolower($request->get('direction', 'desc'));
+
+        $allowedSorts = ['defect_name', 'category', 'description', 'created_at'];
+        if (!in_array($sort, $allowedSorts)) {
+            $sort = 'created_at';
+        }
+
+        if (!in_array($direction, ['asc', 'desc'])) {
+            $direction = 'desc';
+        }
+
+        // ✅ Apply sorting BEFORE pagination
+        $query->orderBy($sort, $direction);
+
+        // Pagination
+        $perPage  = $request->get('per_page', 25);
+        $defects  = $query->paginate($perPage)->appends($request->query());
+        $totalDefects = Defect::count();
+
+        return view('configuration.defect.index', [
+            'defects' => $defects,
+            'totalDefects' => $totalDefects,
+            'currentSort' => $sort,
+            'currentDirection' => $direction
+        ]);
     }
-
-    // Column-specific searches
-    if ($request->filled('defect_name_search')) {
-        $query->where('defect_name', 'like', "%{$request->defect_name_search}%");
-    }
-
-    if ($request->filled('category_search')) {
-        $query->where('category', 'like', "%{$request->category_search}%");
-    }
-
-    if ($request->filled('description_search')) {
-        $query->where('description', 'like', "%{$request->description_search}%");
-    }
-
-    // Sorting
-    $sort = $request->get('sort', 'created_at');
-    $direction = strtolower($request->get('direction', 'desc'));
-
-    $allowedSorts = ['defect_name', 'category', 'description', 'created_at'];
-    if (!in_array($sort, $allowedSorts)) {
-        $sort = 'created_at';
-    }
-
-    if (!in_array($direction, ['asc', 'desc'])) {
-        $direction = 'desc';
-    }
-
-    // 🔹 Per page handling (default 25)
-    $perPage = $request->get('per_page', 25);
-
-    // Final query
-    $defects = $query->orderBy($sort, $direction)
-                     ->paginate($perPage)
-                     ->appends($request->query()); // keep filters in pagination links
-
-    return view('configuration.defect.index', compact('defects'));
-}
-
-
-
-
     /**
      * View a single defect.
      */
@@ -103,41 +107,53 @@ public function defect(Request $request)
     /**
      * Store a new defect.
      */
-public function defect_store(Request $request)
-{
-    $validated = $request->validate([
-        'defect_name' => [
-            'required',
-            'string',
-            // check unique but ignore soft-deleted rows
-            Rule::unique('defects', 'defect_name')->whereNull('deleted_at'),
-        ],
-        'category' => 'required|in:Caps,Bottle,Label,LDPE Shrinkfilm',
-        'description' => 'nullable|string',
-    ]);
+    public function defect_store(Request $request)
+    {
+        $validated = $request->validate([
+            'defect_name' => [
+                'required',
+                'string',
+                // check unique but ignore soft-deleted rows
+                Rule::unique('defects', 'defect_name')->whereNull('deleted_at'),
+            ],
+            'category' => 'required|in:Caps,Bottle,Label,LDPE Shrinkfilm',
+            'description' => 'nullable|string',
+        ]);
 
-    // Check if the defect already exists but is soft-deleted
-    $trashedDefect = Defect::withTrashed()
-        ->where('defect_name', $validated['defect_name'])
-        ->first();
+        // Check if the defect already exists but is soft-deleted
+        $trashedDefect = Defect::withTrashed()
+            ->where('defect_name', $validated['defect_name'])
+            ->first();
 
-    if ($trashedDefect && $trashedDefect->trashed()) {
-        // Restore instead of creating a duplicate
-        $trashedDefect->restore();
-        $trashedDefect->update($validated);
+        if ($trashedDefect && $trashedDefect->trashed()) {
+            // Restore instead of creating a duplicate
+            $trashedDefect->restore();
+            $trashedDefect->update($validated);
+
+            return redirect()
+                ->route('configuration.defect.view', $trashedDefect)
+                ->with('success', "Defect '{$trashedDefect->defect_name}' restored successfully!");
+        }
+
+        // If not soft-deleted, create new
+        $defect = Defect::create($validated);
+
+        Notification::defectEvent('added', $defect);
+
+        AuditLog::create([
+            'user_id'    => Auth::id(),
+            'event'      => 'defect_add',
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+            'context'    => [
+                'defect'  => $defect->defect_name ?? 'Unknown Defect',
+            ],
+        ]);
 
         return redirect()
-            ->route('configuration.defect.view', $trashedDefect)
-            ->with('success', "Defect '{$trashedDefect->defect_name}' restored successfully!");
+            ->route('configuration.defect.view', $defect)
+            ->with('success', 'Defect added successfully!');
     }
-
-    // If not soft-deleted, create new
-    $defect = Defect::create($validated);
-
-    return redirect()
-        ->route('configuration.defect.view', $defect)
-        ->with('success', 'Defect added successfully!');
-}
 
     /**
      * Show edit defect form.
@@ -163,6 +179,17 @@ public function defect_store(Request $request)
         ]);
 
         $defect->update($validated);
+       Notification::defectEvent('updated', $defect);
+
+        AuditLog::create([
+            'user_id'    => Auth::id(),
+            'event'      => 'defect_update',
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+            'context'    => [
+                'defect'  => $defect->defect_name ?? 'Unknown Defect',
+            ],
+        ]);
 
         return redirect()->route('configuration.defect.view', $defect)
                          ->with('success', 'Defect updated successfully!');
@@ -171,14 +198,25 @@ public function defect_store(Request $request)
     /**
      * Delete a defect if not used in QC Rejects.
      */
-public function defect_destroy(Defect $defect)
-{
-    $defect->delete(); // soft delete
+    public function defect_destroy(Defect $defect)
+    {
+        $defect->delete(); // soft delete
+        Notification::defectEvent('deleted', $defect);
 
-    return redirect()
-        ->route('configuration.defect.index') // go back to index page
-        ->with('success', "Defect '{$defect->defect_name}' deleted successfully.");
-}
+        AuditLog::create([
+            'user_id'    => Auth::id(),
+            'event'      => 'defect_delete',
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+            'context'    => [
+                'defect'  => $defect->defect_name ?? 'Unknown Defect',
+            ],
+        ]);
+
+        return redirect()
+            ->route('configuration.defect.index') // go back to index page
+            ->with('success', "Defect '{$defect->defect_name}' deleted successfully.");
+    }
 
 
     // ===================== Maintenance =====================
@@ -190,14 +228,14 @@ public function defect_destroy(Defect $defect)
     {
         $query = Maintenance::query();
 
-// Search filter
-if ($request->filled('search')) {
-    $search = $request->search;
-    $query->where(function ($q) use ($search) {
-        $q->where('name', 'like', "%{$search}%")
-          ->orWhere('type', 'like', "%{$search}%");
-    });
-}
+        // Search filter
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                ->orWhere('type', 'like', "%{$search}%");
+            });
+        }
 
         // Sorting
         $sort = $request->get('sort', 'created_at');
@@ -231,7 +269,19 @@ if ($request->filled('search')) {
                 ->with('error_source', 'add');
         }
 
-        Maintenance::create($validator->validated());
+        $maintenance = Maintenance::create($validator->validated());
+        Notification::maintenanceEvent('added', $maintenance->name);
+
+
+        AuditLog::create([
+            'user_id'    => Auth::id(),
+            'event'      => 'maintenance_store',
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+            'context'    => [
+                'maintenance'  => $maintenance->name ?? 'Unknown Maintenance',
+            ],
+        ]);
 
         return redirect()->back()->with('success', 'Maintenance added successfully.');
     }
@@ -271,6 +321,18 @@ if ($request->filled('search')) {
         }
 
         $maintenance->update($validator->validated());
+        Notification::maintenanceEvent('updated', $maintenance->name);
+
+
+        AuditLog::create([
+            'user_id'    => Auth::id(),
+            'event'      => 'maintenance_update',
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+            'context'    => [
+                'maintenance'  => $maintenance->name ?? 'Unknown Maintenance',
+            ],
+        ]);
 
         return redirect()->back()->with('success', 'Maintenance updated successfully.');
     }
@@ -278,21 +340,32 @@ if ($request->filled('search')) {
     /**
      * Delete a maintenance record if not used.
      */
-public function maintenance_destroy(Maintenance $maintenance)
-{
-    // Check if maintenance is used in production_issues
-    $isUsed = ProductionIssues::where('maintenances_id', $maintenance->id)->exists();
+    public function maintenance_destroy(Maintenance $maintenance)
+    {
+        // Check if maintenance is used in production_issues
+        $isUsed = ProductionIssues::where('maintenances_id', $maintenance->id)->exists();
 
-    if ($isUsed) {
-        return redirect()->route('configuration.maintenance.index')->withErrors([
-            'maintenance_delete' => "\"{$maintenance->name}\" is currently in use and cannot be deleted."
+        if ($isUsed) {
+            return redirect()->route('configuration.maintenance.index')->withErrors([
+                'maintenance_delete' => "\"{$maintenance->name}\" is currently in use and cannot be deleted."
+            ]);
+        }
+
+        $maintenance->delete();
+        Notification::maintenanceEvent('deleted', $maintenance->name);
+        
+        AuditLog::create([
+            'user_id'    => Auth::id(),
+            'event'      => 'maintenance_destroy',
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+            'context'    => [
+                'maintenance'  => $maintenance->name ?? 'Unknown Maintenance',
+            ],
         ]);
+
+        return redirect()->route('configuration.maintenance.index')->with('success', 'Maintenance record deleted successfully.');
     }
-
-    $maintenance->delete();
-
-    return redirect()->route('configuration.maintenance.index')->with('success', 'Maintenance record deleted successfully.');
-}
 
     // ===================== Line =====================
 
@@ -338,7 +411,18 @@ public function maintenance_destroy(Maintenance $maintenance)
             }
         }
 
-        Line::create($validated);
+        $line = Line::create($validated);
+        Notification::lineEvent('added', $line->line_number);
+
+        AuditLog::create([
+            'user_id'    => Auth::id(),
+            'event'      => 'line_store',
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+            'context'    => [
+                'line'  => $line->line_number ?? 'Unknown Line',
+            ],
+        ]);
 
         return redirect()->back()->with('success', 'Line saved successfully!');
     }
@@ -355,6 +439,17 @@ public function maintenance_destroy(Maintenance $maintenance)
         ]);
 
         $line->update($validated);
+        Notification::lineEvent('updated', $line->line_number);
+
+        AuditLog::create([
+            'user_id'    => Auth::id(),
+            'event'      => 'line_update',
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+            'context'    => [
+                'line'  => $line->line_number ?? 'Unknown Line',
+            ],
+        ]);
 
         return redirect()->back()->with('success', 'Line updated successfully!');
     }
@@ -366,8 +461,19 @@ public function maintenance_destroy(Maintenance $maintenance)
     {
         $line = Line::findOrFail($line_number);
 
-        $line->delete(); // soft delete
+        $line->delete();
+        Notification::lineEvent('deleted', $line->line_number);
 
+        AuditLog::create([
+            'user_id'    => Auth::id(),
+            'event'      => 'line_destroy',
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+            'context'    => [
+                'line'  => $line->line_number ?? 'Unknown Line',
+            ],
+        ]);
+        
         return redirect()->back()->with('success', "Line {$line_number} deleted successfully.");
     }
 }

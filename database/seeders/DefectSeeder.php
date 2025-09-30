@@ -11,7 +11,6 @@ class DefectSeeder extends Seeder
     {
         $defects = [
             // CAPS
-            ['defect_name' => 'No caps', 'category' => 'Caps', 'description' => 'Caps not present'],
             ['defect_name' => 'Leak caps', 'category' => 'Caps', 'description' => 'Water leaking into the caps'],
             ['defect_name' => 'Broken caps', 'category' => 'Caps', 'description' => 'Any cracked on the caps'],
             ['defect_name' => 'Loose caps', 'category' => 'Caps', 'description' => 'Caps not properly sealed'],

@@ -1,5 +1,5 @@
 @extends('layouts.app')
-
+@section('title', content: 'Roles')
 @section('content')
 
 @php
@@ -33,72 +33,62 @@
     ];
 @endphp
 
+    <div class="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <h2 class="text-xl font-bold text-[#23527c]">Roles</h2>
+    </div>
 
-<h2 class="text-2xl font-bold text-[#2d326b]">Roles</h2>
-
-<div class="flex flex-col md:flex-row md:items-center justify-between mt-5 mb-6 gap-4">
-    <form method="GET" action="">
-        <div class="w-full max-w-xs px-4 border border-[#d9d9d9] rounded-md shadow-md transition-all duration-200 hover:shadow-lg hover:border-[#2d326b]">
-            <div class="flex items-center flex-grow">
-                <svg class="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M16.65 16.65A7.5 7.5 0 1 0 3 10a7.5 7.5 0 0 0 13.65 6.65z" />
-                </svg>
-                <input type="text"
+<div class="flex flex-col md:flex-row md:items-center mt-5 mb-6 gap-4">
+    <a href="{{ route('roles.create') }}"
+        class="inline-flex items-center justify-center gap-1 p-2 bg-[#323B76] hover:bg-[#444d90] border border-[#323B76] text-white text-sm font-medium">
+        <x-icons-plus-circle class="w-2 h-2 text-white" />
+        <span class="text-sm">New Roles</span>
+    </a>
+    <form method="GET" action="" class="w-full max-w-xl"> {{-- ~36rem --}}
+        <div class="w-full px-4 border border-[#d9d9d9] shadow-md focus-within:border-blue-500 focus-within:shadow-lg">
+            <div class="flex items-center gap-2">
+                <x-icons-search class="w-4 h-4 shrink-0"/>
+                <input
+                    type="text"
                     name="search"
                     value="{{ request('search') }}"
                     placeholder="Search roles"
-                    class="w-full border-none text-sm text-gray-700 placeholder-gray-400"/>
+                    class="flex-1 min-w-0 border-none bg-transparent text-sm text-gray-700 placeholder-gray-400"
+                />
             </div>
         </div>
     </form>
-
-    <a href="{{ route('roles.create') }}"
-        class="inline-flex items-center gap-2 p-3 py-2 bg-[#323B76] hover:bg-[#444d90] border border-[#323B76] text-white text-sm font-medium rounded-md">
-        <x-icons-plus-circle class="w-4 h-4 text-white" />
-        <span class="text-sm">New Roles</span>
-    </a>
 </div>
 
 <!-- Role Cards -->
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
     @forelse ($roles as $role)
-        <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-5 flex flex-col justify-between h-full">
+        <div class="bg-white border border-gray-200 shadow-[-1px_6px_5px_rgba(0,0,0.1,0.1)] hover:shadow-lg transition-all duration-200 p-5 flex flex-col justify-between h-full">
             <div class="mb-4">
                 <div class="flex justify-between items-center mb-5">
-                    <h3 class="text-lg font-semibold text-[#2d326b]">{{ $role->name }}</h3>
-                    <span class="inline-block px-3 py-0.5 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">
+                    <h3 class="text-lg font-semibold text-[#23527c]">{{ $role->name }}</h3>
+                    <span class="inline-block px-3 py-2 text-xs font-medium text-[#23527c]">
                         {{ $role->users_count ?? 0 }} Employee{{ ($role->users_count ?? 0) != 1 ? 's' : '' }}
                     </span>
                 </div>
 
-                <p class="text-sm text-gray-600 mr-4 mb-5">
+                <p class="text-sm text-[#23527c] mr-4 mb-5">
                     {{ $role->description ?? 'Manages access rights, permissions, and operational functions based on the designated role.' }}
                 </p>
-
-                <div class="flex flex-wrap gap-2">
-                    @forelse($role->permissions as $permission)
-                        <span class="inline-block px-3 py-1 text-xs font-medium border rounded-full {{ badgeColor($permission->name) }}">
-                            {{ $permissionLabels[$permission->name] ?? $permission->name }}
-                        </span>
-                    @empty
-                        <span class="text-xs text-gray-400 italic">No permissions</span>
-                    @endforelse
-                </div>
             </div>
 
-            <div class="flex justify-between items-center mt-auto pt-3 border-t border-gray-100">
-                <a href="#"
-                    class="text-sm text-[#323B76] font-medium hover:underline">
+            <div class="flex justify-between items-center mt-auto pt-3 border-t border-gray-200">
+                <a href="{{ route('employees.index', ['role' => $role->name]) }}"
+                class="text-sm text-[#23527c] font-medium hover:underline">
                     View Users
                 </a>
                 <a href="{{ route('roles.edit', $role->id) }}"
-                    class="text-sm px-4 py-1.5 border border-[#323B76] text-[#323B76] rounded-md hover:bg-[#f1f2fa] font-medium">
-                    Manage {{ $role->name }}
+                    class="text-sm px-4 py-1.5 bg-[#323B76] hover:bg-[#444d90] border border-[#323B76] text-white font-medium">
+                    Manage
                 </a>
             </div>
         </div>
     @empty
-        <p class="text-gray-500 italic text-center w-full col-span-2 mt-10">
+        <p class="text-gray-400 text-center w-full col-span-2 mt-10">
             No roles found{{ request('search') ? ' for "' . request('search') . '"' : '' }}.
         </p>
     @endforelse

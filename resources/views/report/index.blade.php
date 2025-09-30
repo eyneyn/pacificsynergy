@@ -1,4 +1,5 @@
 @extends('layouts.app')
+@section('title', content: 'Production Report')
 @section('content')
     {{-- Page Title --}}
     <h2 class="text-xl mb-2 font-bold text-[#23527c] mb-8">Production Report</h2>
@@ -37,13 +38,6 @@
         </div>
     </div>
 
-    @php
-        // Sorting logic
-        $currentSort = request('sort', 'created_at');
-        $currentDirection = request('direction', 'desc');
-        $toggleDirection = $currentDirection === 'asc' ? 'desc' : 'asc';
-    @endphp
-
     {{-- Search & Table --}}
     <form id="column-search-form" method="GET" action="{{ route('report.index') }}">
         {{-- Preserve existing sort parameters --}}
@@ -63,51 +57,58 @@
                 {{-- Main Header Row --}}
                 <tr class="text-xs text-white uppercase bg-[#35408e]">
                     <th class="p-2 border border-[#d9d9d9] text-center">
-                        <a href="{{ route('report.index', array_merge(request()->query(), ['sort' => 'production_date', 'direction' => ($currentSort === 'production_date' ? $toggleDirection : 'asc')])) }}"
-                            class="flex justify-center items-center gap-1 text-white no-underline">
-                            Production Date
-                            <svg class="w-4 h-4 {{ $currentSort === 'production_date' ? 'opacity-100' : 'opacity-50' }}" fill="currentColor" viewBox="0 0 512 512">
-                                <path d="M304 96h48v320h48l-72 80-72-80h48V96zM64 192h128v32H64v-32zm32 64h96v32H96v-32zm32 64h64v32h-64v-32zm32 64h32v32h-32v-32z"/>
-                            </svg>
-                        </a>
+                        <x-table-sort-link
+                            field="production_date"
+                            label="Production Date"
+                            :currentSort="$currentSort ?? null"
+                            :currentDirection="$currentDirection ?? null"
+                            route="report.index"
+                        />
                     </th>
+
                     <th class="p-2 border border-[#d9d9d9] text-center">
-                        <a href="{{ route('report.index', array_merge(request()->query(), ['sort' => 'sku', 'direction' => ($currentSort === 'sku' ? $toggleDirection : 'asc')])) }}"
-                            class="flex justify-center items-center gap-1 text-white no-underline">
-                            SKU
-                            <svg class="w-4 h-4 {{ $currentSort === 'sku' ? 'opacity-100' : 'opacity-50' }}" fill="currentColor" viewBox="0 0 512 512">
-                                <path d="M304 96h48v320h48l-72 80-72-80h48V96zM64 192h128v32H64v-32zm32 64h96v32H96v-32zm32 64h64v32h-64v-32zm32 64h32v32h-32v-32z"/>
-                            </svg>
-                        </a>
+                        <x-table-sort-link
+                            field="sku"
+                            label="SKU"
+                            :currentSort="$currentSort ?? null"
+                            :currentDirection="$currentDirection ?? null"
+                            route="report.index"
+                        />
                     </th>
+
                     <th class="p-2 border border-[#d9d9d9] text-center">
-                        <a href="{{ route('report.index', array_merge(request()->query(), ['sort' => 'line', 'direction' => ($currentSort === 'line' ? $toggleDirection : 'asc')])) }}"
-                            class="flex justify-center items-center gap-1 text-white no-underline">
-                            Line
-                            <svg class="w-4 h-4 {{ $currentSort === 'line' ? 'opacity-100' : 'opacity-50' }}" fill="currentColor" viewBox="0 0 512 512">
-                                <path d="M304 96h48v320h48l-72 80-72-80h48V96zM64 192h128v32H64v-32zm32 64h96v32H96v-32zm32 64h64v32h-64v-32zm32 64h32v32h-32v-32z"/>
-                            </svg>
-                        </a>
+                        <x-table-sort-link
+                            field="line"
+                            label="Line"
+                            :currentSort="$currentSort ?? null"
+                            :currentDirection="$currentDirection ?? null"
+                            route="report.index"
+                        />
                     </th>
+
                     <th class="p-2 border border-[#d9d9d9] text-center">
-                        <a href="{{ route('report.index', array_merge(request()->query(), ['sort' => 'total_outputCase', 'direction' => ($currentSort === 'total_outputCase' ? $toggleDirection : 'asc')])) }}"
-                            class="flex justify-center items-center gap-1 text-white no-underline">
-                            Total Output Case
-                            <svg class="w-4 h-4 {{ $currentSort === 'total_outputCase' ? 'opacity-100' : 'opacity-50' }}" fill="currentColor" viewBox="0 0 512 512">
-                                <path d="M304 96h48v320h48l-72 80-72-80h48V96zM64 192h128v32H64v-32zm32 64h96v32H96v-32zm32 64h64v32h-64v-32zm32 64h32v32h-32v-32z"/>
-                            </svg>
-                        </a>
+                        <x-table-sort-link
+                            field="total_outputCase"
+                            label="Output Case"
+                            :currentSort="$currentSort ?? null"
+                            :currentDirection="$currentDirection ?? null"
+                            route="report.index"
+                        />
                     </th>
+
                     <th class="p-2 border border-[#d9d9d9] text-center">
-                        <a href="{{ route('report.index', array_merge(request()->query(), ['sort' => 'created_at', 'direction' => ($currentSort === 'created_at' ? $toggleDirection : 'asc')])) }}"
-                            class="flex justify-center items-center gap-1 text-white no-underline">
-                            Submitted Date and Time
-                            <svg class="w-4 h-4 {{ $currentSort === 'created_at' ? 'opacity-100' : 'opacity-50' }}" fill="currentColor" viewBox="0 0 512 512">
-                                <path d="M304 96h48v320h48l-72 80-72-80h48V96zM64 192h128v32H64v-32zm32 64h96v32H96v-32zm32 64h64v32h-64v-32zm32 64h32v32h-32v-32z"/>
-                            </svg>
-                        </a>
+                        <x-table-sort-link
+                            field="created_at"
+                            label="Date and Time"
+                            :currentSort="$currentSort ?? null"
+                            :currentDirection="$currentDirection ?? null"
+                            route="report.index"
+                        />
                     </th>
-                    <th class="p-2 border border-[#d9d9d9] text-center">Status</th>
+
+                    <th class="p-2 border border-[#d9d9d9] text-center">
+                        Status
+                    </th>
                 </tr>
                 {{-- Search Input Row --}}
                 <tr>
@@ -169,52 +170,80 @@
                 {{-- Table Rows --}}
                 @forelse ($reports as $report)
                     <tr onclick="window.location='{{ route('report.view', $report->id) }}'" class="bg-white border-b border-[#35408e] hover:bg-[#e5f4ff] cursor-pointer">
+                        {{-- Production Date --}}
                         <td class="p-2 border border-[#d9d9d9] text-[#23527c] text-center">
-                            {{-- Highlight search term for production_date --}}
+                            @php
+                                $displayDate = $report->production_date ? \Carbon\Carbon::parse($report->production_date)->format('F d, Y') : '-';
+                            @endphp
                             @if(request('production_date_search'))
-                                @php
-                                    $displayDate = $report->production_date ? \Carbon\Carbon::parse($report->production_date)->format('F d, Y') : '-';
-                                @endphp
-                                {!! str_ireplace(request('production_date_search'), '<span class="bg-yellow-200">' . request('production_date_search') . '</span>', $displayDate) !!}
+                                {!! preg_replace(
+                                    '/(' . preg_quote(request('production_date_search'), '/') . ')/i',
+                                    '<span class="bg-yellow-200">$1</span>',
+                                    $displayDate
+                                ) !!}
                             @else
-                                {{ $report->production_date ? \Carbon\Carbon::parse($report->production_date)->format('F d, Y') : '-' }}
+                                {{ $displayDate }}
                             @endif
                         </td>
+
+                        {{-- SKU --}}
                         <td class="p-2 border border-[#d9d9d9] text-gray-600 text-center">
-                            {{-- Highlight search term for SKU --}}
+                            @php
+                                $skuValue = $report->standard?->description ?? 'N/A';
+                            @endphp
                             @if(request('sku_search'))
-                                {!! str_ireplace(request('sku_search'), '<span class="bg-yellow-200">' . request('sku_search') . '</span>', $report->sku) !!}
+                                {!! preg_replace(
+                                    '/(' . preg_quote(request('sku_search'), '/') . ')/i',
+                                    '<span class="bg-yellow-200">$1</span>',
+                                    $skuValue
+                                ) !!}
                             @else
-                                {{ $report->sku }}
+                                {{ $skuValue }}
                             @endif
                         </td>
+
+                        {{-- Line --}}
                         <td class="p-2 border border-[#d9d9d9] text-gray-600 text-center">
-                            {{-- Highlight search term for line --}}
                             @if(request('line_search'))
-                                {!! str_ireplace(request('line_search'), '<span class="bg-yellow-200">' . request('line_search') . '</span>', $report->line) !!}
+                                {!! preg_replace(
+                                    '/(' . preg_quote(request('line_search'), '/') . ')/i',
+                                    '<span class="bg-yellow-200">$1</span>',
+                                    $report->line
+                                ) !!}
                             @else
                                 {{ $report->line }}
                             @endif
                         </td>
+
+                        {{-- Output --}}
                         <td class="p-2 border border-[#d9d9d9] text-gray-600 text-center">
-                            {{-- Highlight search term for output --}}
                             @if(request('output_search'))
-                                {!! str_ireplace(request('output_search'), '<span class="bg-yellow-200">' . request('output_search') . '</span>', $report->total_outputCase) !!}
+                                {!! preg_replace(
+                                    '/(' . preg_quote(request('output_search'), '/') . ')/i',
+                                    '<span class="bg-yellow-200">$1</span>',
+                                    $report->total_outputCase
+                                ) !!}
                             @else
                                 {{ $report->total_outputCase }}
                             @endif
                         </td>
+
+                        {{-- Submitted Date --}}
                         <td class="p-2 border border-[#d9d9d9] text-gray-600 text-center">
-                            {{-- Highlight search term for submitted date --}}
+                            @php
+                                $displaySubmittedDate = $report->created_at ? $report->created_at->format('F j, Y \a\t h:i A') : '-';
+                            @endphp
                             @if(request('submitted_date_search'))
-                                @php
-                                    $displaySubmittedDate = $report->created_at ? $report->created_at->format('F j, Y \a\t h:i A') : '-';
-                                @endphp
-                                {!! str_ireplace(request('submitted_date_search'), '<span class="bg-yellow-200">' . request('submitted_date_search') . '</span>', $displaySubmittedDate) !!}
+                                {!! preg_replace(
+                                    '/(' . preg_quote(request('submitted_date_search'), '/') . ')/i',
+                                    '<span class="bg-yellow-200">$1</span>',
+                                    $displaySubmittedDate
+                                ) !!}
                             @else
-                                {{ $report->created_at ? $report->created_at->format('F j, Y \a\t h:i A') : '-' }}
+                                {{ $displaySubmittedDate }}
                             @endif
                         </td>
+
                         <td class="p-2 border border-[#d9d9d9] text-gray-600 text-center">
                             @php
                                 // Get latest status if exists
@@ -238,34 +267,40 @@
                             @endif
                         </td>
                     </tr>
-                @empty
-                    <tr>
-                        <td colspan="6" class="p-2 border border-[#d9d9d9] text-gray-600 text-center">No matching records found</td>
-                    </tr>
-                @endforelse
+                    @empty
+                        <tr>
+                            <td colspan="6" class="p-2 border border-[#d9d9d9] text-gray-600 text-center">No matching records found</td>
+                        </tr>
+                    @endforelse
             </tbody>
         </table>
     </form>
 
-{{-- Entries Info + Pagination --}}
-<div class="mt-4 flex flex-col md:flex-row items-center justify-between text-sm text-gray-600 gap-2">
-    {{-- Entries Information --}}
-    <div>
-        @if($reports->total() > 0)
-            Showing {{ $reports->firstItem() }} to {{ $reports->lastItem() }} of {{ $reports->total() }} entries
-            @if($reports->total() < $totalReports)
-                (filtered from {{ $totalReports }} total entries)
+    {{-- Entries Info + Pagination --}}
+    <div class="mt-4 flex flex-col md:flex-row items-center justify-between text-sm text-gray-600 gap-2">
+        {{-- Entries Information --}}
+        <div>
+            @if($reports->total() > 0)
+                Showing {{ $reports->firstItem() }} to {{ $reports->lastItem() }} of {{ $reports->total() }} entries
+                @if($reports->total() < $totalReports)
+                    (filtered from {{ $totalReports }} total entries)
+                @endif
+            @else
+                @if(request()->except('per_page', 'sort', 'direction')) 
+                    {{-- If filters/search applied but no result --}}
+                    No matching records found
+                @else
+                    No records available
+                @endif
             @endif
-        @else
-            Showing 0 to 0 of 0 entries (filtered from {{ $totalReports }} total entries)
-        @endif
+        </div>
+
+        {{-- Pagination --}}
+        <div>
+            {{ $reports->appends(request()->query())->links('pagination::tailwind') }}
+        </div>
     </div>
 
-    {{-- Pagination --}}
-    <div>
-        {{ $reports->appends(request()->query())->links('pagination::tailwind') }}
-    </div>
-</div>
 
 
     {{-- JS for search --}}

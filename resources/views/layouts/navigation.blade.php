@@ -28,117 +28,175 @@
         <!-- Logo + Title -->
         <h2 id="welcome-header"
             class="uppercase text-md text-white flex items-center gap-2">
-            <img src="{{ asset('img/logo.svg') }}" alt="Pacific Synergy Logo"
-                class="w-8 h-8 flex-shrink-0">
-            Pacific Synergy
+
+            <img src="{{ $settings && $settings->logo 
+                            ? asset('storage/' . $settings->logo) 
+                            : asset('img/default-logo.png') }}" 
+                alt="{{ $settings->company_name ?? 'Company Logo' }}" 
+                class="w-8 h-8 flex-shrink-0 object-contain">
+
+                {{ $settings && $settings->company_name ? $settings->company_name : 'Company Name' }}
         </h2>
     </div>
 
         <!-- Right Side Items -->
-    <div class="flex items-center">
-        <!-- Notification Bell -->
-<button id="dropdownNotificationButton" data-dropdown-toggle="dropdownNotification"
-    class="text-[#1B224F] px-2 py-4 hover:bg-[#ffd322] transition group">
-    <svg class="w-4 h-5 text-white fill-white group-hover:text-[#2d326b] group-hover:fill-[#2d326b] transition-colors" 
-         xmlns="http://www.w3.org/2000/svg" 
-         viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round"
-            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V4a2 2 0 10-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-    </svg>
-</button>
-            {{-- <!-- Badge -->
-            <span
-                class="absolute bottom-5 left-5 w-4 h-4 bg-red-600 text-white text-[11px] font-bold flex items-center justify-center rounded-full">
-                2
-            </span> --}}
-        </button>
-        
-        <!-- Notification Dropdown -->
-        <div id="dropdownNotification"
-            class="z-40 hidden w-full max-w-sm bg-white border border-gray-300 shadow-3xl divide-y divide-gray-300"
-            aria-labelledby="dropdownNotificationButton">
-            <div class="px-3 py-3 font-semibold text-[#2d326b]">Notifications</div>
-            <div class="divide-y divide-gray-200">
-                @foreach($statusNotifications as $note)
-                <a href="{{ route('report.view', $note->production_report_id) }}"
-                    class="flex items-start px-4 py-4 hover:bg-[#e2f2ff] transition">
-                    <div class="pl-1 text-sm text-gray-700 w-full">
-                        <p class="mb-1">
-                            Production report
-                            <span class="font-medium">{{ $note->productionReport?->production_date ?? 'N/A' }}</span>
-                            was successfully
-                            <span class="font-semibold text-[#2d326b]">{{ $note->status }}</span>
-                            added by
-                            <span class="text-gray-800">{{ $note->user?->first_name }}
-                                {{ $note->user?->last_name }}</span>
-                        </p>
-                        <p class="text-xs text-blue-600">{{ $note->created_at?->diffForHumans() ?? '' }}</p>
+        <div class="flex items-center gap-1">
+            <!-- Notification Bell -->
+            <div class="relative">
+                <button id="dropdownNotificationButton" data-dropdown-toggle="dropdownNotification"
+                    class="text-[#1B224F] p-3 hover:bg-[#ffd322] transition group">
+
+                    <div class="relative inline-block">
+                        <!-- Bell Icon -->
+                        <svg class="w-5 h-5 text-white fill-white group-hover:text-[#2d326b] group-hover:fill-[#2d326b] transition-colors" 
+                            xmlns="http://www.w3.org/2000/svg" 
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 
+                                6.002 0 00-4-5.659V4a2 2 0 10-4 0v1.341C7.67 6.165 
+                                6 8.388 6 11v3.159c0 .538-.214 1.055-.595 
+                                1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+
+                        <!-- 🔴 Unread count badge -->
+                        @if(!empty($unreadCount) && $unreadCount > 0)
+                            <span
+                                class="absolute -top-1 -right-2 min-w-[1rem] h-4 px-1 flex items-center justify-center 
+                                    text-[9px] font-bold text-white bg-[#ff4746] rounded-full">
+                                {{ $unreadCount }}
+                            </span>
+                        @endif
                     </div>
-                </a>
-                @endforeach
-                @foreach($changeLogs as $log)
-                <a href="{{ route('report.view', $log->production_report_id) }}"
-                    class="flex items-start px-5 py-4 hover:bg-[#e2f2ff] transition">
-                    <div class="pl-1 text-sm text-gray-700 w-full">
-                        <p class="mb-1">
-                            <span class="font-semibold text-[#2d326b]">Changes</span> made on
-                            <span class="font-medium">{{ $log->report?->production_date ?? 'N/A' }}</span>
-                            by <span class="text-gray-800">{{ $log->user?->first_name }}
-                                {{ $log->user?->last_name }}</span>
-                        </p>
-                        <p class="text-xs text-blue-600">{{ $log->updated_at?->diffForHumans() ?? '' }}</p>
+                </button>
+            </div>
+
+                
+            <!-- Notification Dropdown -->
+            <div id="dropdownNotification"
+                class="z-40 hidden w-full max-w-md bg-white border border-gray-300 shadow-3xl flex flex-col"
+                aria-labelledby="dropdownNotificationButton"
+                style="max-height: 90vh;"> {{-- limit to screen height --}}
+
+                <!-- Header with tabs -->
+                <div class="px-3 py-3 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-[#23527c]">Notifications</h2>
+                    @php $activeFilter = $filter ?? 'all'; @endphp   <!-- ✅ Add this line -->
+            <div class="flex space-x-4 mt-2">
+                <button onclick="loadDropdown('all')"
+                    class="tab-btn font-medium text-sm pb-1 {{ $activeFilter === 'all' ? 'text-white bg-[#23527c] px-3 py-1 rounded-full' : 'text-gray-500 hover:text-[#23527c]' }}">
+                    All
+                </button>
+                <button onclick="loadDropdown('unread')"
+                    class="tab-btn font-medium text-sm pb-1 {{ $activeFilter === 'unread' ? 'text-white bg-[#23527c] px-3 py-1 rounded-full' : 'text-gray-500 hover:text-[#23527c]' }}">
+                    Unread
+                </button>
+            </div>
+                </div>
+
+                <!-- Scrollable notification list -->
+            <div class="flex-1 overflow-y-auto">
+
+                {{-- ✅ New --}}
+                @isset($newNotifications)
+                    @if($newNotifications->count())
+                        <div class="px-3 py-2 text-sm font-semibold text-[#23527c]">New</div>
+                        <div class="divide-y divide-gray-200">
+                            @foreach($newNotifications as $note)
+                                @include('notifications.partials.note', ['note' => $note])
+                            @endforeach
+                        </div>
+                    @endif
+                @endisset
+
+                {{-- ✅ Today --}}
+                @isset($todayNotifications)
+                    @if($todayNotifications->count())
+                        <div class="px-3 py-2 text-sm font-semibold text-[#23527c]">Today</div>
+                        <div class="divide-y divide-gray-200">
+                            @foreach($todayNotifications as $note)
+                                @include('notifications.partials.note', ['note' => $note])
+                            @endforeach
+                        </div>
+                    @endif
+                @endisset
+
+                {{-- ✅ Earlier --}}
+                @isset($earlierNotifications)
+                    @if($earlierNotifications->count())
+                        <div class="px-3 py-2 text-sm font-semibold text-[#23527c]">Earlier</div>
+                        <div class="divide-y divide-gray-200">
+                            @foreach($earlierNotifications as $note)
+                                @include('notifications.partials.note', ['note' => $note])
+                            @endforeach
+                        </div>
+                    @endif
+                @endisset
+
+                {{-- ✅ Empty state --}}
+                @if(
+                    (isset($newNotifications) && !$newNotifications->count()) &&
+                    (isset($todayNotifications) && !$todayNotifications->count()) &&
+                    (isset($earlierNotifications) && !$earlierNotifications->count())
+                )
+                    <div class="px-4 py-4 text-sm text-gray-500">
+                        No notifications yet.
                     </div>
+                @endif
+
+            </div>
+
+
+                <!-- Footer -->
+                <a href="{{ route('notifications.index') }}"
+                    class="block px-4 py-3 text-center font-medium text-sm text-[#23527c] hover:bg-[#f0f8ff] transition border-t border-gray-200 bg-white">
+                    See previous notifications
                 </a>
-                @endforeach
             </div>
-            <a href="#"
-                class="block px-4 py-3 text-center font-medium text-sm text-[#2d326b] hover:bg-[#e2f2ff] transition">
-                <div class="inline-flex items-center space-x-2">
-                    <svg class="w-5 h-5 text-[#2d326b]" fill="currentColor" viewBox="0 0 20 14">
-                        <path d="..." />
-                    </svg>
-                    <span>View all</span>
+
+
+
+
+            
+            <!-- User Menu -->
+            <div class="relative" id="user-menu-container">
+            <button type="button"
+                class="flex items-center gap-1 px-2 hover:bg-[#ffd322] transition duration-200 group"
+                id="user-menu-button">
+                <div class="flex items-center gap-2">
+                    <span class="text-white text-md group-hover:text-[#2d326b] transition-colors">Hi,</span>
+                    <span class="text-white text-md group-hover:text-[#2d326b] font-bold transition-colors">{{ Auth::user()->first_name }}</span>
                 </div>
-            </a>
-        </div>
-        
-        <!-- User Menu -->
-        <div class="relative" id="user-menu-container">
-<button type="button"
-    class="flex items-center gap-1 p-3 hover:bg-[#ffd322] transition duration-200 group"
-    id="user-menu-button">
-    <div class="flex items-center gap-2">
-        <span class="text-white text-md group-hover:text-[#2d326b] transition-colors">Hi,</span>
-        <span class="text-white text-md group-hover:text-[#2d326b] transition-colors">{{ Auth::user()->first_name }}</span>
-    </div>
-    <img src="{{ Auth::user()->photo ? asset('storage/' . Auth::user()->photo) : asset('img/default.jpg') }}"
-        alt="User Avatar"
-        class="w-7 h-7 p-1 rounded-full">
-</button>
-            <!-- Dropdown -->
-            <div id="user-dropdown"
-                class="absolute right-0 z-50 hidden mt-2 w-48 bg-white divide-y divide-gray-300 border border-gray-300 shadow-3xl top-full">
-                <div class="px-4 py-3">
-                    <span class="block text-sm text-gray-900">{{ Auth::user()->email }}</span>
-                    <span class="block text-sm text-gray-500 truncate">{{ Auth::user()->getRoleNames()->first() ??
-                        'No Role Assigned' }}</span>
+                    <img
+                        src="{{ Auth::user()->photo ? asset('storage/' . Auth::user()->photo) : asset('img/default.jpg') }}"
+                        onerror="this.onerror=null;this.src='{{ asset('img/default.jpg') }}';"
+                        alt="User Avatar"
+                        class="w-12 h-12 p-2 rounded-full object-fill"
+                    />
+            </button>
+                <!-- Dropdown -->
+                <div id="user-dropdown"
+                    class="absolute right-0 z-50 hidden mt-2 w-48 bg-white divide-y divide-gray-300 border border-gray-300 shadow-3xl top-full">
+                    <div class="px-4 py-3">
+                        <span class="block text-sm text-gray-900">{{ Auth::user()->email }}</span>
+                        <span class="block text-sm text-gray-500 truncate">{{ Auth::user()->getRoleNames()->first() ??
+                            'No Role Assigned' }}</span>
+                    </div>
+                    <ul class="py-2">
+                        <li>
+                            <a href="{{ route('profile.edit') }}"
+                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-[#e2f2ff]">Profile</a>
+                        </li>
+                        <li>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit"
+                                    class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-[#e2f2ff]">Logout</button>
+                            </form>
+                        </li>
+                    </ul>
                 </div>
-                <ul class="py-2">
-                    <li>
-                        <a href="{{ route('profile.edit') }}"
-                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-[#e2f2ff]">Profile</a>
-                    </li>
-                    <li>
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit"
-                                class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-[#e2f2ff]">Logout</button>
-                        </form>
-                    </li>
-                </ul>
             </div>
         </div>
-    </div>
 </nav>
 
 <!-- Sidebar -->
@@ -148,7 +206,9 @@
     <div class="h-full overflow-y-auto">
         <!-- Sidebar Header -->
         <div class="relative px-2 mb-6">
-            <span class="font-medium sm:text-xl text-[#f9fafb]">Pacific Synergy</span>
+            <span class="font-medium sm:text-xl text-[#f9fafb]">
+                {{ $settings && $settings->company_name ? $settings->company_name : 'Company Name' }}
+            </span>
             <!-- Close Button -->
             <button id="sidebar-close"
                 class="absolute top-0 right-0 p-2 text-white hover:text-red-400 transition">

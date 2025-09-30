@@ -39,7 +39,7 @@
         x-show="open"
         @click.away="open = false"
         x-transition
-        class="absolute z-10 w-full mt-1 bg-white border border-gray-300 shadow-lg max-h-60 overflow-auto"
+        class="absolute z-10 w-full w-full text-sm border border-gray-300 bg-white px-3 py-1 pr-8 focus:border-[#2d326b] focus:ring focus:ring-[#2d326b] focus:ring-0 transition focus:border-blue-500 focus:shadow-lg focus:outline-none max-h-60 overflow-auto"
     >
         @foreach ($options as $value => $label)
             <div

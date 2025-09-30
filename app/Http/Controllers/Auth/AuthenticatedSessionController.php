@@ -50,9 +50,9 @@ class AuthenticatedSessionController extends Controller
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
-
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        // Redirect to login page
+        return redirect()->route('login')->with('message', 'Your session has expired. Please log in again.');
     }
 }

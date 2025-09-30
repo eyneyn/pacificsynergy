@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 
 class ProfileController extends Controller
 {
@@ -30,10 +32,15 @@ class ProfileController extends Controller
         $user = $request->user();
         $user->fill($request->validated());
 
-        // Handle photo upload
+        // ✅ Handle photo upload via storage/app/public/profile
         if ($request->hasFile('photo')) {
-            $photoPath = $request->file('photo')->store('photos', 'public');
-            $user->photo = $photoPath;
+            // Delete old photo if it exists and is not default
+            if ($user->photo && Storage::disk('public')->exists($user->photo) && basename($user->photo) !== 'default.jpg') {
+                Storage::disk('public')->delete($user->photo);
+            }
+
+            $photoPath = $request->file('photo')->store('profile', 'public');
+            $user->photo = $photoPath; // e.g. profile/uuid.png
         }
 
         // Reset email verification if email changed
@@ -46,30 +53,31 @@ class ProfileController extends Controller
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
 
+
     /**
      * Update the user's profile photo.
      */
     public function updatePhoto(Request $request): RedirectResponse
     {
         $request->validate([
-            'photo' => ['nullable', 'image', 'max:2048'],
+            'photo' => ['required', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
         ]);
 
         $user = $request->user();
 
         if ($request->hasFile('photo')) {
-            // Delete the old photo if exists
-            if ($user->photo && Storage::disk('public')->exists($user->photo)) {
+            // Delete old photo if it exists and is not default
+            if ($user->photo && Storage::disk('public')->exists($user->photo) && basename($user->photo) !== 'default.jpg') {
                 Storage::disk('public')->delete($user->photo);
             }
 
-            // Store new photo
-            $photoPath = $request->file('photo')->store('photos', 'public');
-            $user->photo = $photoPath;
+            // Store new photo in storage/app/public/profile
+            $path = $request->file('photo')->store('profile', 'public');
+            $user->photo = $path;
             $user->save();
         }
 
-        return Redirect::route('profile.edit')->with('status', 'photo-updated');
+        return redirect()->route('profile.edit')->with('status', 'photo-updated');
     }
 
     /**
@@ -121,4 +129,5 @@ class ProfileController extends Controller
 
         return back()->with('success', 'Password updated successfully.');
     }
+    
 }

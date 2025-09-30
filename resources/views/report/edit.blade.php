@@ -1,5 +1,5 @@
 @extends('layouts.app')
-
+@section('title', content: 'Production Report')
 @section('content')
 
 <div class="container mx-auto px-4">
@@ -68,11 +68,23 @@
                     <tr>
                         <td class="font-medium text-[#23527c] px-4 py-2">Running SKU</td>
                         <td class="px-4 py-2">
-                            <x-select-dropdown name="sku" value="{{ old('sku', $report->sku) }}" :options="$skus->pluck('description', 'description')->toArray()" placeholder="Select SKU" required />
+<x-select-dropdown 
+    name="sku_id" 
+    :selected="old('sku_id', $report->sku_id)" 
+    :options="$skus->pluck('description', 'id')->toArray()" 
+    placeholder="Select SKU" 
+    required 
+/>
                         </td>
                         <td class="font-medium text-[#23527c] px-4 py-2">Production Date</td>
                         <td class="px-4 py-2">
-                            <input type="date" name="production_date" value="{{ old('production_date', $report->production_date) }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-3 py-1 text-sm" required>
+                            <input
+                                type="date"
+                                name="production_date"
+                                value="{{ old('production_date', optional($report->production_date)->format('Y-m-d')) }}"
+                                class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-3 py-1 text-sm"
+                                required
+                            >
                         </td>
                     </tr>
                     <tr>
@@ -108,12 +120,27 @@
                     <tr>
                         <td class="font-medium text-[#23527c] px-4 py-2">FBO/FCO</td>
                         <td class="px-4 py-2">
-                            <x-select-dropdown name="fbo_fco" value="{{ old('fbo_fco', $report->fbo_fco) }}"  :options="['00:00H - 00:00H' => '00:00H - 00:00H']" />
+                            <input 
+                                type="text" 
+                                name="fbo_fco" 
+                                class="text-sm  px-2 py-1 w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400" 
+                                placeholder="Format must be like 00:00H/00:00H"
+                                value="{{ old('fbo_fco', $report->fbo_fco) }}"
+                                pattern="\d{2}:\d{2}H/\d{2}:\d{2}H"
+                                title="Format must be like 00:00H/00:00H"
+                            />                        
                         </td>
                         <td class="font-medium text-[#23527c] px-4 py-2">LBO/LCO</td>
                         <td class="px-4 py-2">
-                            <x-select-dropdown name="lbo_lco" value="{{ old('lbo_lco', $report->lbo_lco) }}" :options="['24:00H - 24:00H' => '24:00H - 24:00H']" />
-                        </td>
+                            <input 
+                                type="text" 
+                                name="lbo_lco" 
+                                class="text-sm  px-2 py-1 w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400" 
+                                placeholder="Format must be like 00:00H/00:00H"
+                                value="{{ old('lbo_lco', $report->lbo_lco) }}"
+                                pattern="\d{2}:\d{2}H/\d{2}:\d{2}H"
+                                title="Format must be like 00:00H/00:00H"
+                            />                           </td>
                     </tr>
                 </tbody>
             </table>
@@ -274,90 +301,79 @@
                                 <input type="text" name="without_label" value="{{ old('without_label', $report->without_label) }}" placeholder="pcs" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
                             </td>
                         </tr>
-                <!-- Line QC Rejects Section Header -->
-                <thead class="uppercase text-[#23527c] bg-[#e2f2ff]">
-                    <tr>
-                        <th colspan="6" class="text-left px-4 py-3">Line QC Rejects</th>
-                    </tr>
-                </thead>
-                <tr>
-                    <td colspan="6">
-                        <div class="grid md:grid-cols-2 gap-4">
-                            @foreach (['Caps', 'Bottle', 'Label', 'LDPE Shrinkfilm'] as $category)
-                                <div class="p-4 border border-gray-200 flex flex-col gap-4">
-                                    <!-- QC Rejects Category Header and Add Button -->
-                                    <div class="flex items-center justify-between">
-                                        <h5 class="text-sm font-bold text-[#23527c]">{{ $category }}</h5>
-                                        <button type="button"
-                                            class="text-xs px-2 py-1 bg-[#323B76] hover:bg-[#444d90] text-white"
-                                            @click="addQcReject('{{ $category }}')">
-                                            Add
-                                        </button>
-                                    </div>
+                    </tbody>
+                </table>
 
-                                    <!-- Dynamic QC Rejects Items -->
-                                    <template x-for="item in form.qcRejects['{{ $category }}']" :key="item._uid">
-                                        <div class="flex items-center gap-1">
-                                            <x-select-defect
-                                                class="w-[160px]"
-                                                :name="'qc_' . strtolower($category) . '_defect[]'"
-                                                :options="$defects->where('category', $category)->pluck('defect_name', 'defect_name')->toArray()"
-                                                x-init="$watch('item.defect', value => $el.querySelector('select').value = value)"
-                                                @change="item.defect = $event.target.value"
-                                            />
-                                            <input type="text" x-model="item.qty" name="qc_{{ strtolower($category) }}_qty[]"
-                                                placeholder="pcs"
-                                                class="w-[60px] h-[30px] text-sm text-center border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400">
-                                            <button type="button"
-                                                @click="removeQcReject('{{ $category }}', item._uid)"
-                                                :class="form.qcRejects['{{ $category }}'].length > 1 ? 'visible' : 'invisible'"
-                                                class="w-[32px] h-[30px] bg-red-600 hover:bg-red-700 border border-red-700 text-white text-sm flex items-center justify-center">
-                                                ×
-                                            </button>
-                                        </div>
-                                    </template>
-                                </div>
-                            @endforeach
-                        </div>
-                    </td>
-                </tr>
+                <!-- Line QC Rejects Section -->
+                <table class="min-w-full text-sm border border-[#E5E7EB] shadow-sm mt-6">
+                    <thead class="uppercase text-[#23527c] bg-[#e2f2ff]">
+                        <tr>
+                            <th colspan="3" class="text-left px-4 py-3">Line QC Rejects</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Dynamic QC Reject Rows -->
+                        <template x-for="reject in qcRejects" :key="reject._uid">
+                            <tr>
+                                <td class="px-4 py-2 w-full">
+                                    <x-select-defect
+                                        class="w-full"
+                                        name="qc_defect[]"
+                                        :options="$defects->pluck('defect_name','defect_name')->toArray()"
+                                        x-init="$watch('reject.defect', value => $el.querySelector('select').value = value)"
+                                        @change="reject.defect = $event.target.value"
+                                    />
+                                </td>
+                                <td class="px-4 py-2 text-center w-28">
+                                    <input type="number" name="qc_qty[]" x-model="reject.qty"
+                                        placeholder="pcs"
+                                        class="w-20 border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
+                                </td>
+                                <td class="px-4 py-2 text-center w-32">
+                                    <button type="button" @click="removeQcReject(reject._uid)"
+                                        class="bg-red-600 hover:bg-red-700 border border-red-700 text-white py-1 px-3 text-sm font-medium">
+                                        Delete
+                                    </button>
+                                </td>
+                            </tr>
+                        </template>
+
+                        <!-- Add Button -->
+                        <tr>
+                            <td colspan="4" class="px-4 py-3 text-center">
+                                <button type="button" @click="addQcReject()"
+                                    class="inline-flex items-center gap-2 bg-[#323B76] hover:bg-[#444d90] text-white p-2 text-xs shadow">
+                                    Add QC Reject
+                                </button>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
 
                 <!-- Alpine.js Data and Methods for Dynamic Sections -->
                 <script>
-                function issueTable() {
-                    return {
-                        // Inject server-provided arrays, but enrich them with _uid
-                        issues: (@json($issues) || []).map(i => ({ ...i, _uid: crypto.randomUUID() })),
-                        form: {
-                            qcRejects: {
-                                'Caps': (@json($qcRejects['Caps']) || []).map(i => ({ ...i, _uid: crypto.randomUUID() })),
-                                'Bottle': (@json($qcRejects['Bottle']) || []).map(i => ({ ...i, _uid: crypto.randomUUID() })),
-                                'Label': (@json($qcRejects['Label']) || []).map(i => ({ ...i, _uid: crypto.randomUUID() })),
-                                'LDPE Shrinkfilm': (@json($qcRejects['LDPE Shrinkfilm']) || []).map(i => ({ ...i, _uid: crypto.randomUUID() })),
-                            }
-                        },
+               function issueTable() {
+                        return {
+                            issues: (@json($issues) || []).map(i => ({ ...i, _uid: crypto.randomUUID() })),
+                            qcRejects: (@json($qcRejectsFlat ?? []) || []).map(r => ({ ...r, _uid: crypto.randomUUID() })),
 
-                        // --- Issue actions ---
-                        addIssue() {
-                            this.issues.push({ _uid: crypto.randomUUID(), material: '', description: '', minutes: '' });
-                        },
-                        removeIssue(uid) {
-                            this.issues = this.issues.filter(i => i._uid !== uid);
-                        },
+                            // --- Issue actions ---
+                            addIssue() {
+                                this.issues.push({ _uid: crypto.randomUUID(), material: '', description: '', minutes: '' });
+                            },
+                            removeIssue(uid) {
+                                this.issues = this.issues.filter(i => i._uid !== uid);
+                            },
 
-                        // --- QC Reject actions ---
-                        addQcReject(category) {
-                            this.form.qcRejects[category].push({ _uid: crypto.randomUUID(), defect: '', qty: '' });
-                        },
-                        removeQcReject(category, uid) {
-                            if (this.form.qcRejects[category].length > 1) {
-                                this.form.qcRejects[category] = this.form.qcRejects[category].filter(i => i._uid !== uid);
+                            // --- QC Reject actions ---
+                            addQcReject() {
+                                this.qcRejects.push({ _uid: crypto.randomUUID(), defect: '', category: '', qty: '' });
+                            },
+                            removeQcReject(uid) {
+                                this.qcRejects = this.qcRejects.filter(r => r._uid !== uid);
                             }
-                        }
-                    };
-                }
+                        };
+                    }
                 </script>
             </div>
         </div>

@@ -1,5 +1,5 @@
 @extends('layouts.app')
-
+@section('title', content: 'Defect')
 @section('content')
 
 {{-- Page Title --}}
@@ -48,13 +48,6 @@
     </div>
 </div>
 
-@php
-    // Sorting logic
-    $currentSort = request('sort', 'created_at');
-    $currentDirection = request('direction', 'desc');
-    $toggleDirection = $currentDirection === 'asc' ? 'desc' : 'asc';
-@endphp
-
 {{-- Search & Table --}}
 <form id="column-search-form" method="GET" action="{{ route('configuration.defect.index') }}">
     {{-- Preserve existing sort parameters --}}
@@ -70,17 +63,27 @@
         <thead>
             {{-- Main Header Row --}}
             <tr class="text-xs text-white uppercase bg-[#35408e]">
-                @foreach (['defect_name' => 'Defect Name', 'category' => 'Category', 'description' => 'Description'] as $field => $label)
-                    <th class="p-2 border border-[#d9d9d9] text-center">
+                    <th class="p-2 border border-[#d9d9d9] text-center w-[20%]">
                         <x-table-sort-link 
-                            :field="$field" 
-                            :label="$label" 
-                            :currentSort="$currentSort" 
-                            :currentDirection="$currentDirection"
+                            field="defect_name" 
+                            label="Defect Name" 
+                            :currentSort="$currentSort ?? null" 
+                            :currentDirection="$currentDirection ?? null"
                             route="configuration.defect.index"
                         />
                     </th>
-                @endforeach
+
+                    <th class="p-2 border border-[#d9d9d9] text-center w-[20%]">
+                        <x-table-sort-link 
+                            field="category" 
+                            label="Category" 
+                            :currentSort="$currentSort ?? null" 
+                            :currentDirection="$currentDirection ?? null"
+                            route="configuration.defect.index"
+                        />
+                    </th>
+
+                    <th class="p-2 border border-[#d9d9d9] text-center w-[10%]">Description</th>
             </tr>
             {{-- Search Input Row --}}
             <tr>
@@ -114,7 +117,7 @@
         <tbody>
             @forelse ($defects as $defect)
                 <tr onclick="window.location='{{ route('configuration.defect.view', $defect) }}'" class="bg-white border-b border-gray-200 hover:bg-[#e5f4ff] transition-colors duration-200 cursor-pointer">
-                    <td class="p-2 border border-[#d9d9d9] text-[#23527c] font-bold text-center">
+                    <td class="p-2 border border-[#d9d9d9] text-[#23527c] text-center">
                         {{-- Highlight search term for defect_name --}}
                         @if(request('defect_name_search'))
                             {!! str_ireplace(request('defect_name_search'), '<span class="bg-yellow-200">' . request('defect_name_search') . '</span>', $defect->defect_name) !!}
@@ -147,7 +150,25 @@
         </tbody>
     </table>
 </form>
+{{-- Entries Info + Pagination --}}
+<div class="mt-4 flex flex-col md:flex-row items-center justify-between text-sm text-gray-600 gap-2">
+    {{-- Entries Information --}}
+    <div>
+        @if($defects->total() > 0)
+            Showing {{ $defects->firstItem() }} to {{ $defects->lastItem() }} of {{ $defects->total() }} entries
+            @if($defects->total() < $totalDefects)
+                (filtered from {{ $totalDefects }} total entries)
+            @endif
+        @else
+            Showing 0 to 0 of 0 entries (filtered from {{ $totalDefects }} total entries)
+        @endif
+    </div>
 
+    {{-- Pagination --}}
+    <div>
+        {{ $defects->appends(request()->query())->links('pagination::tailwind') }}
+    </div>
+</div>
 {{-- Delete Modal Component --}}
 <x-delete-modal />
 

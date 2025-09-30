@@ -6,6 +6,9 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use App\Models\Notification;
+use App\Models\AuditLog;
+use Illuminate\Support\Facades\Auth;
 
 class RoleController extends Controller
 {
@@ -14,16 +17,14 @@ class RoleController extends Controller
      */
     public function index(Request $request)
     {
-        $search = $request->input('search');
+        $search = trim((string) $request->input('search', ''));
 
         $roles = Role::with(['permissions', 'users'])
-            ->when($search, function ($query, $search) {
-                $query->where('name', 'like', "%{$search}%")
-                    ->orWhereHas('permissions', function ($q) use ($search) {
-                        $q->where('name', 'like', "%{$search}%");
-                    });
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%");
             })
             ->withCount('users')
+            ->orderBy('name')
             ->get();
 
         return view('roles.index', compact('roles'));
@@ -59,6 +60,18 @@ class RoleController extends Controller
 
         $role = Role::create(['name' => $request->role]);
         $role->syncPermissions($selectedPermissions->toArray());
+
+        Notification::roleEvent('created', $role->name, $role->id);
+
+        AuditLog::create([
+            'user_id'    => Auth::id(),
+            'event'      => 'role_add',
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+            'context'    => [
+                'role'  => $role->name ?? 'Unknown Role',
+            ],
+        ]);
 
         return redirect()->route('roles.index')->with('success', 'Role created successfully.');
     }
@@ -100,6 +113,18 @@ class RoleController extends Controller
 
         $role->update(['name' => $request->role]);
         $role->syncPermissions($selectedPermissions);
+
+        Notification::roleEvent('updated', $role->name, $role->id);
+
+        AuditLog::create([
+            'user_id'    => Auth::id(),
+            'event'      => 'role_update',
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+            'context'    => [
+                'role'  => $role->name ?? 'Unknown Role',
+            ],
+        ]);
 
         return redirect()->route('roles.edit', $role->id)->with('success', 'Role updated successfully.');
     }

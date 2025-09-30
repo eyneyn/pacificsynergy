@@ -7,21 +7,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
-/**
- * User Model
- * 
- * Represents a user in the application.
- */
 class User extends Authenticatable
 {
     use HasFactory, Notifiable, HasRoles;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
     protected $fillable = [
         'employee_number',
         'last_name',
@@ -31,61 +23,65 @@ class User extends Authenticatable
         'photo',
         'email',
         'password',
+        'status',
         'position_id',
     ];
 
-    /**
-     * The attributes that should be hidden for arrays.
-     *
-     * @var array
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * The attributes that should be cast to native types.
-     *
-     * @var array
-     */
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
 
     /**
-     * Get the position associated with the user.
+     * 👉 Computed full name (so you can call $user->name)
      */
+    protected $appends = ['name'];
+
+    public function getNameAttribute(): string
+    {
+        return trim("{$this->first_name} {$this->last_name}");
+    }
+
     public function position()
     {
         return $this->belongsTo(Position::class);
     }
 
-    /**
-     * Accessor to get comma-separated roles.
-     *
-     * @return string
-     */
     public function getRoleLabelAttribute()
     {
         return $this->roles->pluck('name')->implode(', ');
     }
 
-    /**
-     * Accessor to get comma-separated permissions.
-     *
-     * @return string
-     */
     public function getPermissionLabelAttribute()
     {
         return $this->getAllPermissions()->pluck('name')->implode(', ');
     }
 
-    /**
-     * Get the statuses for the user.
-     */
     public function statuses()
     {
         return $this->hasMany(Status::class);
     }
+
+    public function getPhotoUrlAttribute(): string
+    {
+        $path = $this->photo ?? '';
+
+        if ($path && file_exists(public_path($path))) {
+            return asset($path);
+        }
+
+        if (Str::startsWith($path, 'storage/')) {
+            $path = Str::after($path, 'storage/');
+        }
+        if ($path && Storage::disk('public')->exists($path)) {
+            return Storage::disk('public')->url($path);
+        }
+
+        return asset('img/default.jpg');
+    }
+    
 }

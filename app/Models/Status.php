@@ -15,6 +15,9 @@ class Status extends Model
         'status',
     ];
 
+    // ✅ Only use created_at, no updated_at
+    const UPDATED_AT = null;
+
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -23,5 +26,39 @@ class Status extends Model
     public function productionReport()
     {
         return $this->belongsTo(ProductionReport::class);
+    }
+
+    /**
+     * 🔔 Notification: message
+     */
+    public function getNotificationMessageAttribute(): string
+    {
+        $sku = $this->productionReport?->standard?->description ?? 'N/A';
+        $line = $this->productionReport?->line?->line_number ?? $this->productionReport?->line ?? 'N/A';
+        $userName = trim(($this->user?->first_name ?? '') . ' ' . ($this->user?->last_name ?? ''));
+
+        if ($this->status === 'Submitted') {
+            return "{$sku} | Line {$line} was submitted by {$userName}.";
+        } elseif ($this->status === 'Validated') {
+            return "{$sku} | Line {$line} was validated by {$userName}.";
+        }
+
+        return "{$sku} | Line {$line} has status {$this->status} by {$userName}.";
+    }
+
+    /**
+     * 🔔 Notification: time
+     */
+    public function getNotificationTimeAttribute()
+    {
+        return $this->created_at;
+    }
+
+    /**
+     * 🔔 Notification: report_id
+     */
+    public function getNotificationReportIdAttribute()
+    {
+        return $this->production_report_id;
     }
 }

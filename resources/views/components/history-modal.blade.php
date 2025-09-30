@@ -92,17 +92,34 @@
                                 @if ($oldData && $newData)
                                     <div class="space-y-2 text-xs">
                                         {{-- Field-level Changes --}}
-                                        @foreach ($oldData['fields'] ?? [] as $field => $oldValue)
-                                            @php $newValue = $newData['fields'][$field] ?? null @endphp
-                                            @if ($oldValue !== $newValue)
-                                                <div>
-                                                    <strong class="text-[#2d326b]">{{ ucwords(str_replace('_', ' ', $field)) }}:</strong>
-                                                    <span class="text-red-500 ml-1">{{ $oldValue }}</span>
-                                                    <span class="mx-1 text-gray-500">→</span>
-                                                    <span class="text-green-600">{{ $newValue }}</span>
-                                                </div>
-                                            @endif
-                                        @endforeach
+@foreach ($oldData['fields'] ?? [] as $field => $oldValue)
+    @php 
+        $newValue = $newData['fields'][$field] ?? null; 
+    @endphp
+
+    @if ($oldValue !== $newValue)
+        <div>
+            @if ($field === 'sku_id' || $field === 'sku')
+                <strong class="text-[#2d326b]">SKU:</strong>
+                <span class="text-red-500 ml-1">
+                    {{ \App\Models\Standard::find($oldValue)?->description ?? '-' }}
+                </span>
+                <span class="mx-1 text-gray-500">→</span>
+                <span class="text-green-600">
+                    {{ \App\Models\Standard::find($newValue)?->description ?? '-' }}
+                </span>
+            @else
+                <strong class="text-[#2d326b]">{{ ucwords(str_replace('_', ' ', $field)) }}:</strong>
+                <span class="text-red-500 ml-1">{{ $oldValue }}</span>
+                <span class="mx-1 text-gray-500">→</span>
+                <span class="text-green-600">{{ $newValue }}</span>
+            @endif
+        </div>
+    @endif
+@endforeach
+
+
+
 
                                         {{-- Issues Comparison --}}
                                         @php

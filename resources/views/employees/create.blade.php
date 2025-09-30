@@ -1,152 +1,170 @@
 @extends('layouts.app')
-
+@section('title', content: 'User')
 @section('content')
-<!-- Back Button -->
-<a href="{{ route('employees.index') }}" class="flex items-center text-sm text-gray-500 hover:text-[#2d326b] mb-6">
-    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-    </svg>
-    Back to Employees
-</a>
+<div class="container mx-auto px-4" x-data="{ step: 1 }">
+    <!-- Header with Icon and Title -->
+    <div class="mb-4">
+        <h1 class="text-xl font-bold text-[#23527c]">
+           New Employee
+        </h1>
+    </div>
 
-<form action="{{ route('employees.store') }}" method="POST" enctype="multipart/form-data">
-    @csrf
-
-    <div class="bg-white border border-gray-200 rounded-sm shadow-lg p-8 space-y-10 hover:shadow-xl transition duration-300">
-        <!-- Header -->
-        <div class="-mx-8 px-8 pb-4 flex justify-between items-center">
-            <div>
-                <h2 class="text-2xl font-semibold text-[#2d326b]">Create New User</h2>
-                <p class="text-sm text-gray-500 mt-1">Fill out the form below to register a new user.</p>
+    <div class="border-t border-b border-gray-200 mb-4 mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {{-- Sidebar --}}
+        <div class="col-span-1 p-8 text-center">
+            {{-- Profile Image Upload --}}
+            <div class="relative w-40 h-40 mx-auto mb-4">
+                <img id="photoPreview"
+                    src="{{ asset('profile/default.jpg') }}"
+                    onerror="this.onerror=null;this.src='{{ asset('img/default.jpg') }}';"
+                    alt="Profile Photo"
+                    class="w-full h-full object-cover border border-gray-300 p-1" />
+                <label for="photo"
+                    class="absolute bottom-2 right-2 bg-white p-1 rounded-full shadow hover:bg-gray-100 cursor-pointer">
+                    {{-- Edit Icon --}}
+                    <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.25 2.25 0 113.182 3.182L6.75 20.25H3v-3.75L16.732 3.732z" />
+                    </svg>
+                </label>
+                <input type="file" name="photo" id="photo" accept="image/*" class="hidden">
             </div>
-            <button type="submit"
-                class="inline-flex items-center gap-2 px-5 py-2.5 rounded-md text-white text-sm font-medium bg-[#323B76] hover:bg-[#444d90] transition disabled:opacity-50 disabled:cursor-not-allowed">
-                Register User
-            </button>
+            <p class="text-sm text-blue-600 hover:underline cursor-pointer">Upload Profile Picture</p>
+            @error('photo')
+                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+            @enderror
+
+            {{-- Sidebar Navigation --}}
+            <nav class="mt-6 space-y-2 text-left">
+                <button type="button"
+                    @click="step = 1"
+                    class="w-full text-left px-4 py-2 text-sm rounded font-medium transition"
+                    :class="step === 1 ? 'bg-[#23527c]/10 text-[#23527c]' : 'text-[#23527c] hover:bg-gray-100'">
+                    User Information
+                </button>
+                <button type="button"
+                    @click="step = 2"
+                    class="w-full text-left px-4 py-2 text-sm rounded font-medium transition"
+                    :class="step === 2 ? 'bg-[#23527c]/10 text-[#23527c]' : 'text-[#23527c] hover:bg-gray-100'">
+                    Account Information
+                </button>
+            </nav>
         </div>
 
-        <!-- Form Body -->
-        <div class="lg:flex lg:gap-8 pb-4">
-            <!-- Left: Profile Image -->
-            <div class="w-full lg:max-w-xs flex flex-col items-center text-center">
-                <div class="relative w-40 h-40 mb-4">
-                    <img id="photoPreview"
-                        src="{{ asset('storage/app/public/default.jpg') }}"
-                        onerror="this.onerror=null;this.src='{{ asset('img/default.jpg') }}';"
-                        class="w-full h-full p-1 object-cover rounded-full border border-gray-300"
-                        alt="Profile Photo">
-                    <label for="photo"
-                        class="absolute bottom-2 right-2 bg-white p-1 rounded-full shadow hover:bg-gray-100 cursor-pointer">
-                        <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.25 2.25 0 113.182 3.182L6.75 20.25H3v-3.75L16.732 3.732z" />
-                        </svg>
-                    </label>
-                    <input type="file" name="photo" id="photo" accept="image/*" class="hidden">
-                </div>
-                <label for="photo" class="text-sm text-blue-600 hover:underline cursor-pointer">Choose Profile Picture</label>
-                @error('photo')
-                    <div class="text-red-500 text-sm mt-1">{{ $message }}</div>
-                @enderror
-            </div>
+        {{-- Right Panel --}}
+        <div class="col-span-3 p-8">
+            <form action="{{ route('employees.store') }}" method="POST" enctype="multipart/form-data">
+                @csrf
 
-            <!-- Right: User Info -->
-            <div class="flex-1 space-y-10 pt-1">
-                <!-- Basic Info -->
-                <div class="space-y-4">
-                    <h3 class="text-lg font-bold text-[#2d326b]">User Information</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <label class="block mb-2 text-sm font-medium text-[#2d326b]">Last Name</label>
-                            <input type="text" name="last_name" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm shadow-sm" />
-                            @error('last_name')
-                                <div class="text-red-500 text-sm mt-1">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div>
-                            <label class="block mb-2 text-sm font-medium text-[#2d326b]">First Name</label>
-                            <input type="text" name="first_name" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm shadow-sm" />
-                            @error('first_name')
-                                <div class="text-red-500 text-sm mt-1">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div>
-                            <label class="block mb-2 text-sm font-medium text-[#2d326b]">Phone Number</label>
-                            <input type="text" name="phone_number" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm shadow-sm" />
-                            @error('phone_number')
-                                <div class="text-red-500 text-sm mt-1">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <label class="block mb-2 text-sm font-medium text-[#2d326b]">Employee Number</label>
-                            <input type="text" name="employee_number" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm shadow-sm" />
-                            @error('employee_number')
-                                <div class="text-red-500 text-sm mt-1">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div>
-                            <label for="role" class="block mb-2 text-sm font-medium text-[#2d326b]">Position (Role Access)</label>
-                            <x-select-dropdown name="role" :options="$roleOptions->toArray()" placeholder="Select Role" required />
-                            @error('role')
-                                <div class="text-red-500 text-sm mt-1">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div>
-                            <label class="block mb-2 text-sm font-medium text-[#2d326b]">Department</label>
-                            <x-select-dropdown name="department" :options="['Production Department' => 'Production Department']" placeholder="Select Department" required />
-                            @error('department')
-                                <div class="text-red-500 text-sm mt-1">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Account Security -->
-                <div class="space-y-4">
-                    <h3 class="text-lg font-semibold text-[#2d326b] flex items-center gap-2">
-                        <svg class="w-5 h-5 text-[#2d326b]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M16.5 10.5V6a4.5 4.5 0 00-9 0v4.5M4.5 10.5A1.5 1.5 0 006 12v6a1.5 1.5 0 001.5 1.5h9A1.5 1.5 0 0018 18v-6a1.5 1.5 0 00-1.5-1.5h-12z" />
-                        </svg>
-                        Account Security
-                    </h3>
-                    <p class="text-xs text-gray-500">Set up login credentials</p>
+                {{-- Step 1: User Information --}}
+                <div x-show="step === 1" x-cloak>
+                    <h3 class="text-lg font-bold text-[#23527c] mb-6">User Information</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block mb-2 text-sm font-medium text-[#2d326b]">Email</label>
-                            <input type="email" name="email" placeholder="name@example.com"
-                                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm shadow-sm placeholder-gray-400" required />
-                            @error('email')
-                                <div class="text-red-500 text-sm mt-1">{{ $message }}</div>
-                            @enderror
+                            <label class="block mb-1 text-sm font-medium text-[#23527c]">First Name <span style="color: red;">*</span></label>
+                            <input type="text" name="first_name" value="{{ old('first_name') }}"
+                                class="w-full border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:shadow-lg focus:outline-none" required/>
                         </div>
                         <div>
-                            <label class="block mb-2 text-sm font-medium text-[#2d326b]">Password</label>
+                            <label class="block mb-1 text-sm font-medium text-[#23527c]">Last Name <span style="color: red;">*</span></label>
+                            <input type="text" name="last_name" value="{{ old('last_name') }}"
+                                class="w-full border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:shadow-lg focus:outline-none" required/>
+                        </div>
+                        <div>
+                            <label class="block mb-1 text-sm font-medium text-[#23527c]">Phone Number</label>
+                            <input type="text" name="phone_number" value="{{ old('phone_number') }}"
+                                class="w-full border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:shadow-lg focus:outline-none"/>
+                        </div>
+                        <div>
+                            <label class="block mb-1 text-sm font-medium text-[#23527c]">Employee Number <span style="color: red;">*</span></label>
+                            <input type="text" name="employee_number" value="{{ old('employee_number') }}"
+                                class="w-full border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:shadow-lg focus:outline-none" required/>
+                        </div>
+                        <div>
+                            <label class="block mb-1 text-sm font-medium text-[#23527c]">Position (Role) <span style="color: red;">*</span></label>
+                            <x-select-dropdown-employee name="role" :options="$roleOptions->toArray()" placeholder="Select Role" required />
+                        </div>
+                        <div>
+                            <label class="block mb-1 text-sm font-medium text-[#23527c]">Department <span class="text-red-500">*</span></label>
+                            <x-select-dropdown-employee 
+                                name="department" 
+                                :options="['Production Department' => 'Production Department']" 
+                                :selected="old('department', 'Production Department')" 
+                                required 
+                            />
+                        </div>
+                    </div>
+
+                    {{-- Navigation --}}
+                    <div class="flex justify-between gap-4 mt-6">
+                        <a href="{{ route('employees.index') }}" class="inline-flex items-center px-3 py-2 bg-[#5a9fd4] hover:bg-[#4a8bc2] border border-[#5a9fd4] hover:border-[#4a8bc2] text-white text-sm font-medium transition-colors duration-200">
+                             <x-icons-back class="w-2 h-2 text-white" /> 
+                             Back 
+                        </a>
+                        <button type="button"
+                            @click="step = 2"
+                            class="px-3 py-2 bg-[#5bb75b] border border-[#43a143] text-white text-sm font-medium hover:bg-[#42a542]">
+                            Next
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Step 2: Account Information --}}
+                <div x-show="step === 2" x-cloak>
+                    <h3 class="text-lg font-bold text-[#23527c] mb-6">Account Information</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block mb-1 text-sm font-medium text-[#23527c]">Email <span style="color: red;">*</span></label>
+                            <input type="email" name="email" value="{{ old('email') }}" placeholder="name@example.com"
+                                class="w-full border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400" required />
+                        </div>
+                        <div>
+                            <label class="block mb-1 text-sm font-medium text-[#23527c]">Password <span style="color: red;">*</span></label>
                             <div class="flex gap-2">
                                 <input type="text" name="password" id="password"
-                                    class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm shadow-sm placeholder-gray-400"
-                                    placeholder="Enter or generate a password" required />
+                                    placeholder="Enter or generate password"
+                                    class="w-full border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400" required />
                                 <button type="button" onclick="generatePassword()"
-                                    class="px-3 py-2 text-sm font-medium text-white bg-[#323B76] rounded-md hover:bg-[#444d90] transition">
+                                    class="px-3 py-2 text-sm font-medium text-white bg-[#323B76] hover:bg-[#444d90] transition">
                                     Generate
                                 </button>
                             </div>
-                            @error('password')
-                                <div class="text-red-500 text-sm mt-1">{{ $message }}</div>
-                            @enderror
                         </div>
                     </div>
+
+                    {{-- Password requirements --}}
+                    <div class="mt-4">
+                        <h2 class="mb-2 text-sm font-semibold text-[#23527c]">Password requirements:</h2>
+                        <ul class="space-y-1 text-gray-500 list-disc list-inside text-sm">
+                            <li>Must be between 6 and 20 characters long</li>
+                            <li>Must include at least one lowercase letter</li>
+                            <li>Must include at least one number</li>
+                            <li>Must include at least one special character (e.g., ., !, @, #, ?)</li>
+                            <li>Or can generate password to auto-fill the field</li>
+                        </ul>
+                    </div>
+
+                    {{-- Final Buttons --}}
+                    <div class="flex justify-between gap-4 mt-6">
+                        <button type="button"
+                            @click="step = 1"
+                            class="inline-flex items-center px-3 py-2 bg-[#5a9fd4] hover:bg-[#4a8bc2] border border-[#5a9fd4] hover:border-[#4a8bc2] text-white text-sm font-medium transition-colors duration-200">
+                            <x-icons-back class="w-2 h-2 text-white" /> 
+                            Back
+                        </button>
+                        <button type="submit"
+                            class="px-3 py-2 bg-[#5bb75b] border border-[#43a143] text-white text-sm font-medium hover:bg-[#42a542]">
+                            Save
+                        </button>
+                    </div>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
-</form>
+</div>
 
-<!-- JS: Password Generator & Image Preview -->
+{{-- JS: Password Generator & Image Preview --}}
 <script>
-    // Generate a random password and set it to the password input
     function generatePassword() {
         const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
         let password = "";
@@ -156,7 +174,6 @@
         document.getElementById("password").value = password;
     }
 
-    // Preview selected profile image
     document.getElementById('photo').addEventListener('change', function (event) {
         const file = event.target.files[0];
         if (file) {
