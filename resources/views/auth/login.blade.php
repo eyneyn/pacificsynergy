@@ -22,11 +22,11 @@
                         class="w-full rounded-full bg-transparent border border-[#3c49a3] px-5 py-3 pr-12 text-gray-800 placeholder-gray-500 focus:ring-1 focus:ring-[#23527c] focus:outline-none" />
                 </div>
 
-                <div class="text-center mt-2">
+                {{-- <div class="text-center mt-2">
                     <a href="{{ route('password.request') }}" class="text-ml text-[#242c67] hover:text-[#3c49a3] transition duration-200">
                         Forgot Password?
                     </a>
-                </div>
+                </div> --}}
 
                 <!-- Login Button -->
                 <button type="submit"

@@ -51,6 +51,16 @@
                 </button>
             </div>
 
+            {{-- Enable all/Disable all --}}
+            <div class="mb-6 text-xs">
+                <h2 class="mb-1 font-semibold text-[#23527c]">Enable All / Disable All Guide</h2>
+                <ul class="space-y-1 text-gray-500 list-disc list-inside">
+                    <li><span class="font-medium">Enable All</span> – Turns on all options at once.</li>
+                    <li><span class="font-medium">Disable All</span> – Turns off all options at once.</li>
+                    <li>Use to save time instead of toggling individually.</li>
+                </ul>
+            </div>
+
             <div class="space-y-5">
                 <table class="min-w-64 mb-8 text-sm border border-[#E5E7EB] shadow-sm">
                     <tbody class="bg-[#e2f2ff] text-[#23527c]">
@@ -72,57 +82,57 @@
                     </tbody>
                 </table>
 
-@include('roles.partials.permission-section', [
-    'title' => 'Admin Access',
-    'permissions' => [
-        'user.dashboard' => [
-            'label' => 'Dashboard',
-            'desc'  => 'Can view the user dashboard.',
-        ],
-        'roles.permission' => [
-            'label' => 'Roles & Permission Management',
-            'desc'  => 'Manage user roles and access rights.',
-        ],
-        'employees.index' => [
-            'label' => 'User Management',
-            'desc'  => 'Manage user accounts.',
-        ],
-    ],
-])
+                @include('roles.partials.permission-section', [
+                    'title' => 'Admin Access',
+                    'permissions' => [
+                        'user.dashboard' => [
+                            'label' => 'Dashboard',
+                            'desc'  => 'Can view the user dashboard.',
+                        ],
+                        'roles.permission' => [
+                            'label' => 'Roles & Permission Management',
+                            'desc'  => 'Manage user roles and access rights.',
+                        ],
+                        'employees.index' => [
+                            'label' => 'User Management',
+                            'desc'  => 'Manage user accounts.',
+                        ],
+                    ],
+                ])
 
-@include('roles.partials.permission-section', [
-    'title' => 'Production Access',
-    'permissions' => [
-        'analytics.dashboard' => [
-            'label' => 'Dashboard',
-            'desc'  => 'Overview of analytics KPIs.',
-        ],
-        'report.index' => [
-            'label' => 'View Reports',
-            'desc'  => 'Read-only access to production reports.',
-        ],
-        'report.add' => [
-            'label' => 'Add Reports',
-            'desc'  => 'Create new production reports.',
-        ],
-        'report.edit' => [
-            'label' => 'Edit Reports',
-            'desc'  => 'Modify existing production reports.',
-        ],
-        'report.validate' => [
-            'label' => 'Validate Reports',
-            'desc'  => 'Approve/validate submitted reports.',
-        ],
-        'analytics.index' => [
-            'label' => 'Analytics & Reporting',
-            'desc'  => 'View analytics dashboards and charts.',
-        ],
-        'configuration.index' => [
-            'label' => 'Modify Metrics',
-            'desc'  => 'Update standard metrics and references.',
-        ],
-    ],
-])
+                @include('roles.partials.permission-section', [
+                    'title' => 'Production Access',
+                    'permissions' => [
+                        'analytics.dashboard' => [
+                            'label' => 'Dashboard',
+                            'desc'  => 'Overview of analytics KPIs.',
+                        ],
+                        'report.index' => [
+                            'label' => 'View Reports',
+                            'desc'  => 'Read-only access to production reports.',
+                        ],
+                        'report.add' => [
+                            'label' => 'Add Reports',
+                            'desc'  => 'Create new production reports.',
+                        ],
+                        'report.edit' => [
+                            'label' => 'Edit Reports',
+                            'desc'  => 'Modify existing production reports.',
+                        ],
+                        'report.validate' => [
+                            'label' => 'Validate Reports',
+                            'desc'  => 'Approve/validate submitted reports.',
+                        ],
+                        'analytics.index' => [
+                            'label' => 'Analytics & Reporting',
+                            'desc'  => 'View analytics dashboards and charts.',
+                        ],
+                        'configuration.index' => [
+                            'label' => 'Modify Metrics',
+                            'desc'  => 'Update standard metrics and references.',
+                        ],
+                    ],
+                ])
             </div>
         </div>
     </form>

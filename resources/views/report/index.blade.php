@@ -189,7 +189,7 @@
                         {{-- SKU --}}
                         <td class="p-2 border border-[#d9d9d9] text-gray-600 text-center">
                             @php
-                                $skuValue = $report->standard?->description ?? 'N/A';
+                                $skuValue = $report->standard?->description ?? 'No Run';
                             @endphp
                             @if(request('sku_search'))
                                 {!! preg_replace(

@@ -28,7 +28,7 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
+            'email'    => ['required', 'string', 'email'],
             'password' => ['required', 'string'],
         ];
     }
@@ -43,7 +43,7 @@ class LoginRequest extends FormRequest
         $this->ensureIsNotRateLimited();
 
         // Check if the email exists first
-        $email = (string) $this->input('email');
+        $email  = (string) $this->input('email');
         $exists = User::where('email', $email)->exists();
 
         if (! $exists) {
@@ -63,7 +63,7 @@ class LoginRequest extends FormRequest
             ]);
         }
 
-        // ✅ At this point, the user is authenticated → now check if status is Locked
+        // ✅ At this point, the user is authenticated → check if status is Locked
         if (Auth::user()->status === 'Locked') {
             Auth::logout();
 
@@ -75,6 +75,7 @@ class LoginRequest extends FormRequest
         // Clear login attempts if successful
         RateLimiter::clear($this->throttleKey());
     }
+
     /**
      * Ensure the login request is not rate limited.
      *
@@ -103,6 +104,8 @@ class LoginRequest extends FormRequest
      */
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('email')).'|'.$this->ip());
+        return Str::transliterate(
+            Str::lower($this->string('email')) . '|' . $this->ip()
+        );
     }
 }

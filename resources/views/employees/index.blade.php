@@ -91,14 +91,16 @@
             </th>
 
             {{-- Joined Date --}}
-            <th class="px-6 py-2 border border-[#d9d9d9] text-center">
-                <x-table-sort-link
-                    field="created_at"
-                    label="Joined Date"
-                    :currentSort="$currentSort"
-                    :currentDirection="$currentDirection"
-                    route="employees.index"
-                />
+            <th class="px-6 py-2 border border-[#d9d9d9] text-center whitespace-nowrap">
+                <div class="flex items-center justify-center gap-1">
+                    <x-table-sort-link
+                        field="created_at"
+                        label="Joined Date"
+                        :currentSort="$currentSort"
+                        :currentDirection="$currentDirection"
+                        route="employees.index"
+                    />
+                </div>
             </th>
         </tr>
     </thead>
@@ -108,8 +110,8 @@
             <tr class="border-t border-gray-200 hover:bg-gray-100 transition cursor-pointer"
                 onclick="window.location='{{ route('employees.view', $user->id) }}'">
                 <td class="p-2 ml-8 flex items-center gap-6">
-<img src="{{ asset('storage/' . $user->photo) }}" alt="Profile"
-     class="w-10 h-10 p-1 rounded-full object-cover border border-[#23527c]">
+                    <img src="{{ asset('storage/' . $user->photo) }}" alt="Profile"
+                        class="w-10 h-10 p-1 rounded-full object-cover border border-[#23527c]">
                          <span class="text-sm font-medium text-[#23527c]">{{ $user->first_name }} {{ $user->last_name }}</span>
                 </td>
                 <td class="p-2 border border-[#d9d9d9] text-gray-600 text-center">{{ $user->email }}</td>

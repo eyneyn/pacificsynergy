@@ -14,11 +14,24 @@ use App\Http\Controllers\LineController;
 use Illuminate\Support\Facades\Redirect;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Admin\AuditLogController;
+use App\Http\Controllers\Auth\SetPasswordController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+
+// Auth routes
+require __DIR__.'/auth.php';
 
 // Redirect root URL to login page
 Route::get('/', function () {
     return redirect()->route('login');
 });
+
+Route::get('/2fa/setup', [AuthenticatedSessionController::class, 'setup2fa'])->name('2fa.setup');
+Route::get('/2fa/verify', [AuthenticatedSessionController::class, 'show2faForm'])->name('2fa.verify.form');
+Route::post('/2fa/verify', [AuthenticatedSessionController::class, 'verify2fa'])->name('2fa.verify');
+
+Route::post('/employees/{user}/reset-2fa', [EmployeeController::class, 'reset2fa'])
+    ->name('employees.reset2fa')
+    ->middleware(['auth','role:Admin']);
 
 Route::prefix('admin')->middleware(['auth','permission:user.dashboard'])->group(function () {
     Route::get('/dashboard', [DashboardAdminController::class, 'index'])->name('admin.dashboard');
@@ -37,6 +50,14 @@ Route::middleware('auth')->prefix('account')->group(function () {
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
     Route::patch('/profile/photo', [ProfileController::class, 'updatePhoto'])->name('profile.update.photo');
 });
+
+// 🔑 Password setup (NO auth middleware)
+Route::get('/set-password/{token}', function($token) {
+    return view('auth.set-password', ['token' => $token]);
+})->name('password.set.form');
+
+Route::post('/set-password', [SetPasswordController::class, 'store'])
+    ->name('password.set');
 
 // Production Report routes
 Route::prefix('report')->middleware(['auth','permission:report.index'])->group(function () {
@@ -85,8 +106,6 @@ Route::prefix('configuration')->middleware(['auth','permission:configuration.ind
     Route::delete('/line/destroy/{line_number}', [ConfigurationController::class, 'line_destroy'])->name('configuration.line.destroy');
 });
 
-
-
 Route::prefix('roles')->middleware(['auth','permission:roles.permission'])->group(function () {
     Route::get('/', [RoleController::class, 'index'])->name('roles.index');
     Route::get('/create', [RoleController::class, 'create'])->name('roles.create');
@@ -103,7 +122,7 @@ Route::prefix('employees')->middleware(['auth','permission:employees.index'])->g
     Route::get('/{user}/edit', [EmployeeController::class, 'edit'])->name('employees.edit');
     Route::put('/employees/{user}', [EmployeeController::class, 'update'])->name('employees.update');
 
-
+    Route::post('/{user}/send-login-link', [EmployeeController::class, 'sendLoginLink'])->name('employees.sendLoginLink');
 });
 
 // Group all analytics under a common prefix + middleware
@@ -169,14 +188,10 @@ Route::get('/notifications/dropdown', [NotificationController::class, 'dropdown'
 });
 
 
+//Route::get('/heartbeat', function () {
+  //  return response()->json(['status' => 'alive']);
+//})->middleware('auth');
 
-
-
-// Auth routes
-require __DIR__.'/auth.php';
-
-// Fallback route for undefined URLs
-Route::fallback(function () {
-    // Redirect back if possible, otherwise to dashboard or home
-    return Redirect::back(302)->with('error', 'Page not found or invalid search query.');
-});
+//Route::fallback(function () {
+//    return response()->view('errors.404', [], 404);
+//});

@@ -29,6 +29,9 @@
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet">
 
+    <link href="https://unpkg.com/cropperjs/dist/cropper.min.css" rel="stylesheet"/>
+
+
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -45,7 +48,7 @@
     <!-- External Scripts -->
     <script src="//unpkg.com/alpinejs" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://unpkg.com/cropperjs/dist/cropper.min.js"></script>
 
     {{-- <!-- Anti-Inspect Script -->
     <script>
@@ -74,16 +77,56 @@
     })();
     </script> --}}
     <script>
-    function loadDropdown(filter) {
-        fetch(`{{ route('notifications.dropdown') }}?filter=${filter}`, {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(res => res.text())
-        .then(html => {
-            document.getElementById('dropdownNotification').innerHTML = html;
-        })
-        .catch(err => console.error(err));
-    }
+        // 🔔 Load notifications dropdown
+        function loadDropdown(filter) {
+            safeFetch(`{{ route('notifications.dropdown') }}?filter=${filter}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(res => res?.text())
+            .then(html => {
+                if (html) {
+                    document.getElementById('dropdownNotification').innerHTML = html;
+                }
+            })
+            .catch(err => console.error(err));
+        }
+
+        // ✅ Global fetch wrapper to catch session expiration (419 Page Expired)
+        async function safeFetch(url, options = {}) {
+            try {
+                const res = await fetch(url, options);
+
+                if (res.status === 419) { 
+                    console.warn("⚠️ Session expired, redirecting to login...");
+                    window.location.href = "{{ route('login') }}";
+                    return null;
+                }
+                return res;
+            } catch (err) {
+                console.error("❌ Fetch failed:", err);
+                return null;
+            }
+        }
+
+        // 👇 Auto-ping server to keep session alive
+        (function () {
+            const sessionLifetime = {{ config('session.lifetime') ?? 120 }}; // minutes
+            const refreshInterval = (sessionLifetime - 5) * 60 * 1000; // 5 min before expiry
+
+            function refreshSession() {
+                safeFetch("{{ url('/heartbeat') }}", {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                }).then(() => {
+                    console.log('🔄 Session refreshed');
+                });
+            }
+
+            setInterval(refreshSession, refreshInterval);
+        })();
     </script>
 </body>
 </html>

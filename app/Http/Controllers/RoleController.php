@@ -73,7 +73,8 @@ class RoleController extends Controller
             ],
         ]);
 
-        return redirect()->route('roles.index')->with('success', 'Role created successfully.');
+        return redirect()->route('roles.index', $role->id)
+            ->with('success', 'Role created successfully.');
     }
 
     /**
@@ -126,6 +127,7 @@ class RoleController extends Controller
             ],
         ]);
 
-        return redirect()->route('roles.edit', $role->id)->with('success', 'Role updated successfully.');
+        return redirect()->route('roles.edit', $role->id)
+            ->with('success', 'Role updated successfully.');
     }
 }

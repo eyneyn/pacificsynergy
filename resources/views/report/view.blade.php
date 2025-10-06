@@ -38,12 +38,12 @@
                 </button>
                 </div>
 
-                    <!-- Success Message -->
-                    @if (session('success'))
-                        <div class="mb-4 p-2 text-sm  bg-green-100 text-green-800 border border-green-300 text-center">
-                            {{ session('success') }}
-                        </div>
-                    @endif
+                <!-- Success Message -->
+                @if (session('success'))
+                    <div class="mb-4 p-2 text-sm  bg-green-100 text-green-800 border border-green-300 text-center">
+                        {{ session('success') }}
+                    </div>
+                @endif
 
                 <div class="flex items-center gap-2">
                     @can('report.validate')

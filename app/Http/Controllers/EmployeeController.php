@@ -13,6 +13,14 @@ use Illuminate\Support\Str;
 use App\Models\Notification;
 use App\Models\AuditLog;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Password;
+use App\Notifications\SetPasswordNotification;
+use PragmaRX\Google2FA\Google2FA;
+use BaconQrCode\Renderer\ImageRenderer;
+use BaconQrCode\Renderer\Image\SvgImageBackEnd;
+use BaconQrCode\Renderer\RendererStyle\RendererStyle;
+use BaconQrCode\Writer;
+use Illuminate\Support\Facades\Mail;
 
 class EmployeeController extends Controller
 {
@@ -42,7 +50,15 @@ class EmployeeController extends Controller
                 $q->where(function ($qq) use ($search) {
                     $qq->where('first_name', 'like', "%{$search}%")
                     ->orWhere('last_name',  'like', "%{$search}%")
-                    ->orWhere('email',      'like', "%{$search}%");
+                    ->orWhere('email',      'like', "%{$search}%")
+                    ->orWhere('department', 'like', "%{$search}%")
+                    // search against the computed position_name
+                    ->orWhere(DB::raw('(SELECT roles.name 
+                            FROM model_has_roles 
+                            JOIN roles ON roles.id = model_has_roles.role_id 
+                            WHERE model_has_roles.model_id = users.id 
+                            AND model_has_roles.model_type = "' . addslashes(User::class) . '" 
+                            LIMIT 1)'), 'like', "%{$search}%");
                 });
             });
 
@@ -77,6 +93,7 @@ class EmployeeController extends Controller
         ]);
     }
 
+
     /**
      * Show the form for creating a new employee.
      */
@@ -92,25 +109,21 @@ class EmployeeController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
+            'first_name'      => 'required|string|max:255',
+            'last_name'       => 'required|string|max:255',
             'employee_number' => 'required|string|max:255|unique:users,employee_number',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:8',
-            'department' => 'nullable|string',
-            'phone_number' => 'nullable|string',
-            'role' => 'required|string|exists:roles,name',
-            'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'email'           => 'required|email|unique:users,email',
+            'department'      => 'required|string',
+            'phone_number'    => 'required|string',
+            'role'            => 'required|string|exists:roles,name',
+            'photo'           => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        // Default photo path (storage/app/public/profile/default.jpg)
+        // Default photo path
         $photoPath = 'profile/default.jpg';
-
-        // Handle uploaded photo
         if ($request->hasFile('photo')) {
             $photoPath = $request->file('photo')->store('profile', 'public');
         } else {
-            // Ensure default.jpg exists in storage/app/public/profile
             if (!Storage::disk('public')->exists($photoPath)) {
                 if (File::exists(public_path('img/default.jpg'))) {
                     Storage::disk('public')->put(
@@ -121,24 +134,27 @@ class EmployeeController extends Controller
             }
         }
 
+        // Generate random temporary password
+        $tempPassword = Str::random(12);
+
+        // Create user
         $user = User::create([
-            'first_name'       => $request->first_name,
-            'last_name'        => $request->last_name,
-            'employee_number'  => $request->employee_number,
-            'email'            => $request->email,
-            'password'         => Hash::make($request->password),
-            'department'       => $request->department,
-            'phone_number'     => $request->phone_number,
-            'photo'            => $photoPath, // e.g. "profile/uuid.png"
-            'status'           => 'Active',   // ✅ default to Active
+            'first_name'      => $request->first_name,
+            'last_name'       => $request->last_name,
+            'employee_number' => $request->employee_number,
+            'email'           => $request->email,
+            'password'        => Hash::make($tempPassword), // placeholder
+            'department'      => $request->department,
+            'phone_number'    => $request->phone_number,
+            'photo'           => $photoPath,
+            'status'          => 'Active',
         ]);
 
         $user->assignRole($request->role);
 
-        // 🔔 Notification
+        // Notifications + audit log
         Notification::employeeEvent('created', $user);
 
-        // 📝 Audit Log
         AuditLog::create([
             'user_id'    => Auth::id(),
             'event'      => 'employee_add',
@@ -146,15 +162,13 @@ class EmployeeController extends Controller
             'user_agent' => request()->userAgent(),
             'context'    => [
                 'employee' => trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? 'Unknown Employee')),
-                'status'   => $user->status, // optional: record status in logs
+                'status'   => $user->status,
             ],
         ]);
 
-        return redirect()->route('employees.index')->with('success', 'User created successfully.');
+        return redirect()->route('employees.view', $user->id)
+            ->with('success', 'User created successfully. You can now send them a login link.');
     }
-
-
-
     /**
      * Display the specified employee.
      */
@@ -178,16 +192,16 @@ class EmployeeController extends Controller
     public function update(Request $request, User $user)
     {
         $validated = $request->validate([
-            'first_name'       => 'required|string|max:255',
-            'last_name'        => 'required|string|max:255',
-            'employee_number'  => 'required|string|max:255|unique:users,employee_number,' . $user->id,
-            'email'            => 'required|email|unique:users,email,' . $user->id,
-            'password'         => 'nullable|string|min:8',
-            'department'       => 'nullable|string',
-            'phone_number'     => 'nullable|string',
-            'role'             => 'required|string|exists:roles,name',
-            'photo'            => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            'status'           => 'required|in:Active,Locked',
+            'first_name'      => 'required|string|max:255',
+            'last_name'       => 'required|string|max:255',
+            'employee_number' => 'required|string|max:255|unique:users,employee_number,' . $user->id,
+            'email'           => 'required|email|unique:users,email,' . $user->id,
+            'password'        => 'nullable|string|min:8',
+            'department'      => 'required|string',
+            'phone_number'    => 'required|string',
+            'role'            => 'required|string|exists:roles,name',
+            'photo'           => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'status'          => 'required|in:Active,Locked',
         ]);
 
         // Handle photo
@@ -199,13 +213,15 @@ class EmployeeController extends Controller
         }
 
         // Update fields
-        $user->first_name      = $validated['first_name'];
-        $user->last_name       = $validated['last_name'];
-        $user->email           = $validated['email'];
-        $user->employee_number = $validated['employee_number'];
-        $user->department      = $validated['department'];
-        $user->phone_number    = $validated['phone_number'];
-        $user->status          = $validated['status'];
+        $user->fill([
+            'first_name'      => $validated['first_name'],
+            'last_name'       => $validated['last_name'],
+            'email'           => $validated['email'],
+            'employee_number' => $validated['employee_number'],
+            'department'      => $validated['department'],
+            'phone_number'    => $validated['phone_number'],
+            'status'          => $validated['status'],
+        ]);
 
         if (!empty($validated['password'])) {
             $user->password = Hash::make($validated['password']);
@@ -214,28 +230,65 @@ class EmployeeController extends Controller
         $user->save();
         $user->syncRoles([$validated['role']]);
 
-        // 🚨 Force logout if account is locked
+        // 🚨 Force logout if locked
         if ($user->status === 'Locked') {
             DB::table('sessions')->where('user_id', $user->id)->delete();
         }
 
-        // 🔔 Notification
         Notification::employeeEvent('updated', $user);
 
-        // 📝 Audit Log
         AuditLog::create([
             'user_id'    => Auth::id(),
             'event'      => 'employee_update',
             'ip_address' => request()->ip(),
             'user_agent' => request()->userAgent(),
             'context'    => [
-                'employee' => trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? 'Unknown Employee')),
+                'employee' => $user->first_name . ' ' . $user->last_name,
                 'status'   => $user->status,
             ],
         ]);
 
-        return redirect()->route('employees.view', $user->id)->with('success', 'User updated successfully.');
+        return redirect()->route('employees.view', $user->id)
+            ->with('success', 'User updated successfully.');
     }
+    public function sendLoginLink(User $user)
+    {
+        $token = Password::createToken($user);
 
+        // ✅ Use our custom notification
+        $user->notify(new SetPasswordNotification($token));
 
+        return back()->with('success', 'Login link sent to ' . $user->email);
+    }
+    public function reset2fa(User $user)
+    {
+        $google2fa = new Google2FA();
+        $secret = $google2fa->generateSecretKey();
+
+        // Reset 2FA
+        $user->google2fa_secret = $secret;
+        $user->two_factor_enabled = false; // must re-verify
+        $user->save();
+
+        // Generate QR
+        $qrData = $google2fa->getQRCodeUrl(
+            config('app.name'),
+            $user->email,
+            $secret
+        );
+        $renderer = new ImageRenderer(new RendererStyle(200), new SvgImageBackEnd());
+        $writer = new Writer($renderer);
+        $qrSvg = $writer->writeString($qrData);
+
+        // Send QR email
+        Mail::send('emails.2fa-reset', [
+            'user' => $user,
+            'qrSvg' => $qrSvg
+        ], function ($message) use ($user) {
+            $message->to($user->email)
+                    ->subject('Your Two-Factor Authentication has been reset');
+        });
+
+        return back()->with('success', '2FA reset and QR sent to user’s email.');
+    }
 }

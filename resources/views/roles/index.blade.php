@@ -61,7 +61,7 @@
 
 <!-- Role Cards -->
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-    @forelse ($roles as $role)
+    @foreach ($roles as $role)
         <div class="bg-white border border-gray-200 shadow-[-1px_6px_5px_rgba(0,0,0.1,0.1)] hover:shadow-lg transition-all duration-200 p-5 flex flex-col justify-between h-full">
             <div class="mb-4">
                 <div class="flex justify-between items-center mb-5">
@@ -87,11 +87,7 @@
                 </a>
             </div>
         </div>
-    @empty
-        <p class="text-gray-400 text-center w-full col-span-2 mt-10">
-            No roles found{{ request('search') ? ' for "' . request('search') . '"' : '' }}.
-        </p>
-    @endforelse
+    @endforeach
 </div>
 
 @if(request('search'))

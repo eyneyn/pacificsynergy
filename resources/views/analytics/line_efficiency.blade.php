@@ -194,7 +194,7 @@
         </h3>
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
             @foreach ($lines as $lineOption)
-                <a href="{{ route('analytics.material.index', ['line' => $lineOption, 'date' => $year]) }}"
+                <a href="{{ route('analytics.line.index', ['line' => $lineOption, 'date' => $year]) }}"
                    class="text-xs text-[#23527c] text-center border border-gray-300 rounded-md py-1 px-2 hover:bg-[#23527c] hover:text-white transition duration-150">
                     Line {{ $lineOption }}
                 </a>

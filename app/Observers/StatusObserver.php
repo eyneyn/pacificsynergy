@@ -27,7 +27,7 @@ class StatusObserver
     */
     public function created(Status $status): void
     {
-        $sku      = $status->productionReport?->standard?->description ?? 'N/A';
+        $sku      = $status->productionReport?->standard?->description ?? 'No Report';
         $line     = $status->productionReport?->line ?? 'Unknown';
         $userName = trim(($status->user?->first_name ?? '') . ' ' . ($status->user?->last_name ?? ''));
 

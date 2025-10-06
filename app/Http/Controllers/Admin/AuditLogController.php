@@ -24,6 +24,9 @@ class AuditLogController extends Controller
                 'failed_login'   => 'Failed Login',
                 'password_reset' => 'Password Reset',
             ],
+            'Profile' => [
+                'user_profile_update'          => 'Updated Profile',
+            ],
             'Production Report' => [
                 'report_create'   => 'Created Report',
                 'report_edit'     => 'Edited Report',
@@ -66,6 +69,9 @@ class AuditLogController extends Controller
                 'line_annual_export'      => 'Line Annual Export',
                 'line_monthly_export'     => 'Line Monthly Export',
             ],
+            'Settings' => [
+                'setting_update' => 'Updated Settings',
+            ],
         ];
 
 
@@ -73,18 +79,28 @@ class AuditLogController extends Controller
             ->ofEvent($request->get('event'))
             ->dateRange($request->get('date_from'), $request->get('date_to'))
             ->when($request->filled('user_id'), fn($q) => $q->where('user_id', $request->user_id))
-            ->search($request->get('q'))
-            ->latest()
+            ->when($request->filled('sort'), function ($q) use ($request) {
+                $direction = $request->get('direction', 'desc');
+                $field     = $request->get('sort', 'created_at');
+
+                if (in_array($field, ['created_at', 'event', 'user_id', 'ip_address'])) {
+                    $q->orderBy($field, $direction);
+                }
+            }, function ($q) {
+                $q->orderBy('created_at', 'desc');
+            })
             ->paginate(20)
             ->withQueryString();
 
-        $users = User::all(['id','first_name','last_name']);
+        $users = User::with('roles')->get(['id']);
 
         return view('admin.audit-logs.index', [
-            'logs'       => $logs,
-            'users'      => $users,
-            'eventsList' => $eventsList,
-            'filters'    => $request->only(['q','event','user_id','date_from','date_to']),
+            'logs'             => $logs,
+            'users'            => $users,
+            'eventsList'       => $eventsList,
+            'filters'          => $request->only(['event','user_id','date_from','date_to']),
+            'currentSort'      => $request->get('sort'),
+            'currentDirection' => $request->get('direction'),
         ]);
     }
 }

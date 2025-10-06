@@ -81,16 +81,16 @@
                 <div class="px-3 py-3 border-b border-gray-200">
                     <h2 class="text-lg font-semibold text-[#23527c]">Notifications</h2>
                     @php $activeFilter = $filter ?? 'all'; @endphp   <!-- ✅ Add this line -->
-            <div class="flex space-x-4 mt-2">
-                <button onclick="loadDropdown('all')"
-                    class="tab-btn font-medium text-sm pb-1 {{ $activeFilter === 'all' ? 'text-white bg-[#23527c] px-3 py-1 rounded-full' : 'text-gray-500 hover:text-[#23527c]' }}">
-                    All
-                </button>
-                <button onclick="loadDropdown('unread')"
-                    class="tab-btn font-medium text-sm pb-1 {{ $activeFilter === 'unread' ? 'text-white bg-[#23527c] px-3 py-1 rounded-full' : 'text-gray-500 hover:text-[#23527c]' }}">
-                    Unread
-                </button>
-            </div>
+                    <div class="flex space-x-4 mt-2">
+                        <button onclick="loadDropdown('all')"
+                            class="tab-btn font-medium text-sm pb-1 {{ $activeFilter === 'all' ? 'text-white bg-[#23527c] px-3 py-1 rounded-full' : 'text-gray-500 hover:text-[#23527c]' }}">
+                            All
+                        </button>
+                        <button onclick="loadDropdown('unread')"
+                            class="tab-btn font-medium text-sm pb-1 {{ $activeFilter === 'unread' ? 'text-white bg-[#23527c] px-3 py-1 rounded-full' : 'text-gray-500 hover:text-[#23527c]' }}">
+                            Unread
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Scrollable notification list -->
@@ -153,26 +153,22 @@
                 </a>
             </div>
 
-
-
-
-            
             <!-- User Menu -->
             <div class="relative" id="user-menu-container">
-            <button type="button"
-                class="flex items-center gap-1 px-2 hover:bg-[#ffd322] transition duration-200 group"
-                id="user-menu-button">
-                <div class="flex items-center gap-2">
-                    <span class="text-white text-md group-hover:text-[#2d326b] transition-colors">Hi,</span>
-                    <span class="text-white text-md group-hover:text-[#2d326b] font-bold transition-colors">{{ Auth::user()->first_name }}</span>
-                </div>
-                    <img
-                        src="{{ Auth::user()->photo ? asset('storage/' . Auth::user()->photo) : asset('img/default.jpg') }}"
-                        onerror="this.onerror=null;this.src='{{ asset('img/default.jpg') }}';"
-                        alt="User Avatar"
-                        class="w-12 h-12 p-2 rounded-full object-fill"
-                    />
-            </button>
+                <button type="button"
+                    class="flex items-center gap-1 px-2 hover:bg-[#ffd322] transition duration-200 group"
+                    id="user-menu-button">
+                    <div class="flex items-center gap-2">
+                        <span class="text-white text-md group-hover:text-[#2d326b] transition-colors">Hi,</span>
+                        <span class="text-white text-md group-hover:text-[#2d326b] font-bold transition-colors">{{ Auth::user()->first_name }}</span>
+                    </div>
+                        <img
+                            src="{{ Auth::user()->photo ? asset('storage/' . Auth::user()->photo) : asset('img/default.jpg') }}"
+                            onerror="this.onerror=null;this.src='{{ asset('img/default.jpg') }}';"
+                            alt="User Avatar"
+                            class="w-12 h-12 p-2 rounded-full object-fill"
+                        />
+                </button>
                 <!-- Dropdown -->
                 <div id="user-dropdown"
                     class="absolute right-0 z-50 hidden mt-2 w-48 bg-white divide-y divide-gray-300 border border-gray-300 shadow-3xl top-full">

@@ -181,8 +181,15 @@ class ProductionReportController extends Controller
             $payload
         );
 
+        // ✅ Ensure status is also recorded
+        Status::create([
+            'user_id'              => Auth::id(),
+            'production_report_id' => $report->id,
+            'status'               => 'Submitted',
+        ]);
+
         return redirect()->route('report.view', $report)
-            ->with('success', 'No Report entry saved.');
+            ->with('success', 'No Run production has been saved.');
     }
         $validated = $request->validate([
             'production_date' => 'required|date',
@@ -262,19 +269,19 @@ class ProductionReportController extends Controller
         // Update downtime total
         $report->update(['total_downtime' => $totalMinutes]);
 
-// Save Line QC Rejects
-$qcDefects = $request->input('qc_defect', []);
-$qcQtys    = $request->input('qc_qty', []);
+        // Save Line QC Rejects
+        $qcDefects = $request->input('qc_defect', []);
+        $qcQtys    = $request->input('qc_qty', []);
 
-foreach ($qcDefects as $index => $defectId) {
-    if ($defectId) {
-        LineQcReject::create([
-            'production_reports_id' => $report->id,
-            'defects_id'            => $defectId,
-            'quantity'              => intval($qcQtys[$index] ?? 0),
-        ]);
-    }
-}
+        foreach ($qcDefects as $index => $defectId) {
+            if ($defectId) {
+                LineQcReject::create([
+                    'production_reports_id' => $report->id,
+                    'defects_id'            => $defectId,
+                    'quantity'              => intval($qcQtys[$index] ?? 0),
+                ]);
+            }
+        }
 
 
         // Insert Status entry
@@ -302,46 +309,58 @@ foreach ($qcDefects as $index => $defectId) {
     /**
      * Display the specified production report.
      */
-    public function view($id)
-    {
-        $report = ProductionReport::with([
-            'issues.maintenance',
-            'lineQcRejects.defect',
-            'line',
-            'standard', // <-- relationship
-            'statuses.user',
-            'user',
-        ])->findOrFail($id);
+public function view($id)
+{
+    $report = ProductionReport::with([
+        'issues.maintenance',
+        'lineQcRejects.defect',
+        'line',
+        'standard',
+        'statuses.user',
+        'user',
+    ])->findOrFail($id);
 
-        $currentUserId = Auth::id();
-        $reportOwnerId = $report->user_id;
+    $currentUserId = Auth::id();
+    $user = Auth::user();
 
-        // Prevent the creator from inserting a "Reviewed" status
-        if ($currentUserId !== $reportOwnerId) {
-            $alreadyReviewed = Status::where('user_id', $currentUserId)
-                ->where('production_report_id', $report->id)
-                ->where('status', 'Reviewed')
-                ->doesntExist();
+    // ✅ Rule: Only non-owners with report.validate can auto-mark as Reviewed
+    if ($currentUserId !== $report->user_id && $user->can('report.validate')) {
+        $alreadyReviewed = Status::where('user_id', $currentUserId)
+            ->where('production_report_id', $report->id)
+            ->where('status', 'Reviewed')
+            ->doesntExist();
 
-            if ($alreadyReviewed) {
-                Status::create([
-                    'user_id' => $currentUserId,
-                    'production_report_id' => $report->id,
-                    'status' => 'Reviewed',
-                ]);
-            }
+        if ($alreadyReviewed) {
+            Status::create([
+                'user_id'              => $currentUserId,
+                'production_report_id' => $report->id,
+                'status'               => 'Reviewed',
+            ]);
+
+            AuditLog::create([
+                'user_id'    => $currentUserId,
+                'event'      => 'report_review',
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'context'    => [
+                    'sku'  => $report->standard->description ?? 'Unknown SKU',
+                    'line' => "Line {$report->line}",
+                ],
+            ]);
         }
-
-        $isValidated = Status::where('production_report_id', $report->id,)
-            ->where('status', 'Validated')
-            ->exists();
-
-
-        return view('report.view', [
-            'reports'     => $report,
-            'isValidated' => $isValidated,
-        ]);
     }
+
+    $isValidated = Status::where('production_report_id', $report->id)
+        ->where('status', 'Validated')
+        ->exists();
+
+    return view('report.view', [
+        'reports'     => $report,
+        'isValidated' => $isValidated,
+    ]);
+}
+
+
 
 
     /**
@@ -395,25 +414,25 @@ foreach ($qcDefects as $index => $defectId) {
             }
         }
 
-// In edit()
-$qcRejectsFlat = $report->lineQcRejects->map(fn($reject) => [
-    'defect'   => $reject->defect->defect_name,
-    'category' => $reject->defect->category,
-    'qty'      => $reject->quantity,
-])->toArray();
+        // In edit()
+        $qcRejectsFlat = $report->lineQcRejects->map(fn($reject) => [
+            'defect'   => $reject->defect->defect_name,
+            'category' => $reject->defect->category,
+            'qty'      => $reject->quantity,
+        ])->toArray();
 
 
-return view('report.edit', [
-    'report' => $report,
-    'lines' => $lines,
-    'skus' => $skus,
-    'maintenances' => $maintenances,
-    'defects' => $defects,
-    'lineOptions' => $lineOptions,
-    'materialsOptions' => $materialsOptions,
-    'issues' => $issues,
-    'qcRejectsFlat' => $qcRejectsFlat,
-]);
+        return view('report.edit', [
+            'report' => $report,
+            'lines' => $lines,
+            'skus' => $skus,
+            'maintenances' => $maintenances,
+            'defects' => $defects,
+            'lineOptions' => $lineOptions,
+            'materialsOptions' => $materialsOptions,
+            'issues' => $issues,
+            'qcRejectsFlat' => $qcRejectsFlat,
+        ]);
     }
 
     /**

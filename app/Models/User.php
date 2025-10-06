@@ -10,7 +10,7 @@ use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, Notifiable, HasRoles;
 
@@ -23,6 +23,10 @@ class User extends Authenticatable
         'photo',
         'email',
         'password',
+
+        //'two_factor_secret',
+        //'two_factor_enabled',
+
         'status',
         'position_id',
     ];
@@ -36,11 +40,11 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-    /**
-     * 👉 Computed full name (so you can call $user->name)
-     */
-    protected $appends = ['name'];
+    protected $appends = ['name', 'photo_url', 'role_label', 'permission_label'];
 
+    /**
+     * Computed full name.
+     */
     public function getNameAttribute(): string
     {
         return trim("{$this->first_name} {$this->last_name}");
@@ -51,12 +55,12 @@ class User extends Authenticatable
         return $this->belongsTo(Position::class);
     }
 
-    public function getRoleLabelAttribute()
+    public function getRoleLabelAttribute(): string
     {
         return $this->roles->pluck('name')->implode(', ');
     }
 
-    public function getPermissionLabelAttribute()
+    public function getPermissionLabelAttribute(): string
     {
         return $this->getAllPermissions()->pluck('name')->implode(', ');
     }
@@ -66,14 +70,19 @@ class User extends Authenticatable
         return $this->hasMany(Status::class);
     }
 
+    /**
+     * Computed profile photo URL.
+     */
     public function getPhotoUrlAttribute(): string
     {
         $path = $this->photo ?? '';
 
+        // Handle absolute path in public/
         if ($path && file_exists(public_path($path))) {
             return asset($path);
         }
 
+        // Handle storage disk paths
         if (Str::startsWith($path, 'storage/')) {
             $path = Str::after($path, 'storage/');
         }
@@ -81,7 +90,7 @@ class User extends Authenticatable
             return Storage::disk('public')->url($path);
         }
 
+        // Default image fallback
         return asset('img/default.jpg');
     }
-    
 }

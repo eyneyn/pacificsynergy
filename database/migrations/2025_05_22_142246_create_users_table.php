@@ -18,10 +18,13 @@ return new class extends Migration
             $table->string('first_name');
             $table->string('department');
             $table->string('photo')->nullable();
-            $table->string('phone_number')->nullable();
+            $table->string('phone_number');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+
+            $table->string('google2fa_secret')->nullable();
+            $table->boolean('two_factor_enabled')->default(false);
 
             $table->enum('status', ['Active', 'Locked'])->default('Active');
             $table->rememberToken();

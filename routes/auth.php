@@ -35,6 +35,10 @@ Route::middleware('guest')->group(function () {
         ->name('password.store');
 });
 
+// ✅ Allow admins to trigger reset while logged in
+Route::middleware('auth')->post('admin/send-reset-link', [PasswordResetLinkController::class, 'store'])
+    ->name('admin.password.email');
+
 Route::middleware('auth')->group(function () {
     Route::get('verify-email', EmailVerificationPromptController::class)
         ->name('verification.notice');

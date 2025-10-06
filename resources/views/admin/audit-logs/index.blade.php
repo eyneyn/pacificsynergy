@@ -13,24 +13,6 @@
 
     {{-- Filters --}}
     <form method="GET" class="bg-white border border-gray-200 p-4 mb-4 grid grid-cols-1 md:grid-cols-6 gap-3 text-xs">
-        {{-- Search --}}
-        <div>
-            <label for="q" class="block text-gray-700 mb-1 font-medium">Search</label>
-            <div class="relative">
-                <span class="absolute inset-y-0 left-0 flex items-center pl-2 text-gray-500">
-                    <x-icons-search class="w-4 h-4"/>
-                </span>
-                <input
-                    type="text"
-                    id="q"
-                    name="q"
-                    value="{{ $filters['q'] ?? '' }}"
-                    placeholder="User, IP, UA"
-                    class="w-full pl-8 pr-2 py-2 text-sm border border-gray-300 shadow-md focus-within:border-blue-500 focus-within:shadow-lg focus-within:outline-none placeholder-gray-400"
-                />
-            </div>
-        </div>
-
         {{-- Event --}}
         <div>
             <label for="event" class="block text-gray-700 mb-1 font-medium">Event</label>
@@ -58,7 +40,7 @@
                 <option value="">All Users</option>
                 @foreach($users as $u)
                     <option value="{{ $u->id }}" @selected(($filters['user_id'] ?? '') == $u->id)>
-                        {{ $u->name }}
+                        {{ $u->roles->pluck('name')->implode(', ') ?: 'No Role' }}
                     </option>
                 @endforeach
             </select>
@@ -95,7 +77,15 @@
             <tr class="text-xs text-white uppercase bg-[#35408e]">
                 <th class="p-2 border border-[#d9d9d9] text-center">Activity</th>
                 <th class="p-2 border border-[#d9d9d9] text-center">User</th>
-                <th class="p-2 border border-[#d9d9d9] text-center">Timestamp (Asia/Manila)</th>
+                <th class="p-2 border border-[#d9d9d9] text-center whitespace-nowrap">
+                    <x-table-sort-link
+                        field="created_at"
+                        label="Timestamp (Asia/Manila)"
+                        :currentSort="$currentSort ?? null"
+                        :currentDirection="$currentDirection ?? null"
+                        route="audit-logs.index"
+                    />
+                </th>
                 <th class="p-2 border border-[#d9d9d9] text-center">IP Address</th>
                 <th class="p-2 border border-[#d9d9d9] text-center">Details</th>
             </tr>
@@ -118,6 +108,8 @@
 
                     'employee_add'     => 'Created Employee',
                     'employee_update'  => 'Updated Employee',
+
+                    'user_profile_update' => 'Updated Own Profile', 
 
                     'standard_create'  => 'Created Standard',
                     'standard_edit'    => 'Updated Standard',
@@ -142,6 +134,8 @@
                     'line_summary_export'        => 'Line Summary Export',
                     'line_annual_export'        => 'Line Annual Export',
                     'line_monthly_export'        => 'Line Monthly Export',
+
+                    'setting_update' => 'Updated Settings',
                 ];
             @endphp
 
@@ -231,6 +225,18 @@
                                 <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
                             </svg>
 
+                        @elseif($log->event === 'setting_update')
+                            {{-- Settings Icon --}}
+                            <svg class="w-6 h-6 text-indigo-600" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" d="M11.983 1.5a2.25 2.25 0 0 1 2.121 1.48l.435 1.217c.094.264.31.469.583.54l1.248.333a2.25 2.25 0 0 1 1.43 3.11l-.52 1.04c-.123.246-.123.536 0 .782l.52 1.04a2.25 2.25 0 0 1-1.43 3.11l-1.248.333a.75.75 0 0 0-.583.54l-.435 1.217a2.25 2.25 0 0 1-4.242 0l-.435-1.217a.75.75 0 0 0-.583-.54l-1.248-.333a2.25 2.25 0 0 1-1.43-3.11l.52-1.04c.123-.246.123-.536 0-.782l-.52-1.04a2.25 2.25 0 0 1 1.43-3.11l1.248-.333a.75.75 0 0 0 .583-.54l.435-1.217A2.25 2.25 0 0 1 11.983 1.5zm.017 6a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" clip-rule="evenodd"/>
+                            </svg>
+
+                        @elseif($log->event === 'user_profile_update')
+                            {{-- Profile Update Icon --}}
+                            <svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"/>
+                            </svg>
+
                         @else
                             {{-- Default (Info Circle) --}}
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -246,7 +252,7 @@
                     <td class="p-2 border border-[#d9d9d9] text-gray-600 text-center">
                         @if($log->user)
                             <div class="font-medium">{{ $log->user->name }}</div>
-                            <div class="text-gray-500 text-xs">{{ $log->user->email }}</div>
+                            <div class="text-gray-500 text-xs">{{ $log->user->roles->pluck('name')->implode(', ') ?: 'No Role' }}</div>
                         @else
                             <span class="text-gray-500 italic">System / Unknown</span>
                         @endif
@@ -291,7 +297,7 @@
                         @elseif($log->event === 'report_pdf')
                             Generated PDF report: {{ $log->context['report'] ?? 'Unknown Report' }}
 
-                         @elseif(in_array($log->event, ['employee_add','employee_update']))
+                        @elseif(in_array($log->event, ['employee_add','employee_update']))
                             Employee: {{ $log->context['employee'] ?? 'Unknown Employee' }}
 
                         @elseif(in_array($log->event, ['role_add','role_update']))
@@ -301,7 +307,19 @@
                             <span class="text-left">Successful Login</span>
 
                         @elseif($log->event === 'logout')
-                            <span class="text-left">Successful Logged Out</span>
+                            <span class="text-left">Successful Logout</span>
+
+                        @elseif($log->event === 'failed_login')
+                            <span class="text-left">Failed Login attempt</span>
+                            @if(!empty($log->context['email']))
+                                using email: <strong>{{ $log->context['email'] }}</strong>
+                            @endif
+                        
+                        @elseif($log->event === 'setting_update')
+                            Company: {{ $log->context['company_name'] ?? 'Unknown' }}
+
+                        @elseif($log->event === 'user_profile_update')
+                            User changed the password 
 
                         @else
                             —

@@ -77,8 +77,8 @@
             @method('PUT')
 
             <!-- Company Name -->
-            <div class="mb-4">
-                <label for="company_name" class="block text-sm font-medium text-[#23527c] mb-1">Company Name <span style="color: red;">*</span></label>
+            <div class="mb-8">
+                <label for="company_name" class="block text-sm font-medium text-[#23527c] mb-1">Company Name </span></label>
                 <input type="text" 
                        id="company_name" 
                        name="company_name" 
@@ -86,18 +86,51 @@
                        class="w-full px-3 py-2 border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400">
             </div>
 
-            <!-- Logo Upload -->
-            <div class="mb-4">
-                <label for="logo" class="block text-sm font-medium text-[#23527c] mb-1">Upload Logo <span style="color: red;">*</span></label>
-                <input type="file" id="logo" name="logo" accept="image/*"
-                       class="w-full px-3 py-2 border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400">
+            <!-- Logo Upload (Profile Picture Style) -->
+            <div class="mb-8">
+                <!-- Title + Edit on the same row -->
+                <div class="flex items-center justify-between mb-2">
+                    <p class="block text-sm font-medium text-[#23527c]">Profile Logo</p>
+                    <label for="logo" class="cursor-pointer text-sm text-blue-600 hover:underline">Edit</label>
+                    <input type="file" id="logo" name="logo" accept="image/*" class="hidden"
+                        onchange="previewImage(event, 'logoPreview')">
+                </div>
+
+                <!-- Logo centered -->
+                <div class="flex justify-center">
+                    <div class="w-28 h-28 rounded-full border border-gray-300 overflow-hidden bg-gray-100 shadow">
+                        @if(!empty($settings->logo))
+                            <img id="logoPreview" src="{{ asset('storage/'.$settings->logo) }}"
+                                alt="Logo Preview" class="w-full h-full object-cover">
+                        @else
+                            <span class="flex items-center justify-center h-full text-xs text-gray-400">No Logo</span>
+                        @endif
+                    </div>
+                </div>
             </div>
 
-            <!-- Background Upload -->
-            <div class="mb-4">
-                <label for="background_image" class="block text-sm font-medium text-[#23527c] mb-1">Upload Background <span style="color: red;">*</span></label>
-                <input type="file" id="background_image" name="background_image" accept="image/*"
-                       class="w-full px-3 py-2 border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400">
+
+            <!-- Background Upload (Cover Photo Style) -->
+            <div class="mb-8">
+                <!-- Title + Edit on the same row -->
+                <div class="flex items-center justify-between mb-2">
+                    <p class="block text-sm font-medium text-[#23527c]">Cover Background</p>
+                    <label for="background_image" class="cursor-pointer text-sm text-blue-600 hover:underline">Edit</label>
+                    <input type="file" id="background_image" name="background_image" accept="image/*" class="hidden"
+                        onchange="previewImage(event, 'bgPreview')">
+                </div>
+
+                <!-- Cover preview centered -->
+                <div class="flex justify-center">
+                    <div class="w-full h-40 border border-gray-300 rounded overflow-hidden bg-gray-100 shadow">
+                        @if(!empty($settings->background_image))
+                            <img id="bgPreview" src="{{ asset('storage/'.$settings->background_image) }}"
+                                alt="Background Preview" class="w-full h-full object-cover">
+                        @else
+                            <span class="flex items-center justify-center h-full text-sm text-gray-400">No Background</span>
+                        @endif
+                    </div>
+                </div>
             </div>
 
             <!-- Actions -->
@@ -163,5 +196,17 @@ function toggleModal(show = true) {
         modal.classList.remove('flex');
     }
 }
+
+function previewImage(event, previewId) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById(previewId).src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
 </script>
 @endsection

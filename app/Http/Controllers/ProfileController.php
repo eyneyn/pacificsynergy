@@ -9,13 +9,13 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Str;
+use App\Models\Notification;
+use App\Models\AuditLog;
 
 class ProfileController extends Controller
 {
     /**
-     * Display the user's profile form.
+     * Show the profile edit form.
      */
     public function edit(Request $request): View
     {
@@ -32,30 +32,45 @@ class ProfileController extends Controller
         $user = $request->user();
         $user->fill($request->validated());
 
-        // ✅ Handle photo upload via storage/app/public/profile
+        // ✅ Handle photo upload
         if ($request->hasFile('photo')) {
-            // Delete old photo if it exists and is not default
-            if ($user->photo && Storage::disk('public')->exists($user->photo) && basename($user->photo) !== 'default.jpg') {
+            if (
+                $user->photo &&
+                Storage::disk('public')->exists($user->photo) &&
+                basename($user->photo) !== 'default.jpg'
+            ) {
                 Storage::disk('public')->delete($user->photo);
             }
 
-            $photoPath = $request->file('photo')->store('profile', 'public');
-            $user->photo = $photoPath; // e.g. profile/uuid.png
+            $user->photo = $request->file('photo')->store('profile', 'public');
         }
 
-        // Reset email verification if email changed
+        // ✅ Reset email verification if email changed
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;
         }
 
         $user->save();
 
-        return Redirect::route('profile.edit')->with('status', 'profile-updated');
+        // ✅ Log activity + audit
+        AuditLog::create([
+            'user_id'    => $user->id,
+            'event'      => 'user_profile_update',
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'context'    => [
+                'name'  => trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')),
+                'email' => $user->email,
+            ],
+        ]);
+
+        return Redirect::route('profile.edit')
+            ->with('status', 'profile-updated')
+            ->with('tab', $request->input('tab', 'info'));
     }
 
-
     /**
-     * Update the user's profile photo.
+     * Update only the profile photo.
      */
     public function updatePhoto(Request $request): RedirectResponse
     {
@@ -66,18 +81,32 @@ class ProfileController extends Controller
         $user = $request->user();
 
         if ($request->hasFile('photo')) {
-            // Delete old photo if it exists and is not default
-            if ($user->photo && Storage::disk('public')->exists($user->photo) && basename($user->photo) !== 'default.jpg') {
+            if (
+                $user->photo &&
+                Storage::disk('public')->exists($user->photo) &&
+                basename($user->photo) !== 'default.jpg'
+            ) {
                 Storage::disk('public')->delete($user->photo);
             }
 
-            // Store new photo in storage/app/public/profile
-            $path = $request->file('photo')->store('profile', 'public');
-            $user->photo = $path;
+            $user->photo = $request->file('photo')->store('profile', 'public');
             $user->save();
         }
 
-        return redirect()->route('profile.edit')->with('status', 'photo-updated');
+        AuditLog::create([
+            'user_id'    => $user->id,
+            'event'      => 'user_profile_update',
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'context'    => [
+                'name'  => trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')),
+                'email' => $user->email,
+            ],
+        ]);
+
+        return redirect()->route('profile.edit')
+            ->with('status', 'photo-updated')
+            ->with('tab', 'info');
     }
 
     /**
@@ -92,6 +121,15 @@ class ProfileController extends Controller
         $user = $request->user();
 
         Auth::logout();
+
+        if (
+            $user->photo &&
+            Storage::disk('public')->exists($user->photo) &&
+            basename($user->photo) !== 'default.jpg'
+        ) {
+            Storage::disk('public')->delete($user->photo);
+        }
+
         $user->delete();
 
         $request->session()->invalidate();
@@ -105,29 +143,55 @@ class ProfileController extends Controller
      */
     public function updatePassword(Request $request): RedirectResponse
     {
-        $request->validate([
-            'current_password' => ['required', 'current_password'],
-            'new_password' => [
-                'required',
-                'string',
-                'min:6',
-                'regex:/[a-z]/',        // at least one lowercase letter
-                'regex:/[0-9]/',        // at least one number
-                'regex:/[.,@$!%*?&]/',  // at least one special character
-                'confirmed',            // must match new_password_confirmation
+        // Maintain "tab" state on reload
+        $request->session()->flash('tab', $request->input('tab', 'password'));
+
+        $request->validate(
+            [
+                'current_password' => ['required', 'current_password'],
+                'new_password'     => [
+                    'required',
+                    'string',
+                    'min:6',
+                    'max:20',
+                    'regex:/[a-z]/',
+                    'regex:/[0-9]/',
+                    'regex:/[.,@$!%*?&]/',
+                    'confirmed',
+                ],
             ],
-        ], [
-            'current_password.required' => 'Please enter your current password.',
-            'current_password.current_password' => 'Your current password is incorrect.',
-            'new_password.regex' => 'Password must contain at least one lowercase letter, one number, and one special character.',
-            'new_password.confirmed' => 'New password confirmation does not match.',
-        ]);
+            [
+                'current_password.required'       => 'Your current password is required.',
+                'current_password.current_password' => 'The current password you entered is incorrect.',
+                'new_password.regex'              => 'Password must contain at least one lowercase letter, one number, and one special character.',
+                'new_password.confirmed'          => 'New password confirmation does not match.',
+            ]
+        );
 
         $user = Auth::user();
         $user->password = bcrypt($request->new_password);
         $user->save();
 
-        return back()->with('success', 'Password updated successfully.');
+        AuditLog::create([
+            'user_id'    => $user->id,
+            'event'      => 'user_profile_update',
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'context'    => [
+                'name'  => trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')),
+                'email' => $user->email,
+            ],
+        ]);
+
+        Notification::create([
+            'user_id' => $user->id,
+            'type'    => 'profile',
+            'message' => "<span style=\"color:#23527c;font-weight:bold;\">{$user->first_name} {$user->last_name}</span> updated password.",
+            'is_read' => false,
+        ]);
+
+        return back()
+            ->with('success', 'Password updated successfully.')
+            ->with('tab', 'password');
     }
-    
 }

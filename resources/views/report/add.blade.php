@@ -46,13 +46,13 @@
                     </div>
                 </div>
 
-                    {{-- Description requirements --}}
-                    <div class="mt-10">
-                        <ul class="space-y-1 text-red-500 text-sm">
-                            <li>Fill out all required fields – details marked with an asterisk (*) are mandatory.</li>
-                            <li>If there is “No Report”, make sure to specify the production line and the manager responsible.</li>
-                        </ul>
-                    </div>
+                {{-- Description requirements --}}
+                <div class="mt-10">
+                    <ul class="space-y-1 text-red-500 text-sm">
+                        <li class="text-[#42a542]">Fill out all required fields — details marked with an asterisk (*) are mandatory.</li>
+                        <li>If there is <span class="font-bold">“No Report”</span>, please specify the production line and date first.</li>
+                    </ul>
+                </div>
 
                 {{-- Centered Duplicate Error --}}
                 @if ($errors->has('duplicate'))
