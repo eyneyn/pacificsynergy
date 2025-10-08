@@ -14,12 +14,17 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
  && docker-php-ext-install -j$(nproc) \
     pdo pdo_mysql intl mbstring zip opcache gd
 
+# ✅ Copy composer only AFTER extensions are installed
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
 # Copy source code
-WORKDIR /var/www
+WORKDIR /var/www/html
 COPY . .
 
-# Install composer (with gd already compiled)
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+# Debug check: ensure gd is installed
+RUN php -m | grep gd
+
+# Install dependencies (composer now sees gd)
 RUN COMPOSER_MEMORY_LIMIT=-1 composer install --no-dev --optimize-autoloader
 
 # Build frontend assets
@@ -31,7 +36,7 @@ RUN npm install && npm run build
 # =========================
 FROM php:8.3-fpm-alpine
 
-WORKDIR /var/www
+WORKDIR /var/www/html
 
 # Install runtime dependencies
 RUN apk add --no-cache bash icu libzip oniguruma freetype libpng libjpeg-turbo \
@@ -40,9 +45,9 @@ RUN apk add --no-cache bash icu libzip oniguruma freetype libpng libjpeg-turbo \
     && docker-php-ext-install pdo pdo_mysql intl mbstring zip opcache
 
 # Copy built app from build stage
-COPY --from=build /var/www /var/www
+COPY --from=build /var/www/html /var/www/html
 
-# Copy composer config + installed extensions
+# Copy PHP extensions config
 COPY --from=build /usr/local/lib/php/extensions /usr/local/lib/php/extensions
 COPY --from=build /usr/local/etc/php/conf.d /usr/local/etc/php/conf.d
 
