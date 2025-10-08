@@ -1,55 +1,41 @@
-# ------------------------------------
-# Stage 1: Build dependencies & assets
-# ------------------------------------
+# Stage 1: Build PHP dependencies
 FROM php:8.3-fpm-alpine AS build
 
-# System dependencies
+# Install system dependencies
 RUN apk add --no-cache \
     git unzip curl bash icu-dev oniguruma-dev libzip-dev \
-    nodejs npm
+    nodejs npm build-base linux-headers autoconf
 
-# PHP extensions (Laravel 12 requires intl, mbstring, etc.)
+# Install PHP extensions
 RUN docker-php-ext-install pdo pdo_mysql intl mbstring zip opcache
 
-# Install Composer
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-
-WORKDIR /var/www/html
-
-# Copy project files
+# Copy app files
+WORKDIR /var/www
 COPY . .
 
-# Install PHP deps (no dev, optimized for prod)
-RUN composer install --no-dev --optimize-autoloader
+# Install composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+RUN COMPOSER_MEMORY_LIMIT=-1 composer install --no-dev --optimize-autoloader
 
-# Build front-end assets with Vite
-RUN npm ci && npm run build
+# Install npm dependencies
+RUN npm install && npm run build
 
-# ------------------------------------
-# Stage 2: Runtime container
-# ------------------------------------
-FROM nginx:1.27-alpine
+# Stage 2: Production image
+FROM php:8.3-fpm-alpine
 
-# Add PHP-FPM 8.3 runtime
-RUN apk add --no-cache php83 php83-fpm php83-opcache php83-session \
-    php83-pdo_mysql php83-intl php83-mbstring php83-zip
+WORKDIR /var/www
 
-WORKDIR /var/www/html
+# Install runtime dependencies
+RUN apk add --no-cache bash icu libzip oniguruma
 
-# Copy built Laravel app from build stage
-COPY --from=build /var/www/html /var/www/html
+# Copy extensions and vendor from builder
+COPY --from=build /usr/local/lib/php/extensions /usr/local/lib/php/extensions
+COPY --from=build /usr/local/etc/php/conf.d /usr/local/etc/php/conf.d
+COPY --from=build /var/www /var/www
 
-# Configure Nginx
-RUN rm /etc/nginx/conf.d/default.conf
-COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
-
-# Start script
-COPY docker/start.sh /start.sh
-RUN chmod +x /start.sh
-
-# Laravel storage & cache permissions
-RUN mkdir -p storage/framework/{cache,sessions,views} bootstrap/cache \
-    && chmod -R 0777 storage bootstrap/cache
+# Copy docker startup scripts
+COPY docker/start.sh /usr/local/bin/start.sh
+RUN chmod +x /usr/local/bin/start.sh
 
 EXPOSE 8080
-CMD ["/start.sh"]
+CMD ["sh", "/usr/local/bin/start.sh"]
