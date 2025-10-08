@@ -11,17 +11,18 @@ RUN apk add --no-cache \
 RUN docker-php-ext-configure gd \
         --with-freetype \
         --with-jpeg \
-    && docker-php-ext-install pdo pdo_mysql intl mbstring zip opcache gd
+    && docker-php-ext-install \
+        pdo pdo_mysql intl mbstring zip opcache gd
 
 # Copy app files
 WORKDIR /var/www
 COPY . .
 
-# Install composer
+# ✅ Install composer AFTER gd is available
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 RUN COMPOSER_MEMORY_LIMIT=-1 composer install --no-dev --optimize-autoloader
 
-# Install npm dependencies
+# Build frontend
 RUN npm install && npm run build
 
 # Stage 2: Production image
@@ -29,15 +30,17 @@ FROM php:8.3-fpm-alpine
 
 WORKDIR /var/www
 
-# Install runtime dependencies
+# Runtime dependencies (lighter than dev)
 RUN apk add --no-cache bash icu libzip oniguruma freetype libpng libjpeg-turbo
 
-# Copy extensions and vendor from builder
+# Copy compiled extensions + PHP config
 COPY --from=build /usr/local/lib/php/extensions /usr/local/lib/php/extensions
 COPY --from=build /usr/local/etc/php/conf.d /usr/local/etc/php/conf.d
+
+# Copy app
 COPY --from=build /var/www /var/www
 
-# Copy docker startup scripts
+# Startup script
 COPY docker/start.sh /usr/local/bin/start.sh
 RUN chmod +x /usr/local/bin/start.sh
 
