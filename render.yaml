@@ -1,0 +1,45 @@
+databases:
+  - name: optima-db
+    databaseName: optima_db
+    user: optima_user
+    plan: free
+
+services:
+  - type: web
+    name: optima-app
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_KEY
+        generateValue: true
+      - key: APP_URL
+        value: https://optima-app.onrender.com
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase:
+          name: optima-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: optima-db
+          property: port
+      - key: DB_DATABASE
+        fromDatabase:
+          name: optima-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: optima-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: optima-db
+          property: password
+      - key: FILESYSTEM_DISK
+        value: public
