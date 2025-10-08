@@ -14,6 +14,7 @@ class LineQcReject extends Model
 
     public function defect()
     {
-        return $this->belongsTo(Defect::class, 'defects_id');
+        // 👇 Ensure soft-deleted defects are still accessible
+        return $this->belongsTo(Defect::class, 'defects_id')->withTrashed();
     }
 }

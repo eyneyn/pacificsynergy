@@ -8,6 +8,9 @@
             Product Standard Details
         </h1>
     </div>
+    
+    {{-- 🔔 Modal Alerts (Success, Error, Validation) --}}
+    <x-alert-message />
 
     <!-- Product Standard Card -->
     <div class="bg-white border-t border-b border-gray-200 shadow-sm mb-4 mx-auto">
@@ -90,7 +93,7 @@
         </div>
     </div>
 
-            <!-- Status Message -->
+        <!-- Status Message -->
         @if ($errors->has('standard_delete'))
             <div class="bg-red-50 border border-red-200 p-4 mt-4">
                 <div class="text-red-800">

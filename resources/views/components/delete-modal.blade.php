@@ -2,7 +2,7 @@
 <div id="delete-confirmation-modal" tabindex="-1"
      class="hidden fixed inset-0 z-50 flex justify-center items-center w-full p-4 bg-black/50 backdrop-blur-sm">
   <div class="relative w-full max-w-sm max-h-[90vh]">
-    <div class="bg-white zzzz shadow-lg border border-gray-300 p-6">
+    <div class="bg-white rounded-lg shadow-lg border border-gray-300 p-6 relative">
       <h2 class="text-lg font-semibold text-[#2d326b] mb-4 center">Confirm Deletion</h2>
       <p class="text-sm text-gray-600 mb-6">
         Are you sure you want to delete <span class="font-semibold" id="item-name-to-delete">this item</span>?

@@ -109,24 +109,32 @@ class ConfigurationController extends Controller
      */
     public function defect_store(Request $request)
     {
-        $validated = $request->validate([
+        $validator = Validator::make($request->all(), [
             'defect_name' => [
                 'required',
                 'string',
-                // check unique but ignore soft-deleted rows
                 Rule::unique('defects', 'defect_name')->whereNull('deleted_at'),
             ],
             'category' => 'required|in:Caps,Bottle,Label,LDPE Shrinkfilm',
-            'description' => 'nullable|string',
+            'description' => 'required|string',
         ]);
 
-        // Check if the defect already exists but is soft-deleted
+        // ✅ Return error to modal like maintenance/line
+        if ($validator->fails()) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', $validator->errors()->first());
+        }
+
+        $validated = $validator->validated();
+
+        // Check for soft-deleted record and restore if found
         $trashedDefect = Defect::withTrashed()
             ->where('defect_name', $validated['defect_name'])
             ->first();
 
         if ($trashedDefect && $trashedDefect->trashed()) {
-            // Restore instead of creating a duplicate
             $trashedDefect->restore();
             $trashedDefect->update($validated);
 
@@ -135,7 +143,7 @@ class ConfigurationController extends Controller
                 ->with('success', "Defect '{$trashedDefect->defect_name}' restored successfully!");
         }
 
-        // If not soft-deleted, create new
+        // Create new defect
         $defect = Defect::create($validated);
 
         Notification::defectEvent('added', $defect);
@@ -168,18 +176,26 @@ class ConfigurationController extends Controller
      */
     public function defect_update(Request $request, Defect $defect)
     {
-        $validated = $request->validate([
+        $validator = Validator::make($request->all(), [
             'defect_name' => [
                 'required',
                 'string',
                 Rule::unique('defects', 'defect_name')->ignore($defect->id),
             ],
             'category' => 'required|in:Caps,Bottle,Label,LDPE Shrinkfilm',
-            'description' => 'nullable|string',
+            'description' => 'required|string',
         ]);
 
-        $defect->update($validated);
-       Notification::defectEvent('updated', $defect);
+        if ($validator->fails()) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', $validator->errors()->first());
+        }
+
+        $defect->update($validator->validated());
+
+        Notification::defectEvent('updated', $defect);
 
         AuditLog::create([
             'user_id'    => Auth::id(),
@@ -192,8 +208,9 @@ class ConfigurationController extends Controller
         ]);
 
         return redirect()->route('configuration.defect.view', $defect)
-                         ->with('success', 'Defect updated successfully!');
+                        ->with('success', 'Defect updated successfully!');
     }
+
 
     /**
      * Delete a defect if not used in QC Rejects.
@@ -218,15 +235,23 @@ class ConfigurationController extends Controller
             ->with('success', "Defect '{$defect->defect_name}' deleted successfully.");
     }
 
-
     // ===================== Maintenance =====================
 
     /**
-     * List maintenances with search and sort.
+     * List maintenances with search, sort, and optional trashed filter.
      */
     public function maintenance(Request $request)
     {
         $query = Maintenance::query();
+
+        // Include trashed if requested
+        if ($request->boolean('with_trashed')) {
+            $query->withTrashed();
+        }
+
+        if ($request->boolean('only_trashed')) {
+            $query->onlyTrashed();
+        }
 
         // Search filter
         if ($request->filled('search')) {
@@ -256,7 +281,12 @@ class ConfigurationController extends Controller
         $request->merge(['_context' => 'add']);
 
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255|unique:maintenances,name',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('maintenances', 'name')->whereNull('deleted_at'),
+            ],
             'type' => 'required|in:EPL,OPL',
             '_context' => 'required|in:add',
         ]);
@@ -264,14 +294,36 @@ class ConfigurationController extends Controller
         if ($validator->fails()) {
             return redirect()
                 ->back()
-                ->withErrors($validator, 'addForm')
                 ->withInput()
-                ->with('error_source', 'add');
+                ->with('error', $validator->errors()->first());
         }
 
+        // 🔎 Check if soft-deleted record already exists
+        $existing = Maintenance::onlyTrashed()->where('name', $request->name)->first();
+
+        if ($existing) {
+            // Restore instead of inserting new
+            $existing->restore();
+            $existing->update(['type' => $request->type]);
+
+            Notification::maintenanceEvent('restored', $existing->name);
+
+            AuditLog::create([
+                'user_id'    => Auth::id(),
+                'event'      => 'maintenance_restore',
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'context'    => [
+                    'maintenance'  => $existing->name ?? 'Unknown Maintenance',
+                ],
+            ]);
+
+            return redirect()->back()->with('success', 'Maintenance restored successfully.');
+        }
+
+        // If no existing trashed record, create new
         $maintenance = Maintenance::create($validator->validated());
         Notification::maintenanceEvent('added', $maintenance->name);
-
 
         AuditLog::create([
             'user_id'    => Auth::id(),
@@ -286,13 +338,6 @@ class ConfigurationController extends Controller
         return redirect()->back()->with('success', 'Maintenance added successfully.');
     }
 
-    /**
-     * Show edit maintenance form.
-     */
-    public function maintenance_edit(Maintenance $maintenance)
-    {
-        return view('configuration.maintenance.edit', compact('maintenance'));
-    }
 
     /**
      * Update a maintenance record.
@@ -315,14 +360,12 @@ class ConfigurationController extends Controller
         if ($validator->fails()) {
             return redirect()
                 ->back()
-                ->withErrors($validator)
                 ->withInput()
-                ->with('error_source', 'edit');
+                ->with('error', $validator->errors()->first());
         }
 
         $maintenance->update($validator->validated());
         Notification::maintenanceEvent('updated', $maintenance->name);
-
 
         AuditLog::create([
             'user_id'    => Auth::id(),
@@ -338,22 +381,15 @@ class ConfigurationController extends Controller
     }
 
     /**
-     * Delete a maintenance record if not used.
+     * Soft delete a maintenance record (always allowed).
      */
     public function maintenance_destroy(Maintenance $maintenance)
     {
-        // Check if maintenance is used in production_issues
-        $isUsed = ProductionIssues::where('maintenances_id', $maintenance->id)->exists();
-
-        if ($isUsed) {
-            return redirect()->route('configuration.maintenance.index')->withErrors([
-                'maintenance_delete' => "\"{$maintenance->name}\" is currently in use and cannot be deleted."
-            ]);
-        }
-
+        // Instead of blocking, just soft delete
         $maintenance->delete();
+
         Notification::maintenanceEvent('deleted', $maintenance->name);
-        
+
         AuditLog::create([
             'user_id'    => Auth::id(),
             'event'      => 'maintenance_destroy',
@@ -364,8 +400,61 @@ class ConfigurationController extends Controller
             ],
         ]);
 
-        return redirect()->route('configuration.maintenance.index')->with('success', 'Maintenance record deleted successfully.');
+        return redirect()->back()->with('success', "Maintenance '{$maintenance->name}' record deleted successfully.");
     }
+
+    /**
+     * Restore a soft-deleted maintenance record.
+     */
+    public function maintenance_restore($id)
+    {
+        $maintenance = Maintenance::withTrashed()->findOrFail($id);
+        $maintenance->restore();
+
+        Notification::maintenanceEvent('restored', $maintenance->name);
+
+        AuditLog::create([
+            'user_id'    => Auth::id(),
+            'event'      => 'maintenance_restore',
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+            'context'    => [
+                'maintenance'  => $maintenance->name ?? 'Unknown Maintenance',
+            ],
+        ]);
+
+        return redirect()->route('configuration.maintenance.index')->with('success', 'Maintenance restored successfully.');
+    }
+
+    /**
+     * Permanently delete a maintenance record.
+     */
+    public function maintenance_forceDelete($id)
+    {
+        $maintenance = Maintenance::withTrashed()->findOrFail($id);
+
+        // ⚠️ Only allow if not used in issues
+        $isUsed = ProductionIssues::where('maintenances_id', $maintenance->id)->exists();
+        if ($isUsed) {
+            return redirect()->route('configuration.maintenance.index')
+                ->with('error', "\"{$maintenance->name}\" is currently in use and cannot be permanently deleted.");
+        }
+
+        $maintenance->forceDelete();
+
+        AuditLog::create([
+            'user_id'    => Auth::id(),
+            'event'      => 'maintenance_force_delete',
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+            'context'    => [
+                'maintenance'  => $maintenance->name ?? 'Unknown Maintenance',
+            ],
+        ]);
+
+        return redirect()->route('configuration.maintenance.index')->with('success', 'Maintenance permanently deleted.');
+    }
+
 
     // ===================== Line =====================
 
@@ -389,12 +478,22 @@ class ConfigurationController extends Controller
      */
     public function line_store(Request $request)
     {
-        $validated = $request->validate([
+        // do not use validate() directly, because it throws a ValidationException
+        $validator = Validator::make($request->all(), [
             'line_number' => 'required|integer',
             'status' => 'required|in:Active,Inactive',
         ]);
 
+        if ($validator->fails()) {
+            // ✅ exactly like maintenance: send first error to session('error')
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', $validator->errors()->first());
+        }
+
         // Check for existing soft-deleted line
+        $validated = $validator->validated();
         $trashedLine = Line::withTrashed()
             ->where('line_number', $validated['line_number'])
             ->first();
@@ -405,9 +504,10 @@ class ConfigurationController extends Controller
                 $trashedLine->update(['status' => $validated['status']]);
                 return redirect()->back()->with('success', "Line saved successfully!");
             } else {
+                // ✅ send error message to modal too
                 return redirect()->back()
-                    ->withErrors(['line_number' => 'The line number has already been taken.'])
-                    ->withInput();
+                    ->withInput()
+                    ->with('error', 'The line number has already been taken.');
             }
         }
 
@@ -426,6 +526,7 @@ class ConfigurationController extends Controller
 
         return redirect()->back()->with('success', 'Line saved successfully!');
     }
+
 
     /**
      * Update a line's status.

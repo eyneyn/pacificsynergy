@@ -72,12 +72,12 @@
         </div>
     </form>
 
-    <table class="w-full text-sm text-left border border-[#E5E7EB] border-collapse shadow-sm">
+    <table class="w-full text-sm text-left border border-[#E5E7EB] border-collapse shadow-sm table-fixed">
         <thead>
             <tr class="text-xs text-white uppercase bg-[#35408e]">
-                <th class="p-2 border border-[#d9d9d9] text-center">Activity</th>
-                <th class="p-2 border border-[#d9d9d9] text-center">User</th>
-                <th class="p-2 border border-[#d9d9d9] text-center whitespace-nowrap">
+                <th class="p-2 border border-[#d9d9d9] text-center w-48">Activity</th>
+                <th class="p-2 border border-[#d9d9d9] text-center w-40">User</th>
+                <th class="p-2 border border-[#d9d9d9] text-center w-56 whitespace-nowrap">
                     <x-table-sort-link
                         field="created_at"
                         label="Timestamp (Asia/Manila)"
@@ -86,8 +86,8 @@
                         route="audit-logs.index"
                     />
                 </th>
-                <th class="p-2 border border-[#d9d9d9] text-center">IP Address</th>
-                <th class="p-2 border border-[#d9d9d9] text-center">Details</th>
+                <th class="p-2 border border-[#d9d9d9] text-center w-32">IP Address</th>
+                <th class="p-2 border border-[#d9d9d9] text-center w-80">Details</th>
             </tr>
         </thead>
         <tbody>
@@ -102,6 +102,7 @@
                     'report_edit'      => 'Edited Report',
                     'report_validate'  => 'Validated Report',
                     'report_pdf'  => 'Export to Daily Report',
+                    'report_void' => 'Voided Report',
                     
                     'role_add'     => 'Created Role',
                     'role_update'  => 'Updated Role',
@@ -142,7 +143,7 @@
             @forelse($logs as $log)
                 <tr class="bg-white border-b border-[#d9d9d9] hover:bg-[#e5f4ff]">
                     {{-- Activity --}}
-                    <td class="p-2 text-gray-600 text-left flex items-center gap-2">
+                    <td class="p-2 text-gray-600 text-left flex items-center gap-2 w-48">
                         @if($log->event === 'login')
                             {{-- Login Icon --}}
                             <svg class="shrink-0 w-4 h-4 transition duration-75" 
@@ -178,6 +179,12 @@
                             {{-- Production Report --}}
                             <svg class="w-6 h-6" fill="#3c49a3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                                 <path d="M20 8L14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM9 19H7v-9h2v9zm4 0h-2v-6h2v6zm4 0h-2v-3h2v3zM14 9h-1V4l5 5h-4z"/>
+                            </svg>
+                        
+                        @elseif($log->event === 'report_void')
+                            {{-- Voided Report Icon --}}
+                            <svg class="w-6 h-6 text-red-600" fill="currentColor" viewBox="0 0 24 24">
+                                <path fill-rule="evenodd" d="M12 2a10 10 0 1010 10A10.011 10.011 0 0012 2zm4.707 13.293a1 1 0 01-1.414 1.414L12 13.414l-3.293 3.293a1 1 0 01-1.414-1.414L10.586 12 7.293 8.707a1 1 0 011.414-1.414L12 10.586l3.293-3.293a1 1 0 011.414 1.414L13.414 12z"/>
                             </svg>
                         
                         @elseif(in_array($log->event, ['material_summary_export','material_annual_export','material_monthly_export','line_summary_export','line_annual_export','line_monthly_export']))
@@ -249,7 +256,7 @@
 
 
                     {{-- User --}}
-                    <td class="p-2 border border-[#d9d9d9] text-gray-600 text-center">
+                    <td class="p-2 border border-[#d9d9d9] text-gray-600 text-center w-40">
                         @if($log->user)
                             <div class="font-medium">{{ $log->user->name }}</div>
                             <div class="text-gray-500 text-xs">{{ $log->user->roles->pluck('name')->implode(', ') ?: 'No Role' }}</div>
@@ -259,17 +266,22 @@
                     </td>
 
                     {{-- Timestamp --}}
-                    <td class="p-2 border border-[#d9d9d9] text-[#23527c] text-center">
+                    <td class="p-2 border border-[#d9d9d9] text-[#23527c] text-center w-56">
                         {{ optional($log->created_at)->timezone('Asia/Manila')->format('M d, Y H:i:s') }}
                     </td>
 
                     {{-- IP --}}
-                    <td class="p-2 border border-[#d9d9d9] text-gray-600 text-center">{{ $log->ip_address ?? '—' }}</td>
+                    <td class="p-2 border border-[#d9d9d9] text-gray-600 text-center w-32">
+                        {{ $log->ip_address ?? '—' }}
+                    </td>
 
                     {{-- Details --}}
-                    <td class="p-2 border border-[#d9d9d9] text-gray-600 text-left">
+                    <td class="p-2 border border-[#d9d9d9] text-gray-600 text-left w-80">
                         @if(in_array($log->event, ['report_create','report_edit','report_validate']))
                             {{ $log->context['sku'] ?? 'Unknown SKU' }} | {{ $log->context['line'] ?? 'Line ?' }}
+
+                        @elseif($log->event === 'report_void')
+                            {{ $log->context['sku'] ?? 'Unknown SKU' }} | Line {{ $log->context['line'] ?? 'N/A' }}
 
                         @elseif(in_array($log->event, ['standard_add','standard_update','standard_delete']))
                             Standard: {{ $log->context['standard'] ?? 'Unknown Standard' }}
@@ -329,7 +341,9 @@
                 </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="p-2 border border-[#d9d9d9] text-gray-600 text-center">No matching records found</td>
+                        <td colspan="5" class="p-2 border border-[#d9d9d9] text-gray-600 text-center">
+                            No matching records found
+                        </td>
                     </tr>
                 @endforelse
         </tbody>

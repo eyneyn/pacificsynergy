@@ -5,13 +5,13 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-<title>
-        @hasSection('title')
-            @yield('title') | {{ optional($settings)->company_name ?? 'Company Name' }}
-        @else
-            {{ optional($settings)->company_name ?? 'Company Name' }}
-        @endif
-</title>
+        <title>
+                @hasSection('title')
+                    @yield('title') | {{ optional($settings)->company_name ?? 'Company Name' }}
+                @else
+                    {{ optional($settings)->company_name ?? 'Company Name' }}
+                @endif
+        </title>
 
         {{-- Tab icon (favicon) --}}
         <link rel="icon" 
@@ -33,6 +33,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans" style="font-family: 'Inter', sans-serif;">
+        
     <!-- Dynamic background -->
     <div class="min-h-screen flex items-center justify-center bg-cover bg-center"
         style="background-image: linear-gradient(rgba(9,69,89,0.962), rgba(5,58,86,0.671)),

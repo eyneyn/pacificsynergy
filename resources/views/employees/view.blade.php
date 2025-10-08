@@ -117,18 +117,26 @@
     </div>
 
 
-    @if (session('success'))
+    @if (session('login_link_sent'))
         <div class="bg-[#5a9fd4] text-sm border border-[#4590ca] p-4 mt-4 text-white">
-                <div class="font-bold">The login link was successfully sent to the user's email.</div>
-                <div>{{ session('success') }}</div>
-        </div>
-    @else
-        <div class="bg-[#43ac6a] text-sm border border-[#2f9655] p-4 mt-4 text-white">
-            <div class="font-bold">Good job! This user profile has been successfully recorded in the system.</div>
-            <div>You can edit this record using the controls below.</div>
+            <div class="font-bold">The login link was successfully sent to the user's email.</div>
+            <div>{{ session('login_link_sent') }}</div>
         </div>
     @endif
 
+    @if (session('two_fa_reset'))
+        <div class="bg-[#5a9fd4] text-sm border border-[#4590ca] p-4 mt-4 text-white">
+            <div class="font-bold">The 2FA reset link was successfully sent to the user's email.</div>
+            <div>{{ session('two_fa_reset') }}</div>
+        </div>
+    @endif
+
+    @if (session('user_updated'))
+        <div class="bg-[#43ac6a] text-sm border border-[#2f9655] p-4 mt-4 text-white">
+            <div class="font-bold">Good job! This user profile has been successfully recorded in the system.</div>
+            <div>{{ session('user_updated') }}</div>
+        </div>
+    @endif
 
     <!-- Action Buttons -->
     <div class="flex items-center gap-2 mt-6">
@@ -146,14 +154,7 @@
             </button>
         </form>
         <!-- Reset 2FA -->
-        <form action="{{ route('employees.reset2fa', $user->id) }}" method="POST"
-            onsubmit="return confirm('Are you sure you want to reset this user\'s 2FA? They will receive a new QR code via email.')">
-            @csrf
-            <button type="submit"
-                class="px-3 py-2 text-sm font-medium text-white bg-[#e74c3c] border border-[#c0392b] hover:bg-[#d64541]">
-                Reset 2FA
-            </button>
-        </form>
+        <x-reset2-f-a-modal :userId="$user->id" />
         <!-- Edit Button -->
         <a href="{{ route('employees.edit', $user->id) }}"
            class="inline-flex items-center gap-2 px-3 py-2 border border-[#323B76] bg-[#323B76] hover:bg-[#444d90] text-white text-sm font-medium transition-colors duration-200">
@@ -161,4 +162,6 @@
             Edit
         </a>
     </div>
+
+
 @endsection

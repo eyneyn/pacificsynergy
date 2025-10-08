@@ -11,14 +11,14 @@
         Admin Dashboard
     </a>
 
-<!-- Profile Preview Card -->
+    <!-- Profile Preview Card -->
     <div class="relative mb-8 border border-gray-300 rounded-lg shadow-md overflow-hidden">
         <!-- Cover / Background -->
         <div class="h-80 bg-gray-200 relative">
             @if(!empty($settings->background_image))
                 <img src="{{ asset('storage/'.$settings->background_image) }}" 
-                    class="w-full h-full object-cover"
-                    alt="Background Image">
+                     class="w-full h-full object-cover"
+                     alt="Background Image">
             @else
                 <div class="flex items-center justify-center h-full text-gray-400 text-sm">
                     No Background Image
@@ -31,8 +31,8 @@
             <div class="w-52 h-52 rounded-full border-4 border-white overflow-hidden bg-gray-100 shadow-lg">
                 @if(!empty($settings->logo))
                     <img src="{{ asset('storage/'.$settings->logo) }}" 
-                        class="w-full h-full object-cover"
-                        alt="Company Logo">
+                         class="w-full h-full object-cover"
+                         alt="Company Logo">
                 @else
                     <div class="flex items-center justify-center h-full text-gray-400 text-xs">
                         No Logo
@@ -41,32 +41,27 @@
             </div>
         </div>
 
-<!-- Company Name on left, Edit button on right (same row) -->
-<div class="pt-10 px-6 pb-20 flex justify-between items-start ml-56">
-    <!-- Left: Company Name + subtitle -->
-    <div>
-        <h3 class="text-2xl font-bold text-[#323B76]">
-            {{ $settings->company_name ?? 'Company Name' }}
-        </h3>
-        <p class="text-sm text-gray-500">Preview of your company profile</p>
+        <!-- Company Name on left, Edit button on right -->
+        <div class="pt-10 px-6 pb-20 flex justify-between items-start ml-56">
+            <div>
+                <h3 class="text-2xl font-bold text-[#323B76]">
+                    {{ $settings->company_name ?? 'Company Name' }}
+                </h3>
+                <p class="text-sm text-gray-500">Preview of your company profile</p>
+            </div>
+
+            <button onclick="toggleModal(true)"
+                    class="inline-flex items-center justify-center gap-1 p-2 bg-[#323B76] hover:bg-[#444d90] border border-[#323B76] text-white text-sm font-medium">
+                <x-icons-edit class="w-2 h-2" />
+                Edit
+            </button>
+        </div>
     </div>
-
-    <!-- Right: Edit Button -->
-    <button onclick="toggleModal(true)"
-            class="inline-flex items-center justify-center gap-1 p-2 bg-[#323B76] hover:bg-[#444d90] border border-[#323B76] text-white text-sm font-medium">
-            <x-icons-edit class="w-2 h-2" />
-            Edit
-    </button>
-</div>
-
-    </div>
-
 </div>
 
 <!-- Modal -->
 <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
     <div class="bg-white w-full max-w-2xl rounded-lg shadow-lg p-6 relative">
-        <!-- Close Button -->
         <button onclick="toggleModal(false)"
                 class="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-2xl font-bold">&times;</button>
 
@@ -78,7 +73,7 @@
 
             <!-- Company Name -->
             <div class="mb-8">
-                <label for="company_name" class="block text-sm font-medium text-[#23527c] mb-1">Company Name </span></label>
+                <label for="company_name" class="block text-sm font-medium text-[#23527c] mb-1">Company Name</label>
                 <input type="text" 
                        id="company_name" 
                        name="company_name" 
@@ -86,48 +81,45 @@
                        class="w-full px-3 py-2 border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400">
             </div>
 
-            <!-- Logo Upload (Profile Picture Style) -->
+            <!-- Logo Upload -->
             <div class="mb-8">
-                <!-- Title + Edit on the same row -->
                 <div class="flex items-center justify-between mb-2">
                     <p class="block text-sm font-medium text-[#23527c]">Profile Logo</p>
                     <label for="logo" class="cursor-pointer text-sm text-blue-600 hover:underline">Edit</label>
                     <input type="file" id="logo" name="logo" accept="image/*" class="hidden"
-                        onchange="previewImage(event, 'logoPreview')">
+                           onchange="previewImage(event, 'logoPreview', 'logoPlaceholder')">
                 </div>
 
-                <!-- Logo centered -->
                 <div class="flex justify-center">
                     <div class="w-28 h-28 rounded-full border border-gray-300 overflow-hidden bg-gray-100 shadow">
-                        @if(!empty($settings->logo))
-                            <img id="logoPreview" src="{{ asset('storage/'.$settings->logo) }}"
-                                alt="Logo Preview" class="w-full h-full object-cover">
-                        @else
-                            <span class="flex items-center justify-center h-full text-xs text-gray-400">No Logo</span>
+                        <img id="logoPreview"
+                             src="{{ !empty($settings->logo) ? asset('storage/'.$settings->logo) : '' }}"
+                             alt="Logo Preview"
+                             class="w-full h-full object-cover {{ empty($settings->logo) ? 'hidden' : '' }}">
+                        @if(empty($settings->logo))
+                            <span id="logoPlaceholder" class="flex items-center justify-center h-full text-xs text-gray-400">No Logo</span>
                         @endif
                     </div>
                 </div>
             </div>
 
-
-            <!-- Background Upload (Cover Photo Style) -->
+            <!-- Background Upload -->
             <div class="mb-8">
-                <!-- Title + Edit on the same row -->
                 <div class="flex items-center justify-between mb-2">
                     <p class="block text-sm font-medium text-[#23527c]">Cover Background</p>
                     <label for="background_image" class="cursor-pointer text-sm text-blue-600 hover:underline">Edit</label>
                     <input type="file" id="background_image" name="background_image" accept="image/*" class="hidden"
-                        onchange="previewImage(event, 'bgPreview')">
+                           onchange="previewImage(event, 'bgPreview', 'bgPlaceholder')">
                 </div>
 
-                <!-- Cover preview centered -->
                 <div class="flex justify-center">
                     <div class="w-full h-40 border border-gray-300 rounded overflow-hidden bg-gray-100 shadow">
-                        @if(!empty($settings->background_image))
-                            <img id="bgPreview" src="{{ asset('storage/'.$settings->background_image) }}"
-                                alt="Background Preview" class="w-full h-full object-cover">
-                        @else
-                            <span class="flex items-center justify-center h-full text-sm text-gray-400">No Background</span>
+                        <img id="bgPreview"
+                             src="{{ !empty($settings->background_image) ? asset('storage/'.$settings->background_image) : '' }}"
+                             alt="Background Preview"
+                             class="w-full h-full object-cover {{ empty($settings->background_image) ? 'hidden' : '' }}">
+                        @if(empty($settings->background_image))
+                            <span id="bgPlaceholder" class="flex items-center justify-center h-full text-sm text-gray-400">No Background</span>
                         @endif
                     </div>
                 </div>
@@ -136,7 +128,7 @@
             <!-- Actions -->
             <div class="flex justify-end space-x-3 pt-4 border-t">
                 <button type="button" onclick="toggleModal(false)"
-                        class="px-3 py-2 text-gray-600 bg-white border border-gray-300  hover:bg-gray-50">
+                        class="px-3 py-2 text-gray-600 bg-white border border-gray-300 hover:bg-gray-50">
                     Cancel
                 </button>
                 <button type="submit"
@@ -149,43 +141,8 @@
     </div>
 </div>
 
-
-<!-- JavaScript for image preview (optional enhancement) -->
+<!-- JavaScript -->
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Logo preview
-    const logoInput = document.getElementById('logo');
-    if (logoInput) {
-        logoInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    // You can add preview functionality here if needed
-                    console.log('Logo selected:', file.name);
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-    }
-
-    // Background image preview
-    const bgInput = document.getElementById('background_image');
-    if (bgInput) {
-        bgInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    // You can add preview functionality here if needed
-                    console.log('Background image selected:', file.name);
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-    }
-});
-
 function toggleModal(show = true) {
     const modal = document.getElementById('editModal');
     if (show) {
@@ -197,16 +154,20 @@ function toggleModal(show = true) {
     }
 }
 
-function previewImage(event, previewId) {
+function previewImage(event, previewId, placeholderId) {
     const file = event.target.files[0];
+    const preview = document.getElementById(previewId);
+    const placeholder = document.getElementById(placeholderId);
+
     if (file) {
         const reader = new FileReader();
         reader.onload = function(e) {
-            document.getElementById(previewId).src = e.target.result;
+            preview.src = e.target.result;
+            preview.classList.remove('hidden');
+            if (placeholder) placeholder.style.display = 'none';
         };
         reader.readAsDataURL(file);
     }
 }
-
 </script>
 @endsection

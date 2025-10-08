@@ -114,7 +114,7 @@ class EmployeeController extends Controller
             'employee_number' => 'required|string|max:255|unique:users,employee_number',
             'email'           => 'required|email|unique:users,email',
             'department'      => 'required|string',
-            'phone_number'    => 'required|string',
+            'phone_number'    => 'nullable|string',
             'role'            => 'required|string|exists:roles,name',
             'photo'           => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
@@ -198,7 +198,7 @@ class EmployeeController extends Controller
             'email'           => 'required|email|unique:users,email,' . $user->id,
             'password'        => 'nullable|string|min:8',
             'department'      => 'required|string',
-            'phone_number'    => 'required|string',
+            'phone_number'    => 'nullable|string',
             'role'            => 'required|string|exists:roles,name',
             'photo'           => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'status'          => 'required|in:Active,Locked',
@@ -249,7 +249,7 @@ class EmployeeController extends Controller
         ]);
 
         return redirect()->route('employees.view', $user->id)
-            ->with('success', 'User updated successfully.');
+            ->with('user_updated', 'User profile has been updated.');
     }
     public function sendLoginLink(User $user)
     {
@@ -258,7 +258,7 @@ class EmployeeController extends Controller
         // ✅ Use our custom notification
         $user->notify(new SetPasswordNotification($token));
 
-        return back()->with('success', 'Login link sent to ' . $user->email);
+        return back()->with('login_link_sent', 'Login link sent to ' . $user->email);
     }
     public function reset2fa(User $user)
     {
@@ -289,6 +289,6 @@ class EmployeeController extends Controller
                     ->subject('Your Two-Factor Authentication has been reset');
         });
 
-        return back()->with('success', '2FA reset and QR sent to user’s email.');
+        return back()->with('two_fa_reset', '2FA has been reset and QR code sent to ' . $user->email);
     }
 }

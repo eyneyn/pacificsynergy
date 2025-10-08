@@ -6,15 +6,20 @@
 <h2 class="text-xl mb-2 font-bold text-[#23527c]">Maintenance</h2>
 
 {{-- Back to Configuration Link --}}
-<a href="{{ url('configuration/index') }}" class="text-xs text-gray-500 hover:text-[#23527c] mb-4 inline-flex items-center">
+<a href="{{ url('configuration/index') }}" 
+   class="text-xs text-gray-500 hover:text-[#23527c] mb-4 inline-flex items-center">
     <x-icons-back-confi/>
     Configuration
 </a>
+
+{{-- 🔔 Modal Alerts (Success, Error, Validation) --}}
+<x-alert-message />
 
 <div class="flex flex-col md:flex-row gap-8">
     {{-- Add Maintenance Form --}}
     <div class="w-full md:w-[320px] bg-white p-6 shadow-md border border-gray-200 self-start">
         <h3 class="text-lg font-semibold mb-4 text-[#23527c]">Add Maintenance</h3>
+
         <form action="{{ route('configuration.maintenance.store') }}" method="POST">
             @csrf
             <input type="hidden" name="_context" value="add">
@@ -22,7 +27,7 @@
             {{-- Name Input --}}
             <div class="mb-4">
                 <label for="name" class="block text-sm font-medium text-gray-700">
-                    Machine / Others <span style="color: red;">*</span>
+                    Machine / Others <span class="text-red-500">*</span>
                 </label>
                 <input type="text" name="name" id="name"
                     value="{{ session('error_source') === 'add' && old('_context') === 'add' ? old('name') : '' }}"
@@ -36,7 +41,7 @@
             {{-- Type Dropdown --}}
             <div class="mb-4">
                 <label for="type" class="mb-1 block text-sm font-medium text-gray-700">
-                    Type <span style="color: red;">*</span>
+                    Type <span class="text-red-500">*</span>
                 </label>
                 <x-select-dropdown
                     name="type"
@@ -63,7 +68,6 @@
         </div>
     </div>
 
-
     {{-- Maintenance Table Section --}}
     <div class="flex-1">
         <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
@@ -85,31 +89,15 @@
         </div>
 
         @php
-            // Sorting logic
             $currentSort = request('sort', 'created_at');
             $currentDirection = request('direction', 'desc');
             $toggleDirection = $currentDirection === 'asc' ? 'desc' : 'asc';
         @endphp
 
-        {{-- Success Message --}}
-        @if (session('success'))
-            <div class="mb-4 p-2 text-sm bg-green-100 text-green-800 border border-green-300">
-                {{ session('success') }}
-            </div>
-        @endif
-
-        {{-- Delete Error Message --}}
-        @if ($errors->has('maintenance_delete'))
-            <div class="bg-red-100 border border-red-400 text-red-700 p-2 relative mb-4 text-sm">
-                {{ $errors->first('maintenance_delete') }}
-            </div>
-        @endif
-
         {{-- Maintenance Table --}}
         <table class="w-full text-sm text-left border border-[#E5E7EB] border-collapse">
             <thead>
                 <tr class="text-xs text-white uppercase bg-[#35408e]">
-                    {{-- Table Headers with Sort Links --}}
                     @foreach (['name' => 'Machine / Others', 'type' => 'Type'] as $field => $label)
                         <th class="p-2 border border-[#d9d9d9] text-center">
                             <x-table-sort-link 
@@ -125,14 +113,14 @@
                 </tr>
             </thead>
             <tbody>
-                {{-- Maintenance Rows --}}
                 @forelse ($maintenances as $maintenance)
                     @php
                         $isCurrentRow = old('_id') == $maintenance->id && old('_context') === 'edit';
                     @endphp
                     <tr class="bg-white border-b border-[#35408e] hover:bg-[#f8faff]">
                         {{-- Edit Maintenance Row Form --}}
-                        <form action="{{ route('configuration.maintenance.update', $maintenance->id) }}" method="POST" class="contents">
+                        <form action="{{ route('configuration.maintenance.update', $maintenance->id) }}" 
+                              method="POST" class="contents">
                             @csrf
                             @method('PUT')
                             <td class="p-1 border border-[#d9d9d9]">
@@ -169,11 +157,11 @@
                                         data-base-action="{{ route('configuration.maintenance.destroy', ':id') }}">
                                         @csrf
                                         @method('DELETE')
-                                        <input type="hidden" id="edit_maintenance_id" value="{{ $maintenance->id }}">
-                                        <input type="hidden" id="edit_maintenance_name" value="{{ $maintenance->name }}">
+                                            <input type="hidden" id="edit_maintenance_id" value="{{ $maintenance->id }}">
+                                            <input type="hidden" id="edit_maintenance_name" value="{{ $maintenance->name }}">
                                         <button type="submit"
                                             class="inline-flex items-center gap-1 px-3 py-1 bg-red-600 hover:bg-red-700 border border-red-700 text-white text-sm font-medium transition-colors duration-200"
-                                            title="Delete Standard">
+                                            title="Delete Maintenance">
                                             Delete
                                         </button>
                                     </form>
@@ -182,7 +170,9 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="p-2 border border-[#d9d9d9] text-gray-600 text-center">No matching records found</td>
+                        <td colspan="6" class="p-2 border border-[#d9d9d9] text-gray-600 text-center">
+                            No matching records found
+                        </td>
                     </tr>
                 @endforelse
             </tbody>

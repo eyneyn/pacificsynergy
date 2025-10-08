@@ -13,6 +13,7 @@ class Status extends Model
         'user_id',
         'production_report_id',
         'status',
+        'remarks',
     ];
 
     // ✅ Only use created_at, no updated_at

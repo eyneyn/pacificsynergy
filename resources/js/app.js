@@ -10,7 +10,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const content = document.getElementById('main-content');
     const navbar = document.getElementById('top-navbar');
     const sidebarClose = document.getElementById('sidebar-close');
-    const hamburgerIcon = document.getElementById('hamburger-icon');
     const welcomeHeader = document.getElementById('welcome-header');
 
     if (toggleBtn && sidebar && content && navbar && sidebarClose && welcomeHeader) {
@@ -39,7 +38,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const isClickOnCloseBtn = sidebarClose.contains(event.target);
             const isSidebarOpen = !sidebar.classList.contains('-translate-x-full');
 
-            // Close sidebar if click is outside and sidebar is open
             if (!isClickInsideSidebar && !isClickOnToggleBtn && !isClickOnCloseBtn && isSidebarOpen) {
                 sidebar.classList.add('-translate-x-full');
                 content.classList.remove('ml-64');
@@ -74,61 +72,54 @@ document.addEventListener('DOMContentLoaded', () => {
         searchInput.addEventListener('input', function () {
             clearTimeout(debounceTimeout);
             debounceTimeout = setTimeout(() => {
-                // If input is empty, submit to reset list
-                if (this.value.trim() === '') {
-                    searchForm.submit();
-                } else {
-                    // Submit search with current query
-                    searchForm.submit();
-                }
-            }, 400); // ⏱ adjust debounce delay here (in milliseconds)
+                searchForm.submit();
+            }, 400);
         });
     }
 
-    // Delete confirmation modal
+    // Delete confirmation modal (still handled via JS)
     const confirmationModal = document.getElementById('delete-confirmation-modal');
     const confirmBtn = document.getElementById('confirm-delete-btn');
     const cancelBtn = document.getElementById('cancel-delete-btn');
     const deleteNameSpan = document.getElementById('item-name-to-delete');
     let currentDeleteForm = null;
 
-function setupDeleteHandler(form) {
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const type = form.dataset.deleteType;
-        let name = '';
-        let id = '';
+    function setupDeleteHandler(form) {
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const type = form.dataset.deleteType;
+            let name = '';
+            let id = '';
 
-        switch (type) {
-            case 'line':
-                id = form.querySelector('#edit_line_id')?.value;
-                name = form.querySelector('#edit_line_number')?.value;
-                break;
-            case 'defect':
-                id = form.querySelector('#edit_defect_id')?.value;
-                name = form.querySelector('#edit_defect_name')?.value;
-                break;
-            case 'maintenance':
-                id = form.querySelector('#edit_maintenance_id')?.value;
-                name = form.querySelector('#edit_maintenance_name')?.value;
-                break;
-            case 'standard':
-                id = form.getAttribute('action')?.split('/').pop();
-                name = form.querySelector('#edit_standard_description')?.value;
-                break;
-        }
+            switch (type) {
+                case 'line':
+                    id = form.querySelector('#edit_line_id')?.value;
+                    name = form.querySelector('#edit_line_number')?.value;
+                    break;
+                case 'defect':
+                    id = form.querySelector('#edit_defect_id')?.value;
+                    name = form.querySelector('#edit_defect_name')?.value;
+                    break;
+                case 'maintenance':
+                    id = form.querySelector('#edit_maintenance_id')?.value;
+                    name = form.querySelector('#edit_maintenance_name')?.value;
+                    break;
+                case 'standard':
+                    id = form.getAttribute('action')?.split('/').pop();
+                    name = form.querySelector('#edit_standard_description')?.value;
+                    break;
+            }
 
-        const baseAction = form.dataset.baseAction;
-        if (baseAction && id) {
-            form.setAttribute('action', baseAction.replace(':id', id));
-        }
+            const baseAction = form.dataset.baseAction;
+            if (baseAction && id) {
+                form.setAttribute('action', baseAction.replace(':id', id));
+            }
 
-        if (deleteNameSpan) deleteNameSpan.textContent = `"${name || 'this item'}"`;
-        currentDeleteForm = form; // 👈 use the actual form
-        confirmationModal?.classList.remove('hidden'); // 👈 now the modal should show
-    });
-}
-
+            if (deleteNameSpan) deleteNameSpan.textContent = `"${name || 'this item'}"`;
+            currentDeleteForm = form;
+            confirmationModal?.classList.remove('hidden');
+        });
+    }
 
     document.querySelectorAll(
         '.delete-line-form, .delete-defect-form, .delete-maintenance-form, .delete-standard-form'
@@ -168,22 +159,9 @@ function setupDeleteHandler(form) {
         });
     }
 
-    // Validate modal logic
-    const openValidateModal = document.getElementById('open-validate-modal');
-    const validateModal = document.getElementById('validate-report-modal');
-    const cancelValidateBtn = document.getElementById('cancel-validate-btn');
+    // ❌ Removed: Validate modal JS logic (now handled by Alpine)
 
-    if (openValidateModal && validateModal && cancelValidateBtn) {
-        openValidateModal.addEventListener('click', () => {
-            validateModal.classList.remove('hidden');
-        });
-
-        cancelValidateBtn.addEventListener('click', () => {
-            validateModal.classList.add('hidden');
-        });
-    }
-
-    // Generic modal open logic for edit modals
+    // Generic modal open logic for edit modals (still JS-based)
     document.querySelectorAll('[data-modal-target]').forEach(row => {
         row.addEventListener('click', () => {
             const target = row.dataset.modalTarget;
@@ -246,22 +224,20 @@ function setupDeleteHandler(form) {
         });
     });
 
-document.addEventListener('DOMContentLoaded', () => {
-  const btn = document.getElementById('btnNoReport');
-  if (!btn) return;
+    // "No Report" button check
+    const btn = document.getElementById('btnNoReport');
+    if (btn) {
+        btn.addEventListener('click', function (e) {
+            const dateEl = document.querySelector('input[name="production_date"]');
+            const lineEl = document.querySelector('select[name="line"], input[name="line"]');
 
-  btn.addEventListener('click', function (e) {
-    const dateEl = document.querySelector('input[name="production_date"]');
-    // allow select or hidden input produced by x-select-dropdown
-    const lineEl = document.querySelector('select[name="line"], input[name="line"]');
+            const date = (dateEl?.value || '').trim();
+            const line = (lineEl?.value || '').toString().trim();
 
-    const date = (dateEl?.value || '').trim();
-    const line = (lineEl?.value || '').toString().trim();
-
-    if (!date || !line) {
-      e.preventDefault();
-      alert('Please select both Production Date and Line.');
+            if (!date || !line) {
+                e.preventDefault();
+                alert('Please select both Production Date and Line.');
+            }
+        });
     }
-  });
-});
 });

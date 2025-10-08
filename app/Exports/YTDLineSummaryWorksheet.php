@@ -271,8 +271,8 @@ class YTDLineSummaryWorksheet implements WithHeadings, WithEvents, WithCustomSta
                     'color' => ['rgb' => 'FFFFFF']       // ✅ white text
                 ],
                 'alignment' => [
-                    'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
-                    'vertical'   => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                    'horizontal' => Alignment::HORIZONTAL_CENTER,
+                    'vertical'   => \Alignment::VERTICAL_CENTER,
                 ],
             ]);
         }
@@ -309,8 +309,8 @@ class YTDLineSummaryWorksheet implements WithHeadings, WithEvents, WithCustomSta
                     'color' => ['rgb' => 'FFFFFF']       // ✅ white text
                 ],
                 'alignment' => [
-                    'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
-                    'vertical'   => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                    'horizontal' => Alignment::HORIZONTAL_CENTER,
+                    'vertical'   => Alignment::VERTICAL_CENTER,
                 ],
             ]);
         }
@@ -1106,7 +1106,7 @@ foreach (['F','G','H','O','P','Q'] as $col) {
     $chart->setChartAxisX($xAxis);
 
     // (Optional) if you want to style the secondary axis too:
-    $yAxis2 = new \PhpOffice\PhpSpreadsheet\Chart\Axis();
+    $yAxis2 = new Axis();
     $yAxis2->setAxisNumberProperties('0');        // plain numbers for minutes
     $yAxis2->setAxisOptionsProperties('nextTo');  // basic position
     // Only do this if your PhpSpreadsheet version supports it:

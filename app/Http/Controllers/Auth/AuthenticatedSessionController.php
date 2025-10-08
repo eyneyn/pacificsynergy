@@ -53,10 +53,12 @@ class AuthenticatedSessionController extends Controller
         return redirect()->route('2fa.verify.form');
     }
 
-    public function setup2fa(): View
+    public function setup2fa(): View|RedirectResponse
     {
         $user = \App\Models\User::find(session('2fa:user:id'));
-        if (!$user) return redirect()->route('login');
+        if (!$user) {
+            return redirect()->route('login');
+        }
 
         $google2fa = new Google2FA();
         $qrData = $google2fa->getQRCodeUrl(
@@ -75,15 +77,16 @@ class AuthenticatedSessionController extends Controller
 
         return view('auth.2fa-setup', compact('qrCode'));
     }
-public function show2faForm(): View
-{
-    $userId = session('2fa:user:id');
-    if (!$userId) {
-        return redirect()->route('login');
-    }
 
-    return view('auth.2fa-verify');
-}
+    public function show2faForm(): View|RedirectResponse
+    {
+        $userId = session('2fa:user:id');
+        if (!$userId) {
+            return redirect()->route('login');
+        }
+
+        return view('auth.2fa-verify');
+    }
     public function verify2fa(Request $request): RedirectResponse
     {
         $request->validate(['otp' => 'required|digits:6']);

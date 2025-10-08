@@ -4,6 +4,8 @@
 
 <div class="container mx-auto px-4">
 
+    {{-- 🔔 Modal Alerts (Success, Error, Validation) --}}
+    <x-alert-message />
 
     <!-- Edit Production Report Form -->
     <form id="update-report-form" action="{{ route('report.update', $report->id) }}" method="POST">
@@ -19,7 +21,7 @@
 
             <!-- Basic Production Details Header -->
                 <div class="mb-6 flex items-center justify-between">
-                    <a href="{{ url('report/index') }}" class="inline-flex items-center px-3 py-2 bg-[#5a9fd4] hover:bg-[#4a8bc2] text-white text-sm font-medium transition-colors duration-200 border border-[#4590ca] hover:border-[#4a8bc2]">
+                    <a href="{{ route('report.view', $report->id) }}" class="inline-flex items-center px-3 py-2 bg-[#5a9fd4] hover:bg-[#4a8bc2] text-white text-sm font-medium transition-colors duration-200 border border-[#4590ca] hover:border-[#4a8bc2]">
                         <x-icons-back class="w-2 h-2 text-white" />
                         Back
                     </a>                
@@ -68,13 +70,13 @@
                     <tr>
                         <td class="font-medium text-[#23527c] px-4 py-2">Running SKU</td>
                         <td class="px-4 py-2">
-<x-select-dropdown 
-    name="sku_id" 
-    :selected="old('sku_id', $report->sku_id)" 
-    :options="$skus->pluck('description', 'id')->toArray()" 
-    placeholder="Select SKU" 
-    required 
-/>
+                        <x-select-dropdown 
+                            name="sku_id" 
+                            :selected="old('sku_id', $report->sku_id)" 
+                            :options="$skus->pluck('description', 'id')->toArray()" 
+                            placeholder="Select SKU" 
+                            required 
+                        />
                         </td>
                         <td class="font-medium text-[#23527c] px-4 py-2">Production Date</td>
                         <td class="px-4 py-2">
@@ -90,7 +92,15 @@
                     <tr>
                         <td class="font-medium text-[#23527c] px-4 py-2">Shift</td>
                         <td class="px-4 py-2">
-                            <x-select-dropdown name="shift" value="{{ old('shift', $report->shift) }}" :options="['00:00H - 24:00H' => '00:00H - 24:00H']" required />
+                            <input 
+                                type="text" 
+                                name="shift" 
+                                class="text-sm  px-2 py-1 w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400" 
+                                placeholder="Format must be like 00:00H/00:00H"
+                                value="{{ old('shift', $report->shift) }}"
+                                pattern="\d{2}:\d{2}H/\d{2}:\d{2}H"
+                                title="Format must be like 00:00H/00:00H"
+                            />                        
                         </td>
                         <td class="font-medium text-[#23527c] px-4 py-2">AC Temperatures</td>
                         <td class="px-4 py-2">
@@ -101,7 +111,7 @@
                                         name="ac{{ $i }}" 
                                         placeholder="AC {{ $i }}" 
                                         value="{{ old('ac' . $i, $report->{'ac' . $i}) }}" 
-                                        class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center"
+                                        class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm "
                                     >
                                 @endfor
                             </div>
@@ -114,7 +124,7 @@
                         </td>
                         <td class="font-medium text-[#23527c] px-4 py-2">Total Output (Cases)</td>
                         <td class="px-4 py-2">
-                            <input type="text" name="total_outputCase" value="{{ old('total_outputCase', $report->total_outputCase) }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
+                            <input type="text" name="total_outputCase" value="{{ old('total_outputCase', $report->total_outputCase) }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm ">
                         </td>
                     </tr>
                     <tr>
@@ -161,29 +171,29 @@
                     <tr>
                         <td class="font-medium text-[#23527c] px-4 py-2 text-xs">Speed (Bottles per Hour) <span class="text-sm">Filler Speed</span></td>
                         <td class="px-4 py-2">
-                            <input type="text" name="filler_speed" value="{{ old('filler_speed', $report->filler_speed) }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
+                            <input type="text" name="filler_speed" value="{{ old('filler_speed', $report->filler_speed) }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm ">
                         </td>
                         <td class="font-medium text-[#23527c] px-4 py-2 text-xs">RM Rejects <br><span class="text-sm">Opp/Labels</span></td>
                         <td class="px-4 py-2">
-                            <input type="text" name="opp_labels" value="{{ old('opp_labels', $report->opp_labels) }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
+                            <input type="text" name="opp_labels" value="{{ old('opp_labels', $report->opp_labels) }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm ">
                         </td>
                         <td class="font-medium text-[#23527c] px-4 py-2">Bottle</td>
                         <td class="px-4 py-2">
-                            <input type="text" name="bottle_filling" value="{{ old('bottle_filling', $report->bottle_filling) }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
+                            <input type="text" name="bottle_filling" value="{{ old('bottle_filling', $report->bottle_filling) }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm ">
                         </td>
                     </tr>
                     <tr>
                         <td class="font-medium text-[#23527c] px-4 py-2">OPP/Labeler Speed</td>
                         <td class="px-4 py-2">
-                            <input type="text" name="opp_labeler_speed" value="{{ old('opp_labeler_speed', $report->opp_labeler_speed) }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
+                            <input type="text" name="opp_labeler_speed" value="{{ old('opp_labeler_speed', $report->opp_labeler_speed) }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm ">
                         </td>
                         <td class="font-medium text-[#23527c] px-4 py-2">Shrinkfilm</td>
                         <td class="px-4 py-2">
-                            <input type="text" name="shrinkfilm" value="{{ old('shrinkfilm', $report->shrinkfilm) }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
+                            <input type="text" name="shrinkfilm" value="{{ old('shrinkfilm', $report->shrinkfilm) }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm ">
                         </td>
                         <td class="font-medium text-[#23527c] px-4 py-2">Caps</td>
                         <td class="px-4 py-2">
-                            <input type="text" name="caps_filling" value="{{ old('caps_filling', $report->caps_filling) }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
+                            <input type="text" name="caps_filling" value="{{ old('caps_filling', $report->caps_filling) }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm ">
                         </td>
                     </tr>
                     <!-- Blow Molding Section Header -->
@@ -200,21 +210,21 @@
                     <tr>
                         <td class="font-medium text-[#23527c] px-4 py-2">Blow Molding Output</td>
                         <td class="px-4 py-2">
-                            <input type="text" name="blow_molding_output" value="{{ old('blow_molding_output', $report->blow_molding_output) }}"  class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
+                            <input type="text" name="blow_molding_output" value="{{ old('blow_molding_output', $report->blow_molding_output) }}"  class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm ">
                         </td>
                         <td class="font-medium text-[#23527c] px-4 py-2 text-xs">Blow Molding Rejects <span class="text-sm">Preform</span></td>
                         <td class="px-4 py-2">
-                            <input type="text" name="preform_blow_molding" value="{{ old('preform_blow_molding', $report->preform_blow_molding) }}"  class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
+                            <input type="text" name="preform_blow_molding" value="{{ old('preform_blow_molding', $report->preform_blow_molding) }}"  class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm ">
                         </td>
                         <td class="font-medium text-[#23527c] px-4 py-2">Bottles</td>
                         <td class="px-4 py-2">
-                            <input type="text" name="bottles_blow_molding" value="{{ old('bottles_blow_molding', $report->bottles_blow_molding) }}"  class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
+                            <input type="text" name="bottles_blow_molding" value="{{ old('bottles_blow_molding', $report->bottles_blow_molding) }}"  class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm ">
                         </td>
                     </tr>
                     <tr>
                         <td class="font-medium text-[#23527c] px-4 py-2">Speed (Bottles/Hour)</td>
                         <td class="px-4 py-2">
-                            <input type="text" name="speed_blow_molding" value="{{ old('speed_blow_molding', $report->speed_blow_molding) }}"  class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
+                            <input type="text" name="speed_blow_molding" value="{{ old('speed_blow_molding', $report->speed_blow_molding) }}"  class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm ">
                         </td>
                         <td colspan="4"></td>
                     </tr>
@@ -242,14 +252,14 @@
                                 <td class="px-2 py-2">
                                     <input type="text" name="description[]" x-model="issue.description"
                                         placeholder="Describe the issue or remark"
-                                        class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
+                                        class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm ">
                                 </td>
-                                <td class="px-2 py-2 text-center">
+                                <td class="px-2 py-2 ">
                                     <input type="text" name="minutes[]" x-model="issue.minutes"
                                         placeholder="mins"
-                                        class="w-20 border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
+                                        class="w-20 border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm ">
                                 </td>
-                                <td class="px-2 py-2 text-center">
+                                <td class="px-2 py-2 ">
                                     <button type="button" @click="removeIssue(issue._uid)"
                                         class="bg-red-600 hover:bg-red-700 border border-red-700 text-white py-1 px-2 text-sm font-medium">
                                         Delete
@@ -294,11 +304,11 @@
                             </td>
                             <td class="font-medium text-[#23527c] px-4 py-2">With Label</td>
                             <td class="px-4 py-2">
-                                <input type="text" name="with_label" value="{{ old('with_label', $report->with_label) }}" placeholder="pcs" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
+                                <input type="text" name="with_label" value="{{ old('with_label', $report->with_label) }}" placeholder="pcs" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm ">
                             </td>
                             <td class="font-medium text-[#23527c] px-4 py-2">Without Label</td>
                             <td class="px-4 py-2">
-                                <input type="text" name="without_label" value="{{ old('without_label', $report->without_label) }}" placeholder="pcs" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
+                                <input type="text" name="without_label" value="{{ old('without_label', $report->without_label) }}" placeholder="pcs" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm ">
                             </td>
                         </tr>
                     </tbody>
@@ -324,10 +334,10 @@
                                         @change="reject.defect = $event.target.value"
                                     />
                                 </td>
-                                <td class="px-4 py-2 text-center w-28">
+                                <td class="px-4 py-2  w-28">
                                     <input type="number" name="qc_qty[]" x-model="reject.qty"
                                         placeholder="pcs"
-                                        class="w-20 border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
+                                        class="w-20 border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm ">
                                 </td>
                                 <td class="px-4 py-2 text-center w-32">
                                     <button type="button" @click="removeQcReject(reject._uid)"

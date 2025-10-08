@@ -45,15 +45,15 @@ class RoleAndPermissionSeeder extends Seeder
 
         // Create the admin user
         $adminUser = User::firstOrCreate(
-            ['email' => 'eynbatoy@gmail.com'],
+            ['email' => 'pacificprod53@gmail.com'],
             [
                 'employee_number' => 'EMP-0001',
-                'first_name'      => 'Grazel Angel',
-                'last_name'       => 'Batoy',
+                'first_name'      => 'Admin',
+                'last_name'       => 'Department',
                 'department'      => 'Production Department',
-                'photo'           => 'img/default.jpg',
+                'photo'           => 'public\img\default.jpg',
                 'phone_number'    => '09123456789',
-                'password'        => Hash::make('admin1234'), // ⚠️ Change this in production
+                'password'        => Hash::make('admin1234'), 
             ]
         );
 

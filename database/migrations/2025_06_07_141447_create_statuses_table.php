@@ -18,17 +18,20 @@ return new class extends Migration {
                 ->constrained()
                 ->onDelete('cascade');
 
-            $table->enum('status', ['Submitted', 'Reviewed', 'Validated']);
+            $table->enum('status', ['Submitted', 'Reviewed', 'Validated', 'Voided']);
+
+            // 👉 add this for remarks when void
+            $table->string('remarks')->nullable();
 
             // Single timestamp for when status happened
             $table->timestamp('created_at')->useCurrent();
-
-            // No updated_at column (we don’t update statuses)
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('statuses');
+        Schema::table('statuses', function (Blueprint $table) {
+            $table->dropColumn('remarks');
+        });
     }
 };

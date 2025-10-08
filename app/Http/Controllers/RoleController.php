@@ -73,7 +73,7 @@ class RoleController extends Controller
             ],
         ]);
 
-        return redirect()->route('roles.index', $role->id)
+        return redirect()->route('roles.edit', $role->id)
             ->with('success', 'Role created successfully.');
     }
 

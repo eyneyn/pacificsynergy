@@ -50,32 +50,6 @@
     <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
     <script src="https://unpkg.com/cropperjs/dist/cropper.min.js"></script>
 
-    {{-- <!-- Anti-Inspect Script -->
-    <script>
-    // Disable right-click
-    document.addEventListener("contextmenu", function(e) {
-        e.preventDefault();
-    });
-
-    // Disable common shortcuts (F12, Ctrl+Shift+I/J/C, Ctrl+U)
-    document.addEventListener("keydown", function(e) {
-        if (e.keyCode === 123) e.preventDefault(); // F12
-        if (e.ctrlKey && e.shiftKey && [73, 74, 67].includes(e.keyCode)) e.preventDefault(); // Ctrl+Shift+I/J/C
-        if (e.ctrlKey && e.keyCode === 85) e.preventDefault(); // Ctrl+U
-    });
-
-    // Detect DevTools open (by checking window size changes)
-    (function() {
-        const threshold = 160;
-        setInterval(function() {
-            if (window.outerHeight - window.innerHeight > threshold || 
-                window.outerWidth - window.innerWidth > threshold) {
-                
-                window.location.href = "{{ route('login') }}";
-            }
-        }, 1000);
-    })();
-    </script> --}}
     <script>
         // 🔔 Load notifications dropdown
         function loadDropdown(filter) {

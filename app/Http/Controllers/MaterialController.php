@@ -82,7 +82,7 @@ class MaterialController extends Controller
 
         // === Loop analytics rows ===
         foreach ($analytics as $row) {
-            $m = (int) \Carbon\Carbon::parse($row->production_date)->format('n'); // 1–12
+            $m = (int) Carbon::parse($row->production_date)->format('n'); // 1–12
 
             $monthlyProduction[$m] += $row->total_output;
 
@@ -338,7 +338,7 @@ class MaterialController extends Controller
         $year = $request->query('date');
 
         // === Active Lines (from analytics)
-        $lines = \App\Models\Line::pluck('line_number')->toArray();
+        $lines = Line::pluck('line_number')->toArray();
 
         $availableYears = MaterialUtilizationAnalytics::selectRaw('YEAR(production_date) as year')
             ->distinct()

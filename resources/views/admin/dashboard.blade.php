@@ -21,6 +21,13 @@
             </div>
         </a>
 
+        <a href="{{ route('employees.index', ['filter' => 'activeToday']) }}">
+            <div class="bg-white border border-gray-200 hover:border-[#c9e8fe] hover:bg-[#e2f2ff] shadow-[-1px_6px_5px_rgba(0,0,0.1,0.1)] hover:shadow-lg transition-all duration-200 p-6 cursor-pointer">
+                <h2 class="text-sm font-semibold text-[#23527c] uppercase tracking-wide text-center">Active Users Today</h2>
+                <p class="text-3xl font-bold text-[#23527c] mt-2 text-center">{{ $activeUsersToday }}</p>
+            </div>
+        </a>
+
         <!-- Roles without users -->
         <div 
             x-data="{ open: false }" 

@@ -13,6 +13,7 @@ use Illuminate\Support\Str;
 use App\Models\Notification;
 use App\Models\AuditLog;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class DashboardAdminController extends Controller
 {
@@ -20,12 +21,13 @@ class DashboardAdminController extends Controller
     {
         $totalUsers        = User::count();
         $totalRoles        = Role::count();
-        $adminCount        = User::role('Admin')->count(); // optional
+        $adminCount        = User::role('Admin')->count();
         $recentUsers       = User::with('roles')->latest()->take(5)->get();
-
-        // ✅ only assign once
         $usersWithoutRole  = User::doesntHave('roles')->get();
         $rolesWithoutUsers = Role::doesntHave('users')->get();
+
+        // ✅ Example: count users created today
+        $activeUsersToday = User::whereDate('created_at', Carbon::today())->count();
 
         return view('admin.dashboard', compact(
             'totalUsers',
@@ -33,7 +35,8 @@ class DashboardAdminController extends Controller
             'adminCount',
             'recentUsers',
             'usersWithoutRole',
-            'rolesWithoutUsers'
+            'rolesWithoutUsers',
+            'activeUsersToday' // <- add this
         ));
     }
     public function setting()

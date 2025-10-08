@@ -1,13 +1,11 @@
 <div 
-    x-show="showHistory"
-    x-transition
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
->
-    <div 
-        @click.away="showHistory = false"
-        class="w-full max-w-4xl bg-white rounded-lg border border-gray-200 shadow-lg p-6 overflow-y-auto max-h-[80vh]"
-    >
-        <div class="flex justify-between items-center mb-4">
+    x-show="showHistory" 
+    style="display: none;"
+    class="fixed inset-0 z-50 flex justify-center items-center w-full p-4 bg-black/50 backdrop-blur-sm">
+    
+    <div class="w-full max-w-4xl bg-white rounded-lg shadow-lg p-6 overflow-y-auto max-h-[80vh]">
+        
+        <div class="flex justify-between mb-4">
             <h2 class="text-xl font-bold text-[#2d326b]">Change History</h2>
             <button @click="showHistory = false" class="text-gray-500 hover:text-red-600 text-xl">&times;</button>
         </div>
@@ -16,16 +14,17 @@
             @php
                 $combinedLogs = collect();
 
-                foreach ($reports->statuses as $status) {
+                foreach ($report->statuses as $status) {
                     $combinedLogs->push([
                         'type' => 'status',
                         'created_at' => $status->created_at,
                         'user' => $status->user,
                         'status' => $status->status,
+                        'remarks' => $status->remarks,
                     ]);
                 }
 
-                foreach ($reports->histories as $history) {
+                foreach ($report->histories as $history) {
                     $combinedLogs->push([
                         'type' => 'history',
                         'created_at' => $history->updated_at,
@@ -73,6 +72,13 @@
                                     @endif
                                     {{ $log['user']->first_name ?? '' }} {{ $log['user']->last_name ?? '' }}
                                 </p>
+
+                                    {{-- ✅ Show remarks if voided --}}
+                                    @if ($log['status'] === 'Voided' && !empty($log['remarks']))
+                                        <p class="text-xs text-red-600 mt-1">
+                                            <strong>Remarks:</strong> {{ $log['remarks'] }}
+                                        </p>
+                                    @endif
                             @else
                                 <h3 class="text-sm font-medium text-gray-800 mb-1">
                                     {{ $log['summary'] ?? 'Updated record' }}
@@ -92,34 +98,31 @@
                                 @if ($oldData && $newData)
                                     <div class="space-y-2 text-xs">
                                         {{-- Field-level Changes --}}
-@foreach ($oldData['fields'] ?? [] as $field => $oldValue)
-    @php 
-        $newValue = $newData['fields'][$field] ?? null; 
-    @endphp
+                                    @foreach ($oldData['fields'] ?? [] as $field => $oldValue)
+                                        @php 
+                                            $newValue = $newData['fields'][$field] ?? null; 
+                                        @endphp
 
-    @if ($oldValue !== $newValue)
-        <div>
-            @if ($field === 'sku_id' || $field === 'sku')
-                <strong class="text-[#2d326b]">SKU:</strong>
-                <span class="text-red-500 ml-1">
-                    {{ \App\Models\Standard::find($oldValue)?->description ?? '-' }}
-                </span>
-                <span class="mx-1 text-gray-500">→</span>
-                <span class="text-green-600">
-                    {{ \App\Models\Standard::find($newValue)?->description ?? '-' }}
-                </span>
-            @else
-                <strong class="text-[#2d326b]">{{ ucwords(str_replace('_', ' ', $field)) }}:</strong>
-                <span class="text-red-500 ml-1">{{ $oldValue }}</span>
-                <span class="mx-1 text-gray-500">→</span>
-                <span class="text-green-600">{{ $newValue }}</span>
-            @endif
-        </div>
-    @endif
-@endforeach
-
-
-
+                                        @if ($oldValue !== $newValue)
+                                            <div>
+                                                @if ($field === 'sku_id' || $field === 'sku')
+                                                    <strong class="text-[#2d326b]">SKU:</strong>
+                                                    <span class="text-red-500 ml-1">
+                                                        {{ \App\Models\Standard::find($oldValue)?->description ?? '-' }}
+                                                    </span>
+                                                    <span class="mx-1 text-gray-500">→</span>
+                                                    <span class="text-green-600">
+                                                        {{ \App\Models\Standard::find($newValue)?->description ?? '-' }}
+                                                    </span>
+                                                @else
+                                                    <strong class="text-[#2d326b]">{{ ucwords(str_replace('_', ' ', $field)) }}:</strong>
+                                                    <span class="text-red-500 ml-1">{{ $oldValue }}</span>
+                                                    <span class="mx-1 text-gray-500">→</span>
+                                                    <span class="text-green-600">{{ $newValue }}</span>
+                                                @endif
+                                            </div>
+                                        @endif
+                                    @endforeach
 
                                         {{-- Issues Comparison --}}
                                         @php

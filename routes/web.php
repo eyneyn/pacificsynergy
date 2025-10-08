@@ -69,7 +69,8 @@ Route::prefix('report')->middleware(['auth','permission:report.index'])->group(f
     Route::put('/{report}', [ProductionReportController::class, 'update'])->middleware('permission:report.edit')->name('report.update');
     Route::get('/{report}/pdf', [ProductionReportController::class, 'viewPDF'])->middleware('permission:report.index')->name('report.pdf');
     Route::patch('/report/{id}/validate', [ProductionReportController::class, 'validateReport'])->middleware('permission:report.validate')->name('report.validate');
-    });
+    Route::post('/{report}/void', [ProductionReportController::class, 'void'])->middleware('permission:report.validate')->name('report.void');
+});
 
 // Configuration Routes
 Route::prefix('configuration')->middleware(['auth','permission:configuration.index'])->group(function () {
@@ -176,22 +177,9 @@ Route::prefix('analytics')
 });
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('/notifications', [NotificationController::class, 'index'])
-        ->name('notifications.index');
-
-    Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markAsRead'])
-        ->name('notifications.read');
-
-Route::get('/notifications/dropdown', [NotificationController::class, 'dropdown'])
-    ->name('notifications.dropdown');
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::get('/notifications/dropdown', [NotificationController::class, 'dropdown'])->name('notifications.dropdown');
+    
 
 });
-
-
-//Route::get('/heartbeat', function () {
-  //  return response()->json(['status' => 'alive']);
-//})->middleware('auth');
-
-//Route::fallback(function () {
-//    return response()->view('errors.404', [], 404);
-//});

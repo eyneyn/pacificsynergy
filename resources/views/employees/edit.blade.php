@@ -82,7 +82,7 @@
                                 class="w-full border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:shadow-lg focus:outline-none" />
                         </div>
                         <div>
-                            <label class="block mb-1 text-sm font-medium text-[#23527c]">Phone Number <span class="text-red-500">*</span></label>
+                            <label class="block mb-1 text-sm font-medium text-[#23527c]">Phone Number</label>
                             <input type="text" name="phone_number" value="{{ old('phone_number', $user->phone_number) }}"
                                 class="w-full border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:shadow-lg focus:outline-none" />
                         </div>

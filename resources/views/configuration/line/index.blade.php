@@ -10,6 +10,9 @@
         Configuration
     </a>
 
+    {{-- 🔔 Modal Alerts (Success, Error, Validation) --}}
+    <x-alert-message />
+
     <!-- Main Layout: Form + Table -->
     <div class="flex flex-col md:flex-row gap-8 items-start">
         <!-- Left Column: Add Line Form -->
@@ -48,7 +51,6 @@
         <!-- Right Column: Lines Table -->
         <div class="bg-white border border-gray-200 p-6 shadow-md space-y-5 transition-all duration-300 hover:shadow-xl hover:border-[#E5E7EB] flex-1">
             <h3 class="text-lg font-semibold mb-4 text-[#23527c]">All Lines</h3>
-            <x-alert-message />
             <table class="w-full text-sm text-left border border-[#E5E7EB] border-collapse shadow-sm">
                 <thead>
                     <tr class="text-xs text-white uppercase bg-[#35408e]">

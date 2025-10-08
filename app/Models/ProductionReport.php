@@ -87,6 +87,11 @@ class ProductionReport extends Model
         return $this->hasMany(Status::class);
     }
 
+    public function latestStatus()
+    {
+        return $this->hasOne(Status::class)->latestOfMany();
+    }
+
     public function histories()
     {
         return $this->hasMany(ProductionReportHistory::class);

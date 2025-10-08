@@ -6,6 +6,10 @@
     <div class="mb-4 flex items-center justify-between">
         <h1 class="text-xl font-bold text-[#23527c]">Add New Product Standard</h1>
     </div>
+
+    {{-- 🔔 Modal Alerts (Success, Error, Validation) --}}
+    <x-alert-message />
+
     <!-- Card -->
     <div class="border-t border-b border-gray-200 px-20 py-10 mb-6">
         <div>

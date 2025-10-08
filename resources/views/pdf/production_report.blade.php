@@ -21,7 +21,7 @@
 <body>
 
 <!-- Header Layout -->
-<table style="width: 100%; border-collapse: collapse; margin-bottom: 25px; table-layout: fixed;">
+<table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
 
     <tr style="height: 80px;">
         <!-- Logo Section -->
@@ -343,14 +343,14 @@
 </table>
 
 <!-- QA Remarks and Line QC Rejects Section -->
-<table style="width: 100%; border-collapse: collapse; font-size: 7px; margin-bottom: 0;">
+<table style="width: 100%; border-collapse: collapse; font-size: 7px;">
     <tr>
         <td colspan="4" style="padding: 4px; background-color: #2d326b; border-right: 1px solid #000; color: white; text-align: center; font-weight: bold;">QA REMARKS</td>
         <td colspan="8" style="padding: 4px; background-color: #2d326b; color: white; text-align: center; font-weight: bold;">LINE QC REJECTS</td>
     </tr>
     <tr>
-        <td colspan="4" rowspan="10" style="vertical-align: top; padding: 0; border-right: 1px solid #000;">
-            <div style="text-align: center; padding: 8px 2px;">
+        <td colspan="4" rowspan="20" style="vertical-align: top; padding: 0; border-right: 1px solid #000;">
+            <div style="text-align: center; padding: 4px 2px;">
                 <strong>Ozone :</strong>
                 <span style="color: #0b5394; font-weight: bold;">{{ strtoupper($report->qa_remarks ?? 'PASSED') }}</span>
             </div>
@@ -379,8 +379,8 @@
                     <td style="padding: 2px; border-bottom: 1px solid #000; text-align: center;">{{ $report->without_label ?? '' }}</td>
                 </tr>
                 <tr>
-                    <td style="padding: 5px; border-bottom: 1px solid #000; background-color: #2d326b;"></td>
-                    <td style="border-bottom: 1px solid #000; background-color: #2d326b; "></td>
+                    <td rowspan="6" style="padding: 5px; border-bottom: 1px solid #000; background-color: #2d326b;"></td>
+                    <td rowspan="6" style="border-bottom: 1px solid #000; background-color: #2d326b; "></td>
                 </tr>
             </table>
         </td>
@@ -399,31 +399,31 @@
         </tr>
     </tr>
 
-    @for ($i = 0; $i < 6; $i++)
-    <tr>
-        <!-- Line QC Table 1 -->
-        <td style="text-align: center; border: 1px solid #000;" colspan="2">{{ $report->lineQcRejects[$i]->defect->defect_name ?? '' }}</td>
-        <td style="text-align: center; border: 1px solid #000;">{{ $report->lineQcRejects[$i]->quantity ?? '' }}</td>
-        <td style="text-align: center; border: 1px solid #000;">pcs</td>
+        @for ($i = 0; $i < 10; $i++)
+        <tr>
+            <!-- Line QC Table 1 -->
+            <td style="text-align: center; border: 1px solid #000;" colspan="2">{{ $report->lineQcRejects[$i]->defect->defect_name ?? '' }}</td>
+            <td style="text-align: center; border: 1px solid #000;">{{ $report->lineQcRejects[$i]->quantity ?? '' }}</td>
+            <td style="text-align: center; border: 1px solid #000;">pcs</td>
 
-        <!-- Line QC Table 2 -->
-        <td style="text-align: center; border: 1px solid #000;" colspan="2">{{ $report->lineQcRejects[$i+6]->defect->defect_name ?? '' }}</td>
-        <td style="text-align: center; border: 1px solid #000;">{{ $report->lineQcRejects[$i+6]->quantity ?? '' }}</td>
-        <td style="text-align: center; border-top: 1px solid #000; border-left: 1px solid #000; border-bottom: 1px solid #000;">pcs</td>
-    </tr>
-    @endfor
-    <tr>
-        <td colspan="4" style="padding: 5px 5px 6px 5px; border-bottom: 1px solid #000; background-color: #2d326b;"></td>
-        <td  colspan="8" style="border-bottom: 1px solid #000; background-color: #2d326b; "></td>
-    </tr>
+            <!-- Line QC Table 2 -->
+            <td style="text-align: center; border: 1px solid #000;" colspan="2">{{ $report->lineQcRejects[$i+6]->defect->defect_name ?? '' }}</td>
+            <td style="text-align: center; border: 1px solid #000;">{{ $report->lineQcRejects[$i+6]->quantity ?? '' }}</td>
+            <td style="text-align: center; border-top: 1px solid #000; border-left: 1px solid #000; border-bottom: 1px solid #000;">pcs</td>
+        </tr>
+        @endfor
+        <tr>
+            <td colspan="4" style="padding: 5px 5px 6px 5px; border-bottom: 1px solid #000; background-color: #2d326b;"></td>
+            <td  colspan="8" style="border-bottom: 1px solid #000; background-color: #2d326b; "></td>
+        </tr>
 </table>
 
 <!-- Signatories Section (Centered) -->
-<div style="width: 80%; margin: 0 auto; margin-top: 15px;">
+<div style="width: 80%; margin: 0 auto;">
     <table style="width: 100%; border-collapse: collapse; font-size: 9px;">
         <tr>
             <!-- Prepared by -->
-            <td style="width: 40%; padding-top: 20px;">
+            <td style="width: 40%;">
                 <table style="width: 100%; border-collapse: collapse;">
                     <tr>
                         <td style="font-weight: bold; padding-bottom: 2px; padding-bottom: 20px;">Prepared by:</td>
@@ -446,7 +446,7 @@
             </td>
 
             <!-- Noted by -->
-            <td style="width: 40%; padding-top: 20px;">
+            <td style="width: 40%;">
                 <table style="width: 100%; border-collapse: collapse;">
                     <tr>
                         <td style="text-align: right; font-weight: bold; padding-bottom: 20px;">Noted by:</td>

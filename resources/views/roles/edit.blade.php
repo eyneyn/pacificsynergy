@@ -3,12 +3,16 @@
 @section('content')
 
 <div class="container mx-auto px-4">
-        <!-- Title -->
-        <div class="flex-1 text-center">
-            <h2 class="text-2xl m-4 font-bold text-[#23527c]">Edit Role</h2>
-        </div>
+        
+    <!-- Title -->
+    <div class="flex-1 text-center">
+        <h2 class="text-2xl m-4 font-bold text-[#23527c]">Edit Role</h2>
+    </div>
 
-<div x-data="roleEditor()" x-init="init(@js($role->permissions->pluck('name')))">
+    {{-- 🔔 Modal Alerts (Success, Error, Validation) --}}
+    <x-alert-message />
+
+    <div x-data="roleEditor()" x-init="init(@js($role->permissions->pluck('name')))">
 
 
     <form action="{{ route('roles.update', $role->id) }}" method="POST">
@@ -44,64 +48,58 @@
                 </tbody>
             </table>
 
-            <!-- Success Message -->
-            @if (session('success'))
-                <div class="mb-4 p-2 text-sm bg-green-100 text-green-800 border border-green-300 text-center max-w-sm mx-auto">
-                    {{ session('success') }}
-                </div>
-            @endif
 
-@include('roles.partials.permission-section', [
-    'title' => 'Admin Access',
-    'permissions' => [
-        'user.dashboard' => [
-            'label' => 'Dashboard',
-            'desc'  => 'Can view the user dashboard.',
-        ],
-        'roles.permission' => [
-            'label' => 'Roles & Permission Management',
-            'desc'  => 'Manage user roles and access rights.',
-        ],
-        'employees.index' => [
-            'label' => 'User Management',
-            'desc'  => 'Manage user accounts.',
-        ],
-    ],
-])
+            @include('roles.partials.permission-section', [
+                'title' => 'Admin Access',
+                'permissions' => [
+                    'user.dashboard' => [
+                        'label' => 'Dashboard',
+                        'desc'  => 'Can view the user dashboard.',
+                    ],
+                    'roles.permission' => [
+                        'label' => 'Roles & Permission Management',
+                        'desc'  => 'Manage user roles and access rights.',
+                    ],
+                    'employees.index' => [
+                        'label' => 'User Management',
+                        'desc'  => 'Manage user accounts.',
+                    ],
+                ],
+            ])
 
-@include('roles.partials.permission-section', [
-    'title' => 'Production Access',
-    'permissions' => [
-        'analytics.dashboard' => [
-            'label' => 'Dashboard',
-            'desc'  => 'Overview of analytics KPIs.',
-        ],
-        'report.index' => [
-            'label' => 'View Reports',
-            'desc'  => 'Read-only access to production reports.',
-        ],
-        'report.add' => [
-            'label' => 'Add Reports',
-            'desc'  => 'Create new production reports.',
-        ],
-        'report.edit' => [
-            'label' => 'Edit Reports',
-            'desc'  => 'Modify existing production reports.',
-        ],
-        'report.validate' => [
-            'label' => 'Validate Reports',
-            'desc'  => 'Approve/validate submitted reports.',
-        ],
-        'analytics.index' => [
-            'label' => 'Analytics & Reporting',
-            'desc'  => 'View analytics dashboards and charts.',
-        ],
-        'configuration.index' => [
-            'label' => 'Modify Metrics',
-            'desc'  => 'Update standard metrics and references.',
-        ],
-    ],
-])
+            @include('roles.partials.permission-section', [
+                'title' => 'Production Access',
+                'permissions' => [
+                    'analytics.dashboard' => [
+                        'label' => 'Dashboard',
+                        'desc'  => 'Overview of analytics KPIs.',
+                    ],
+                    'report.index' => [
+                        'label' => 'View Reports',
+                        'desc'  => 'Read-only access to production reports.',
+                    ],
+                    'report.add' => [
+                        'label' => 'Add Reports',
+                        'desc'  => 'Create new production reports.',
+                    ],
+                    'report.edit' => [
+                        'label' => 'Edit Reports',
+                        'desc'  => 'Modify existing production reports.',
+                    ],
+                    'report.validate' => [
+                        'label' => 'Validate Reports',
+                        'desc'  => 'Approve/validate submitted reports.',
+                    ],
+                    'analytics.index' => [
+                        'label' => 'Analytics & Reporting',
+                        'desc'  => 'View analytics dashboards and charts.',
+                    ],
+                    'configuration.index' => [
+                        'label' => 'Modify Metrics',
+                        'desc'  => 'Update standard metrics and references.',
+                    ],
+                ],
+            ])
 
         </div>
     </form>

@@ -32,6 +32,7 @@ class AuditLogController extends Controller
                 'report_edit'     => 'Edited Report',
                 'report_validate' => 'Validated Report',
                 'report_pdf'      => 'Export to Daily Report',
+                'report_void'     => 'Voided Report',
             ],
             'Role' => [
                 'role_add'    => 'Created Role',

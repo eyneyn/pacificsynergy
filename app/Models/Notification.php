@@ -9,8 +9,8 @@ class Notification extends Model
 {
     protected $fillable = [
         'user_id',
-        'employee_id',       // ✅ add this
-        'role_id',           // ✅ if you want role-based notifications
+        'employee_id',
+        'role_id',
         'defect_id',
         'standard_id',
         'type',
@@ -18,6 +18,7 @@ class Notification extends Model
         'message',
         'is_read',
         'required_permission',
+        'created_by',   // ✅ NEW fillable field
     ];
 
     protected $casts = [
@@ -25,57 +26,28 @@ class Notification extends Model
     ];
 
     /**
-     * Relationship → linked production report
+     * 🔗 Relationships
      */
     public function report()
     {
         return $this->belongsTo(ProductionReport::class, 'production_report_id');
     }
 
-    /**
-     * Relationship → assigned user (nullable if permission-based)
-     */
     public function user()
     {
         return $this->belongsTo(User::class);
     }
+
     public function employee()
     {
         return $this->belongsTo(User::class, 'employee_id');
     }
+
     public function role()
     {
         return $this->belongsTo(\Spatie\Permission\Models\Role::class, 'role_id');
     }
-    /**
-     * ✅ Scope: only notifications the logged-in user can view
-     */
-    public function scopeVisibleTo($query, $user = null)
-    {
-        $user = $user ?: Auth::user();
 
-        if (! $user) {
-            // No logged-in user → return empty
-            return $query->whereRaw('1=0');
-        }
-
-        return $query->where(function ($q) use ($user) {
-            // Case 1: user-specific notifications
-            $q->where('user_id', $user->id);
-
-            // Case 2: permission-based notifications
-            $q->orWhere(function ($sub) use ($user) {
-                $sub->whereNull('user_id')
-                    ->whereNotNull('required_permission')
-                    ->whereIn('required_permission', $user->getAllPermissions()->pluck('name'));
-            });
-        });
-    }
-
-    public function scopeUnread($query)
-    {
-        return $query->where('is_read', false);
-    }
     public function defect()
     {
         return $this->belongsTo(\App\Models\Defect::class, 'defect_id');
@@ -86,6 +58,54 @@ class Notification extends Model
         return $this->belongsTo(\App\Models\Standard::class, 'standard_id');
     }
 
+    // ✅ NEW relationship to actor (who triggered it)
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * ✅ Scope: only notifications the logged-in user can view
+     * → excludes notifications created by the same user
+     */
+    public function scopeVisibleTo($query, $user = null)
+    {
+        $user = $user ?: Auth::user();
+
+        if (! $user) {
+            return $query->whereRaw('1=0'); // no logged-in user → empty
+        }
+
+        return $query->where(function ($q) use ($user) {
+            // Case 1: permission-based notifications (broadcasts)
+            $q->whereNull('user_id')
+                ->whereNotNull('required_permission')
+                ->whereIn('required_permission', $user->getAllPermissions()->pluck('name'))
+                ->where('created_by', '!=', $user->id); // 👈 exclude own
+        });
+    }
+
+
+    public function scopeUnread($query)
+    {
+        return $query->where('is_read', false);
+    }
+
+    /**
+     * ✅ When creating notifications, always set created_by
+     */
+    protected static function booted()
+    {
+        static::creating(function ($notification) {
+            if (Auth::check() && empty($notification->created_by)) {
+                $notification->created_by = Auth::id();
+            }
+        });
+    }
+
+    /**
+     * 🔗 Dynamic URL resolver
+     */
     public function getUrlAttribute()
     {
         if (!empty($this->attributes['url'])) {
@@ -133,7 +153,7 @@ class Notification extends Model
                     ? route('configuration.defect.view', $this->defect_id) 
                     : '#';
 
-            case 'standard':   // 👈 NEW
+            case 'standard':
                 return $this->standard_id 
                     ? route('configuration.standard.view', $this->standard_id) 
                     : '#';
@@ -145,29 +165,25 @@ class Notification extends Model
                 return '#';
         }
     }
-
     /**
      * ✅ Helper to create standard-related notifications
      */
     public static function standardEvent($action, $standard, $userId = null)
     {
         $user = $userId ? \App\Models\User::find($userId) : Auth::user();
-
-        $userName = $user
-            ? trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? ''))
-            : 'System';
+        $userName = $user ? trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')) : 'System';
 
         return self::create([
-            'user_id'             => null, // broadcast
-            'standard_id'         => $standard->id, // 👈 reference standard
+            'user_id'             => null,
+            'standard_id'         => $standard->id,
             'type'                => 'standard',
             'message'             => "Standard <span style=\"color:#23527c;font-weight:bold;\">{$standard->description}</span> was {$action} by " .
                                     "<span style=\"color:#23527c;font-weight:bold;\">{$userName}</span>",
             'required_permission' => 'configuration.index',
             'is_read'             => false,
+            'created_by'          => $user ? $user->id : null,
         ]);
     }
-
 
     /**
      * ✅ Helper to create defect-related notifications
@@ -175,78 +191,75 @@ class Notification extends Model
     public static function defectEvent($action, $defect, $userId = null)
     {
         $user = $userId ? \App\Models\User::find($userId) : Auth::user();
-
-        $userName = $user
-            ? trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? ''))
-            : 'System';
+        $userName = $user ? trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')) : 'System';
 
         return self::create([
-            'user_id'             => null, // broadcast
-            'defect_id'           => $defect->id, // 👈 reference defect
+            'user_id'             => null,
+            'defect_id'           => $defect->id,
             'type'                => 'defect',
             'message'             => "Defect <span style=\"color:#23527c;font-weight:bold;\">{$defect->defect_name}</span> was {$action} by " .
                                     "<span style=\"color:#23527c;font-weight:bold;\">{$userName}</span>",
             'required_permission' => 'configuration.index',
             'is_read'             => false,
+            'created_by'          => $user ? $user->id : null,
         ]);
     }
 
+    /**
+     * ✅ Helper to create maintenance-related notifications
+     */
     public static function maintenanceEvent($action, $maintenanceName, $userId = null)
     {
         $user = $userId ? \App\Models\User::find($userId) : Auth::user();
-
-        $userName = $user
-            ? trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? ''))
-            : 'System';
+        $userName = $user ? trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')) : 'System';
 
         return self::create([
-            'user_id'             => null, // broadcast to all with permission
+            'user_id'             => null,
             'type'                => 'maintenance',
             'message'             => "Maintenance <span style=\"color:#23527c;font-weight:bold;\">{$maintenanceName}</span> was {$action} by " .
                                     "<span style=\"color:#23527c;font-weight:bold;\">{$userName}</span>",
-            'required_permission' => 'configuration.index', // 👈 permission gate
+            'required_permission' => 'configuration.index',
             'is_read'             => false,
+            'created_by'          => $user ? $user->id : null,
         ]);
     }
+
     /**
      * ✅ Helper to create line-related notifications
      */
     public static function lineEvent($action, $lineNumber, $userId = null)
     {
         $user = $userId ? \App\Models\User::find($userId) : Auth::user();
-
-        $userName = $user
-            ? trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? ''))
-            : 'System';
+        $userName = $user ? trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')) : 'System';
 
         return self::create([
-            'user_id'             => null, // broadcast
+            'user_id'             => null,
             'type'                => 'line',
             'message'             => "Line <span style=\"color:#23527c;font-weight:bold;\">{$lineNumber}</span> was {$action} by " .
                                     "<span style=\"color:#23527c;font-weight:bold;\">{$userName}</span>",
             'required_permission' => 'configuration.index',
             'is_read'             => false,
+            'created_by'          => $user ? $user->id : null,
         ]);
     }
+
     /**
      * ✅ Helper to create role-related notifications
      */
     public static function roleEvent($action, $roleName, $roleId = null, $userId = null)
     {
         $user = $userId ? \App\Models\User::find($userId) : Auth::user();
-
-        $userName = $user
-            ? trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? ''))
-            : 'System';
+        $userName = $user ? trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')) : 'System';
 
         return self::create([
-            'user_id'            => null, // broadcast
-            'role_id'            => $roleId, // ✅ now saved properly
-            'type'               => 'role',
-            'message'            => "Role <span style=\"color:#23527c;font-weight:bold;\">{$roleName}</span> was {$action} by " .
+            'user_id'             => null,
+            'role_id'             => $roleId,
+            'type'                => 'role',
+            'message'             => "Role <span style=\"color:#23527c;font-weight:bold;\">{$roleName}</span> was {$action} by " .
                                     "<span style=\"color:#23527c;font-weight:bold;\">{$userName}</span>",
-            'required_permission'=> 'roles.permission',
-            'is_read'            => false,
+            'required_permission' => 'roles.permission',
+            'is_read'             => false,
+            'created_by'          => $user ? $user->id : null,
         ]);
     }
 
@@ -256,40 +269,38 @@ class Notification extends Model
     public static function employeeEvent($action, $employee, $id = null)
     {
         $actor = $id ? \App\Models\User::find($id) : Auth::user();
-
-        $actorName = $actor
-            ? trim(($actor->first_name ?? '') . ' ' . ($actor->last_name ?? ''))
-            : 'System';
-
+        $actorName = $actor ? trim(($actor->first_name ?? '') . ' ' . ($actor->last_name ?? '')) : 'System';
         $employeeName = trim(($employee->first_name ?? '') . ' ' . ($employee->last_name ?? ''));
 
         return self::create([
-            'user_id'             => null,            // 👈 broadcast
+            'user_id'             => null,
             'type'                => 'employee',
-            'employee_id'         => $employee->id,   // 👈 reference employee
+            'employee_id'         => $employee->id,
             'message'             => "Employee <span style=\"color:#23527c;font-weight:bold;\">{$employeeName}</span> was {$action} by " .
                                     "<span style=\"color:#23527c;font-weight:bold;\">{$actorName}</span>",
             'required_permission' => 'employees.index',
             'is_read'             => false,
+            'created_by'          => $actor ? $actor->id : null,
         ]);
     }
+
+    /**
+     * ✅ Helper to create setting-related notifications
+     */
     public static function settingEvent($action, $setting, $userId = null)
     {
         $user = $userId ? \App\Models\User::find($userId) : Auth::user();
-
-        $userName = $user
-            ? trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? ''))
-            : 'System';
-
+        $userName = $user ? trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')) : 'System';
         $companyName = $setting->company_name ?? 'Company';
 
         return self::create([
-            'user_id'             => null, // broadcast to all with permission
+            'user_id'             => null,
             'type'                => 'setting',
             'message'             => "Settings for <span style=\"color:#23527c;font-weight:bold;\">{$companyName}</span> were {$action} by " .
                                     "<span style=\"color:#23527c;font-weight:bold;\">{$userName}</span>",
-            'required_permission' => 'user.dashboard', // 👈 corrected to match your settings route
+            'required_permission' => 'user.dashboard',
             'is_read'             => false,
+            'created_by'          => $user ? $user->id : null,
         ]);
     }
 }

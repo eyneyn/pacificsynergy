@@ -11,6 +11,9 @@
     Configuration
 </a>
 
+    {{-- 🔔 Modal Alerts (Success, Error, Validation) --}}
+    <x-alert-message />
+    
 {{-- Action Buttons --}}
 <div class="flex flex-col md:flex-row gap-2 mb-4">
     <!-- Back Button -->

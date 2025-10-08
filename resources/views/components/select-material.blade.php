@@ -41,15 +41,23 @@
         }
     }"
     x-init="
-        label = issue.material && {{ Js::from($options) }}[issue.material] 
-            ? {{ Js::from($options) }}[issue.material] 
-            : '';
-        search = label;
+        if (issue.material && {{ Js::from($options) }}[issue.material]) {
+            // Active maintenance
+            label = {{ Js::from($options) }}[issue.material];
+            search = label;
+        } else if (issue.material) {
+            // Fallback for soft-deleted maintenance (just show original name)
+            label = issue.material;
+            search = label;
+        } else {
+            label = '';
+            search = '';
+        }
     "
     class="relative w-full"
 >
     <div @click.away="open = false">
-        <!-- Input Field for Filtering -->
+        <!-- Input Field -->
         <input
             type="text"
             x-model="search"
@@ -64,7 +72,7 @@
             :class="{ 'text-gray-400': search === '' }"
         >
 
-        <!-- Dropdown Options -->
+        <!-- Dropdown -->
         <div
             x-show="open"
             x-transition
@@ -89,6 +97,6 @@
         </div>
     </div>
 
-    <!-- Hidden input for form -->
+    <!-- Hidden Input -->
     <input type="hidden" :name="'{{ $name }}'" :value="selected" required>
 </div>

@@ -4,6 +4,9 @@
 
 <div class="container mx-auto px-4">
 
+    {{-- 🔔 Modal Alerts (Success, Error, Validation) --}}
+    <x-alert-message />
+
     <form action="{{ route('report.store') }}" method="POST">
         @csrf
 
@@ -50,18 +53,9 @@
                 <div class="mt-10">
                     <ul class="space-y-1 text-red-500 text-sm">
                         <li class="text-[#42a542]">Fill out all required fields — details marked with an asterisk (*) are mandatory.</li>
-                        <li>If there is <span class="font-bold">“No Report”</span>, please specify the production line and date first.</li>
+                        <li>If there is <span class="font-bold">“No Run</span>, please specify the production line and date first.</li>
                     </ul>
                 </div>
-
-                {{-- Centered Duplicate Error --}}
-                @if ($errors->has('duplicate'))
-                    <div class="text-red-500 text-sm text-center">
-                        {{ $errors->first('duplicate') }}
-                    </div>
-                @else
-                    <div></div> {{-- Maintains alignment when no error --}}
-                @endif
             </div>
 
             <!-- Basic Production Form Table -->
@@ -93,13 +87,21 @@
                     <tr>
                         <td class="font-medium text-[#23527c] px-4 py-2">Shift <span style="color: red;">*</span></td>
                         <td class="px-4 py-2">
-                            <x-select-dropdown name="shift" :options="['00:00H - 24:00H' => '00:00H - 24:00H']" :selected="old('shift')" required />
+                            <input 
+                                type="text" 
+                                name="shift" 
+                                class="text-sm  px-2 py-1 w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400" 
+                                placeholder="Format must be like 00:00H/00:00H"
+                                value="{{ old('shift') }}"
+                                pattern="\d{2}:\d{2}H/\d{2}:\d{2}H"
+                                title="Format must be like 00:00H/00:00H"
+                            />
                         </td>
                         <td class="font-medium text-[#23527c] px-4 py-2">AC Temperatures <span style="color: red;">*</span></td>
                         <td class="px-4 py-2">
                             <div class="grid grid-cols-4 gap-1">
                                 @for ($i = 1; $i <= 4; $i++)
-                                    <input type="text" name="ac{{ $i }}" placeholder="AC {{ $i }}" value="{{ old('ac' . $i) }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
+                                    <input type="text" name="ac{{ $i }}" placeholder="AC {{ $i }}" value="{{ old('ac' . $i) }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm ">
                                 @endfor
                             </div>
                         </td>
@@ -111,7 +113,7 @@
                         </td>
                         <td class="font-medium text-[#23527c] px-4 py-2">Total Output (Cases) <span style="color: red;">*</span></td>
                         <td class="px-4 py-2">
-                            <input type="text" name="total_outputCase" placeholder="cases" value="{{ old('total_outputCase') }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
+                            <input type="text" name="total_outputCase" placeholder="cases" value="{{ old('total_outputCase') }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm ">
                         </td>
                     </tr>
                     <tr>
@@ -159,29 +161,29 @@
                     <tr>
                         <td class="font-medium text-[#23527c] px-4 py-2 text-xs">Speed (Bottles per Hour) <br><span class="text-sm">Filler Speed <span style="color: red;">*</span></span></td>
                         <td class="px-4 py-2">
-                            <input type="text" name="filler_speed" placeholder="bph" value="{{ old('filler_speed') }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
+                            <input type="text" name="filler_speed" placeholder="bph" value="{{ old('filler_speed') }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm ">
                         </td>
                         <td class="font-medium text-[#23527c] px-4 py-2 text-xs">RM Rejects <br><span class="text-sm">Opp/Labels <span style="color: red;">*</span></span></td>
                         <td class="px-4 py-2">
-                            <input type="text" name="opp_labels" placeholder="pcs" value="{{ old('opp_labels') }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
+                            <input type="text" name="opp_labels" placeholder="pcs" value="{{ old('opp_labels') }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm ">
                         </td>
                         <td class="font-medium text-[#23527c] px-4 py-2">Caps <span style="color: red;">*</span></td>
                         <td class="px-4 py-2">
-                            <input type="text" name="caps_filling" placeholder="pcs" value="{{ old('caps_filling') }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
+                            <input type="text" name="caps_filling" placeholder="pcs" value="{{ old('caps_filling') }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm ">
                         </td>
                     </tr>
                     <tr>
                         <td class="font-medium text-[#23527c] px-4 py-2">OPP/Labeler Speed <span style="color: red;">*</span></td>
                         <td class="px-4 py-2">
-                            <input type="text" name="opp_labeler_speed" placeholder="0" value="{{ old('opp_labeler_speed') }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
+                            <input type="text" name="opp_labeler_speed" placeholder="0" value="{{ old('opp_labeler_speed') }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm ">
                         </td>
                         <td class="font-medium text-[#23527c] px-4 py-2">Shrinkfilm <span style="color: red;">*</span></td>
                         <td class="px-4 py-2">
-                            <input type="text" name="shrinkfilm" placeholder="pcs" value="{{ old('shrinkfilm') }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
+                            <input type="text" name="shrinkfilm" placeholder="pcs" value="{{ old('shrinkfilm') }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm ">
                         </td>                        
                         <td class="font-medium text-[#23527c] px-4 py-2">Bottle <span style="color: red;">*</span></td>
                         <td class="px-4 py-2">
-                            <input type="text" name="bottle_filling" placeholder="pcs" value="{{ old('bottle_filling') }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
+                            <input type="text" name="bottle_filling" placeholder="pcs" value="{{ old('bottle_filling') }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm ">
                         </td>
                     </tr>
                 </tbody>
@@ -200,21 +202,21 @@
                     <tr>
                         <td class="font-medium text-[#23527c] px-4 py-2">Blow Molding Output <span style="color: red;">*</span></td>
                         <td class="px-4 py-2">
-                            <input type="text" name="blow_molding_output" placeholder="pcs" value="{{ old('blow_molding_output') }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
+                            <input type="text" name="blow_molding_output" placeholder="pcs" value="{{ old('blow_molding_output') }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm ">
                         </td>
                         <td class="font-medium text-[#23527c] px-4 py-2 text-xs">Blow Molding Rejects <br><span class="text-sm">Preform <span style="color: red;">*</span></span></td>
                         <td class="px-4 py-2">
-                            <input type="text" name="preform_blow_molding" placeholder="pcs" value="{{ old('preform_blow_molding') }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
+                            <input type="text" name="preform_blow_molding" placeholder="pcs" value="{{ old('preform_blow_molding') }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm ">
                         </td>
                         <td class="font-medium text-[#23527c] px-4 py-2">Bottles <span style="color: red;">*</span></td>
                         <td class="px-4 py-2">
-                            <input type="text" name="bottles_blow_molding" placeholder="pcs" value="{{ old('bottles_blow_molding') }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
+                            <input type="text" name="bottles_blow_molding" placeholder="pcs" value="{{ old('bottles_blow_molding') }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm ">
                         </td>
                     </tr>
                     <tr>
                         <td class="font-medium text-[#23527c] px-4 py-2">Speed (Bottles/Hour) <span style="color: red;">*</span></td>
                         <td class="px-4 py-2">
-                            <input type="text" name="speed_blow_molding" placeholder="bph" value="{{ old('speed_blow_molding') }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
+                            <input type="text" name="speed_blow_molding" placeholder="bph" value="{{ old('speed_blow_molding') }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm ">
                         </td>
                         <td colspan="4"></td>
                     </tr>
@@ -248,13 +250,13 @@
                                 </td>
                                 <td class="px-2 py-2">
                                     <input type="text" :name="`description[]`" x-model="issue.description" placeholder="Describe the issue or remark"
-                                        class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
+                                        class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm ">
                                 </td>
-                                <td class="px-2 py-2 text-center">
+                                <td class="px-2 py-2 ">
                                     <input type="text" :name="`minutes[]`" x-model="issue.minutes" placeholder="mins"
-                                        class="w-20 border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
+                                        class="w-20 border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm ">
                                 </td>
-                                <td class="px-2 py-2 text-center">
+                                <td class="px-2 py-2 ">
                                     <button type="button" @click="removeIssue(issue._uid)"
                                         class="bg-red-600 hover:bg-red-700 border border-red-700 text-white py-1 px-2 text-sm font-medium">
                                         Delete
@@ -297,11 +299,11 @@
                             </td>
                             <td class="font-medium text-[#23527c] px-4 py-2">With Label <span style="color: red;">*</span></td>
                             <td class="px-4 py-2">
-                                <input type="text" name="with_label" placeholder="pcs" value="{{ old('with_label') }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
+                                <input type="text" name="with_label" placeholder="pcs" value="{{ old('with_label') }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm ">
                             </td>
                             <td class="font-medium text-[#23527c] px-4 py-2">Without Label <span style="color: red;">*</span></td>
                             <td class="px-4 py-2">
-                                <input type="text" name="without_label" placeholder="pcs" value="{{ old('without_label') }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
+                                <input type="text" name="without_label" placeholder="pcs" value="{{ old('without_label') }}" class="w-full border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm ">
                             </td>
                         </tr>
                     </tbody>
@@ -328,12 +330,12 @@
                                     />
                                 </td>
 
-                                <td class="px-4 py-2 text-center w-28">
+                                <td class="px-4 py-2  w-28">
                                     <input type="text" :name="`qc_qty[]`" x-model="reject.qty" placeholder="pcs"
-                                        class="w-20 border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm text-center">
+                                        class="w-20 border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 px-2 py-1 text-sm ">
                                 </td>
 
-                                <td class="px-4 py-2 text-center w-32">
+                                <td class="px-4 py-2  w-32">
                                     <button type="button" @click="removeQcReject(reject._uid)"
                                         class="bg-red-600 hover:bg-red-700 border border-red-700 text-white py-1 px-3 text-sm font-medium">
                                         Delete

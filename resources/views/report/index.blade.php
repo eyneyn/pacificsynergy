@@ -56,7 +56,7 @@
             <thead>
                 {{-- Main Header Row --}}
                 <tr class="text-xs text-white uppercase bg-[#35408e]">
-                    <th class="p-2 border border-[#d9d9d9] text-center">
+                    <th class="p-2 border border-[#d9d9d9] text-center whitespace-nowrap">
                         <x-table-sort-link
                             field="production_date"
                             label="Production Date"
@@ -114,9 +114,9 @@
                 <tr>
                     <th class="p-2 border border-[#d9d9d9]">
                         <div class="relative">
-                            <input type="text" name="production_date_search" value="{{ request('production_date_search') }}"
+                            <input type="date" name="production_date_search" value="{{ request('production_date_search') }}"
                                    placeholder="Search date"
-                                   class="w-full placeholder:text-gray-400 p-2 text-xs font-medium border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none"
+                                   class="w-full text-xs p-2 font-medium border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none"
                                    autocomplete="off">
                         </div>
                     </th>
@@ -161,6 +161,7 @@
                                 <option value="Submitted" {{ request('status_search') === 'Submitted' ? 'selected' : '' }}>Submitted</option>
                                 <option value="Reviewed" {{ request('status_search') === 'Reviewed' ? 'selected' : '' }}>Reviewed</option>
                                 <option value="Validated" {{ request('status_search') === 'Validated' ? 'selected' : '' }}>Validated</option>
+                                <option value="Voided" {{ request('status_search') === 'Voided' ? 'selected' : '' }}>Voided</option>
                             </select>
                         </div>
                     </th>
@@ -254,6 +255,7 @@
                                     @if($status === 'Submitted') bg-yellow-100 text-yellow-800
                                     @elseif($status === 'Reviewed') bg-blue-100 text-blue-800
                                     @elseif($status === 'Validated') bg-green-100 text-green-800
+                                    @elseif($status === 'Voided') bg-red-100 text-red-800
                                     @endif">
                                     {{-- Highlight search term for status --}}
                                     @if(request('status_search'))

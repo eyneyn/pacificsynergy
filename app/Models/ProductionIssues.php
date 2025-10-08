@@ -14,7 +14,7 @@ class ProductionIssues extends Model
     ];
     public function maintenance()
     {
-        return $this->belongsTo(Maintenance::class, 'maintenances_id');
+        return $this->belongsTo(Maintenance::class, 'maintenances_id')->withTrashed();
     }
 
 public function productionReport()

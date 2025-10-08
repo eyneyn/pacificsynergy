@@ -11,6 +11,9 @@
     Configuration
 </a>
 
+{{-- 🔔 Modal Alerts (Success, Error, Validation) --}}
+<x-alert-message />
+
 {{-- Top Controls: Back, Add Defect, Show Entries --}}
 <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-4">
     <div class="flex flex-col md:flex-row gap-2">
@@ -59,96 +62,79 @@
     @endif
 
     {{-- Defect Table --}}
-    <table class="w-full text-sm text-left border border-[#E5E7EB] border-collapse shadow-sm">
+    <table class="w-full table-fixed text-sm text-left border border-[#E5E7EB] border-collapse shadow-sm">
         <thead>
             {{-- Main Header Row --}}
             <tr class="text-xs text-white uppercase bg-[#35408e]">
-                    <th class="p-2 border border-[#d9d9d9] text-center w-[20%]">
-                        <x-table-sort-link 
-                            field="defect_name" 
-                            label="Defect Name" 
-                            :currentSort="$currentSort ?? null" 
-                            :currentDirection="$currentDirection ?? null"
-                            route="configuration.defect.index"
-                        />
-                    </th>
-
-                    <th class="p-2 border border-[#d9d9d9] text-center w-[20%]">
-                        <x-table-sort-link 
-                            field="category" 
-                            label="Category" 
-                            :currentSort="$currentSort ?? null" 
-                            :currentDirection="$currentDirection ?? null"
-                            route="configuration.defect.index"
-                        />
-                    </th>
-
-                    <th class="p-2 border border-[#d9d9d9] text-center w-[10%]">Description</th>
+                <th class="p-2 border border-[#d9d9d9] text-center w-[20%]">
+                    <x-table-sort-link 
+                        field="defect_name" 
+                        label="Defect Name" 
+                        :currentSort="$currentSort ?? null" 
+                        :currentDirection="$currentDirection ?? null"
+                        route="configuration.defect.index"
+                    />
+                </th>
+                <th class="p-2 border border-[#d9d9d9] text-center w-[20%]">
+                    <x-table-sort-link 
+                        field="category" 
+                        label="Category" 
+                        :currentSort="$currentSort ?? null" 
+                        :currentDirection="$currentDirection ?? null"
+                        route="configuration.defect.index"
+                    />
+                </th>
+                <th class="p-2 border border-[#d9d9d9] text-center w-[60%]">
+                    Description
+                </th>
             </tr>
+
             {{-- Search Input Row --}}
             <tr>
-                <th class="p-2 border border-[#d9d9d9]">
-                    <div class="relative">
-                        <input type="text" name="defect_name_search" value="{{ request('defect_name_search') }}"
-                               placeholder="Search defect"
-                               class="w-full placeholder:text-gray-400 p-2 text-xs font-medium border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none"
-                               autocomplete="off">
-                        {{-- No clear button for defect_name_search --}}
-                    </div>
+                <th class="p-2 border border-[#d9d9d9] w-[20%]">
+                    <input type="text" name="defect_name_search" value="{{ request('defect_name_search') }}"
+                        placeholder="Search defect"
+                        class="w-full placeholder:text-gray-400 p-2 text-xs font-medium border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none"
+                        autocomplete="off">
                 </th>
-                <th class="p-2 border border-[#d9d9d9]">
-                    <div class="relative">
-                        <input type="text" name="category_search" value="{{ request('category_search') }}"
-                               placeholder="Search category"
-                               class="w-full placeholder:text-gray-400 p-2 text-xs font-medium border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none"
-                               autocomplete="off">
-                    </div>
+                <th class="p-2 border border-[#d9d9d9] w-[20%]">
+                    <input type="text" name="category_search" value="{{ request('category_search') }}"
+                        placeholder="Search category"
+                        class="w-full placeholder:text-gray-400 p-2 text-xs font-medium border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none"
+                        autocomplete="off">
                 </th>
-                <th class="p-2 border border-[#d9d9d9]">
-                    <div class="relative">
-                        <input type="text" name="description_search" value="{{ request('description_search') }}"
-                               placeholder="Search description"
-                               class="w-full placeholder:text-gray-400 p-2 text-xs font-medium border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none"
-                               autocomplete="off">
-                    </div>
+                <th class="p-2 border border-[#d9d9d9] w-[60%]">
+                    <input type="text" name="description_search" value="{{ request('description_search') }}"
+                        placeholder="Search description"
+                        class="w-full placeholder:text-gray-400 p-2 text-xs font-medium border border-gray-300 focus:border-blue-500 focus:shadow-lg focus:outline-none"
+                        autocomplete="off">
                 </th>
             </tr>
         </thead>
         <tbody>
             @forelse ($defects as $defect)
-                <tr onclick="window.location='{{ route('configuration.defect.view', $defect) }}'" class="bg-white border-b border-gray-200 hover:bg-[#e5f4ff] transition-colors duration-200 cursor-pointer">
-                    <td class="p-2 border border-[#d9d9d9] text-[#23527c] text-center">
-                        {{-- Highlight search term for defect_name --}}
-                        @if(request('defect_name_search'))
-                            {!! str_ireplace(request('defect_name_search'), '<span class="bg-yellow-200">' . request('defect_name_search') . '</span>', $defect->defect_name) !!}
-                        @else
-                            {{ $defect->defect_name }}
-                        @endif
+                <tr onclick="window.location='{{ route('configuration.defect.view', $defect) }}'" 
+                    class="bg-white border-b border-gray-200 hover:bg-[#e5f4ff] transition-colors duration-200 cursor-pointer">
+                    <td class="p-2 border border-[#d9d9d9] text-[#23527c] text-center w-[20%] truncate">
+                        {{ $defect->defect_name }}
                     </td>
-                    <td class="p-2 border border-[#d9d9d9] text-gray-600 text-center">
-                        {{-- Highlight search term for category --}}
-                        @if(request('category_search'))
-                            {!! str_ireplace(request('category_search'), '<span class="bg-yellow-200">' . request('category_search') . '</span>', $defect->category) !!}
-                        @else
-                            {{ $defect->category }}
-                        @endif
+                    <td class="p-2 border border-[#d9d9d9] text-gray-600 text-center w-[20%] truncate">
+                        {{ $defect->category }}
                     </td>
-                    <td class="p-2 border border-[#d9d9d9] text-gray-600 text-center">
-                        {{-- Highlight search term for description --}}
-                        @if(request('description_search'))
-                            {!! str_ireplace(request('description_search'), '<span class="bg-yellow-200">' . request('description_search') . '</span>', $defect->description) !!}
-                        @else
-                            {{ $defect->description }}
-                        @endif
+                    <td class="p-2 border border-[#d9d9d9] text-gray-600 text-center w-[60%] truncate">
+                        {{ $defect->description }}
                     </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6" class="p-2 border border-[#d9d9d9] text-gray-600 text-center">No matching records found</td>
+                    <td colspan="3" class="p-2 border border-[#d9d9d9] text-gray-600 text-center">
+                        No matching records found
+                    </td>
                 </tr>
             @endforelse
         </tbody>
     </table>
+
 </form>
 {{-- Entries Info + Pagination --}}
 <div class="mt-4 flex flex-col md:flex-row items-center justify-between text-sm text-gray-600 gap-2">

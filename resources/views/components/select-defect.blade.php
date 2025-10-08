@@ -41,11 +41,19 @@
         }
     }"
     x-init="
-        label = reject.defect && {{ Js::from($options) }}[reject.defect] 
-            ? {{ Js::from($options) }}[reject.defect] 
-            : '';
-        search = label;
+        if (reject.defect && {{ Js::from($options) }}[reject.defect]) {
+            label = {{ Js::from($options) }}[reject.defect];
+            search = label;
+        } else if (reject.defect) {
+            // Fallback for soft-deleted defects
+            label = reject.defect ;
+            search = label;
+        } else {
+            label = '';
+            search = '';
+        }
     "
+
     class="relative w-full"
 >
     <div @click.away="open = false">

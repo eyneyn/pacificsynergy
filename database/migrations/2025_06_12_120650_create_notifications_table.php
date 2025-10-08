@@ -11,6 +11,12 @@ return new class extends Migration
         Schema::create('notifications', function (Blueprint $table) {
             $table->id();
 
+            // 🔔 Who created the notification (actor)
+            $table->foreignId('created_by')
+                ->nullable()
+                ->constrained('users')
+                ->onDelete('set null');
+
             // 🔔 Type of notification (e.g. report_create, employee_update, etc.)
             $table->string('type');
 
@@ -66,6 +72,17 @@ return new class extends Migration
 
     public function down(): void
     {
+        Schema::table('notifications', function (Blueprint $table) {
+            // Drop foreign keys explicitly before dropping the table
+            $table->dropForeign(['created_by']);
+            $table->dropForeign(['production_report_id']);
+            $table->dropForeign(['user_id']);
+            $table->dropForeign(['employee_id']);
+            $table->dropForeign(['role_id']);
+            $table->dropForeign(['defect_id']);
+            $table->dropForeign(['standard_id']);
+        });
+
         Schema::dropIfExists('notifications');
     }
 };

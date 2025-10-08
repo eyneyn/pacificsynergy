@@ -8,6 +8,7 @@ use App\Models\Standard;
 use App\Models\Notification;
 use App\Models\AuditLog;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class StandardController extends Controller
 {
@@ -66,12 +67,15 @@ class StandardController extends Controller
      */
     public function store(Request $request)
     {
-        // Validate request data
         $validated = $request->validate([
             'group' => 'required|string',
             'mat_no' => 'nullable|string',
             'size' => 'required|string',
-            'description' => 'required|string',
+            'description' => [
+                'required',
+                'string',
+                Rule::unique('standards', 'description')->whereNull('deleted_at'), // ✅ ignore soft deleted
+            ],
             'bottles_per_case' => 'required|integer|min:0',
             'preform_weight' => 'required|string',
             'ldpe_size' => 'required|string',
@@ -83,9 +87,34 @@ class StandardController extends Controller
             'preform_weight2' => 'required|numeric|min:0',
         ]);
 
-        $standard = Standard::create($validated);
-       Notification::standardEvent('added', $standard);
+        // 🔎 Check if a soft-deleted standard with same description exists
+        $existing = Standard::onlyTrashed()->where('description', $request->description)->first();
 
+        if ($existing) {
+            // Restore it instead of creating a new row
+            $existing->restore();
+            $existing->update($validated);
+
+            Notification::standardEvent('restored', $existing);
+
+            AuditLog::create([
+                'user_id'    => Auth::id(),
+                'event'      => 'standard_restore',
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'context'    => [
+                    'standard'  => $existing->description ?? 'Unknown Standard',
+                ],
+            ]);
+
+            return redirect()
+                ->route('configuration.standard.view', $existing)
+                ->with('success', "Standard '{$existing->description}' restored successfully!");
+        }
+
+        // Normal create
+        $standard = Standard::create($validated);
+        Notification::standardEvent('added', $standard);
 
         AuditLog::create([
             'user_id'    => Auth::id(),
@@ -97,7 +126,8 @@ class StandardController extends Controller
             ],
         ]);
 
-        return view('configuration.standard.view', compact('standard'))
+        return redirect()
+            ->route('configuration.standard.view', $standard)
             ->with('success', 'Standard saved successfully!');
     }
 
@@ -122,12 +152,15 @@ class StandardController extends Controller
      */
     public function edit(Request $request, Standard $standard)
     {
-        // Validate request data
         $validated = $request->validate([
             'group' => 'required|string',
             'mat_no' => 'nullable|string',
             'size' => 'required|string',
-            'description' => 'required|string',
+            'description' => [
+                'required',
+                'string',
+                Rule::unique('standards', 'description')->ignore($standard->id), // ✅ fix
+            ],
             'bottles_per_case' => 'required|integer|min:1',
             'preform_weight' => 'required|string',
             'ldpe_size' => 'required|string',
@@ -140,7 +173,7 @@ class StandardController extends Controller
         ]);
 
         $standard->update($validated);
-       Notification::standardEvent('updated', $standard);
+        Notification::standardEvent('updated', $standard);
 
         AuditLog::create([
             'user_id'    => Auth::id(),
@@ -154,7 +187,7 @@ class StandardController extends Controller
 
         return redirect()
             ->route('configuration.standard.view', $standard)
-            ->with('success', 'Standard updated successfully!');
+            ->with('success', "Standard '{$standard->description}' updated successfully!");
     }
 
     /**
@@ -163,17 +196,6 @@ class StandardController extends Controller
      */
     public function destroy(Standard $standard)
     {
-        // Check if standard is used in Production Reports
-        $isUsed = ProductionReport::where('sku', $standard->description)->exists();
-
-        if ($isUsed) {
-            return redirect()
-                ->route('configuration.standard.view', $standard->id)
-                ->withErrors([
-                    'standard_delete' => "SKU \"{$standard->description}\" is used in Production Reports and cannot be deleted."
-                ]);
-        }
-
         $standard->delete();
         Notification::standardEvent('deleted', $standard);
 
@@ -186,9 +208,10 @@ class StandardController extends Controller
                 'standard'  => $standard->description ?? 'Unknown Standard',
             ],
         ]);
+        
 
         return redirect()
             ->route('configuration.standard.index')
-            ->with('success', 'Standard deleted successfully.');
+            ->with('success', "Standard '{$standard->description}' deleted successfully.");
     }
 }

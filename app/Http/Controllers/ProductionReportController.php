@@ -30,7 +30,7 @@ class ProductionReportController extends Controller
             'line',
             'standard',
             'statuses' => function ($q) {
-                $q->whereIn('status', ['Submitted', 'Reviewed', 'Validated'])
+                $q->whereIn('status', ['Submitted', 'Reviewed', 'Validated', 'Voided'])
                 ->orderByDesc('id');
             }
         ]);
@@ -117,8 +117,15 @@ class ProductionReportController extends Controller
     {
         $lines = Line::where('status', 'Active')->orderBy('line_number')->get();
         $skus = Standard::orderBy('description')->get();
-        $maintenances = Maintenance::orderBy('name')->orderBy('type')->get();
-        $defects = Defect::all();
+
+        // ✅ Only active maintenances for dropdown
+        $maintenances = Maintenance::whereNull('deleted_at')
+            ->orderBy('name')
+            ->orderBy('type')
+            ->get();
+
+        // ✅ Only active defects for dropdown
+        $defects = Defect::whereNull('deleted_at')->get();
 
         // Prepare options for dropdowns
         $lineOptions = $lines->mapWithKeys(fn($line) => [$line->line_number => 'Line ' . $line->line_number]);
@@ -134,63 +141,77 @@ class ProductionReportController extends Controller
         ]);
     }
 
+
     /**
      * Store a newly created production report in storage.
      */
-    public function store(Request $request)
-    {
+public function store(Request $request)
+{
     if ($request->input('mode') === 'no_report') {
-        $validated = $request->validate([
-            'production_date' => 'required|date',
-            'line'            => 'required|integer|exists:lines,line_number',
-        ]);
+        try {
+            $validated = $request->validate([
+                'production_date' => 'required|date',
+                'line'            => 'required|integer|exists:lines,line_number',
+            ]);
 
-        $lineCode = str_pad($validated['line'], 2, '0', STR_PAD_LEFT);
-        $shift    = '00:00H - 24:00H'; // <— force default here
-        $sku    = 'No Run';
+            $lineCode = str_pad($validated['line'], 2, '0', STR_PAD_LEFT);
+            $shift    = '00:00H - 24:00H'; // force default
+            $sku      = 'No Run';
 
-        // build payload WITHOUT reading shift from the request
-        $payload = [
-            'shift'                 => $shift,
-            'sku_id' => null,
-            'fbo_fco'               => null,
-            'lbo_lco'               => null,
-            'total_outputCase'      => 0,
-            'filler_speed'          => 0,
-            'opp_labeler_speed'     => 0,
-            'opp_labels'            => 0,
-            'shrinkfilm'            => 0,
-            'caps_filling'          => 0,
-            'bottle_filling'        => 0,
-            'blow_molding_output'   => 0,
-            'speed_blow_molding'    => 0,
-            'preform_blow_molding'  => 0,
-            'bottles_blow_molding'  => 0,
-            'qa_remarks'            => 'No Report',
-            'with_label'            => 0,
-            'without_label'         => 0,
-            'total_sample'          => 0,
-            'total_downtime'        => 0,
-            'bottle_code'           => "NO RUN",
-            'user_id'               => Auth::id(),
-        ];
+            $payload = [
+                'shift'                 => $shift,
+                'sku_id'                => null,
+                'fbo_fco'               => null,
+                'lbo_lco'               => null,
+                'total_outputCase'      => 0,
+                'filler_speed'          => 0,
+                'opp_labeler_speed'     => 0,
+                'opp_labels'            => 0,
+                'shrinkfilm'            => 0,
+                'caps_filling'          => 0,
+                'bottle_filling'        => 0,
+                'blow_molding_output'   => 0,
+                'speed_blow_molding'    => 0,
+                'preform_blow_molding'  => 0,
+                'bottles_blow_molding'  => 0,
+                'qa_remarks'            => 'No Report',
+                'with_label'            => 0,
+                'without_label'         => 0,
+                'total_sample'          => 0,
+                'total_downtime'        => 0,
+                'bottle_code'           => "NO RUN",
+                'user_id'               => Auth::id(),
+            ];
 
-        // Upsert by (date, line)
-        $report = ProductionReport::updateOrCreate(
-            ['production_date' => $validated['production_date'], 'line' => $validated['line']],
-            $payload
-        );
+            $report = ProductionReport::updateOrCreate(
+                ['production_date' => $validated['production_date'], 'line' => $validated['line']],
+                $payload
+            );
 
-        // ✅ Ensure status is also recorded
-        Status::create([
-            'user_id'              => Auth::id(),
-            'production_report_id' => $report->id,
-            'status'               => 'Submitted',
-        ]);
+            // Insert Status entry (avoid duplicates)
+            Status::firstOrCreate(
+                [
+                    'production_report_id' => $report->id,
+                    'status'               => 'Submitted',
+                ],
+                [
+                    'user_id'              => Auth::id(),
+                ]
+            );
 
-        return redirect()->route('report.view', $report)
-            ->with('success', 'No Run production has been saved.');
+
+            return redirect()->route('report.view', $report)
+                ->with('success', 'No Run production has been saved.');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // 👇 put validation errors into alert-friendly format
+            return redirect()->back()
+                ->withErrors($e->errors())   // Laravel auto-flash $errors
+                ->with('error', 'Please input the production date and line before submitting a "No Run" report.')
+                ->withInput();
+        }
     }
+
         $validated = $request->validate([
             'production_date' => 'required|date',
             'shift' => 'required|string',
@@ -218,17 +239,23 @@ class ProductionReportController extends Controller
             'without_label' => 'nullable|integer',
         ]);
 
-        // Duplicate check: same date + sku + output
-        $duplicate = ProductionReport::where('production_date', $validated['production_date'])
+        // ✅ Duplicate check: same date + sku + output
+        $duplicateReport = ProductionReport::where('production_date', $validated['production_date'])
             ->where('sku_id', $validated['sku_id'])
             ->where('total_outputCase', $validated['total_outputCase'])
-            ->exists();
+            ->first();
 
-        if ($duplicate) {
-            return back()->withInput()->withErrors([
-                'duplicate' => 'Duplicate entry: This production report already exists.',
-            ]);
+        if ($duplicateReport) {
+            // Get readable values
+            $skuName = optional(Standard::find($validated['sku_id']))->description ?? 'Unknown SKU';
+            $date    = $validated['production_date'];
+            $output  = $validated['total_outputCase'];
+
+            return back()
+                ->withInput()
+                ->with('error', "Duplicate entry: A production report already exists for {$skuName} on {$date} with output {$output} cases.");
         }
+
 
         // Generate bottle code
         $productionDate = Carbon::parse($validated['production_date']);
@@ -284,12 +311,15 @@ class ProductionReportController extends Controller
         }
 
 
-        // Insert Status entry
-        Status::create([
-            'user_id' => Auth::id(),
-            'production_report_id' => $report->id,
-            'status' => 'Submitted',
-        ]);
+        Status::firstOrCreate(
+            [
+                'production_report_id' => $report->id,
+                'status'               => 'Submitted',
+            ],
+            [
+                'user_id'              => Auth::id(),
+            ]
+        );
         
         AuditLog::create([
             'user_id'    => Auth::id(),
@@ -309,59 +339,56 @@ class ProductionReportController extends Controller
     /**
      * Display the specified production report.
      */
-public function view($id)
-{
-    $report = ProductionReport::with([
-        'issues.maintenance',
-        'lineQcRejects.defect',
-        'line',
-        'standard',
-        'statuses.user',
-        'user',
-    ])->findOrFail($id);
+    public function view($id)
+    {
+        $report = ProductionReport::with([
+            'issues.maintenance',
+            'lineQcRejects.defect',
+            'line',
+            'standard',
+            'statuses.user',
+            'user',
+        ])->findOrFail($id);
 
-    $currentUserId = Auth::id();
-    $user = Auth::user();
+        $currentUserId = Auth::id();
+        $user = Auth::user();
 
-    // ✅ Rule: Only non-owners with report.validate can auto-mark as Reviewed
-    if ($currentUserId !== $report->user_id && $user->can('report.validate')) {
-        $alreadyReviewed = Status::where('user_id', $currentUserId)
-            ->where('production_report_id', $report->id)
-            ->where('status', 'Reviewed')
-            ->doesntExist();
+        // ✅ Rule: Only non-owners with report.validate can auto-mark as Reviewed
+        if ($currentUserId !== $report->user_id && $user->can('report.validate')) {
+            $alreadyReviewed = Status::where('user_id', $currentUserId)
+                ->where('production_report_id', $report->id)
+                ->where('status', 'Reviewed')
+                ->doesntExist();
 
-        if ($alreadyReviewed) {
-            Status::create([
-                'user_id'              => $currentUserId,
-                'production_report_id' => $report->id,
-                'status'               => 'Reviewed',
-            ]);
+            if ($alreadyReviewed) {
+                Status::create([
+                    'user_id'              => $currentUserId,
+                    'production_report_id' => $report->id,
+                    'status'               => 'Reviewed',
+                ]);
 
-            AuditLog::create([
-                'user_id'    => $currentUserId,
-                'event'      => 'report_review',
-                'ip_address' => request()->ip(),
-                'user_agent' => request()->userAgent(),
-                'context'    => [
-                    'sku'  => $report->standard->description ?? 'Unknown SKU',
-                    'line' => "Line {$report->line}",
-                ],
-            ]);
+                AuditLog::create([
+                    'user_id'    => $currentUserId,
+                    'event'      => 'report_review',
+                    'ip_address' => request()->ip(),
+                    'user_agent' => request()->userAgent(),
+                    'context'    => [
+                        'sku'  => $report->standard->description ?? 'Unknown SKU',
+                        'line' => "Line {$report->line}",
+                    ],
+                ]);
+            }
         }
+
+        $isValidated = Status::where('production_report_id', $report->id)
+            ->where('status', 'Validated')
+            ->exists();
+
+return view('report.view', [
+    'report'      => $report,
+    'isValidated' => $isValidated,
+]);
     }
-
-    $isValidated = Status::where('production_report_id', $report->id)
-        ->where('status', 'Validated')
-        ->exists();
-
-    return view('report.view', [
-        'reports'     => $report,
-        'isValidated' => $isValidated,
-    ]);
-}
-
-
-
 
     /**
      * Show the form for editing the specified production report.
@@ -370,16 +397,38 @@ public function view($id)
     {
         $lines = Line::where('status', 'Active')->orderBy('line_number')->get();
         $skus = Standard::orderBy('description')->get();
-        $maintenances = Maintenance::orderBy('name')->orderBy('type')->get();
-        $defects = Defect::all();
+        // Only active maintenances for dropdown
+        $maintenances = Maintenance::whereNull('deleted_at')
+            ->orderBy('name')
+            ->orderBy('type')
+            ->get();
+
+        // Keep soft-deleted maintenances for existing issues
+        $maintenancesWithTrashed = Maintenance::withTrashed()->get();
+
+        // Active defects only for dropdown
+        $defects = Defect::all(); // current code
+
+        // Change to only active
+        $defects = Defect::whereNull('deleted_at')->get();
+
+        // Keep soft-deleted defects for existing rejects
+        $defectsWithTrashed = Defect::withTrashed()->get();
+
+        
 
         $lineOptions = $lines->mapWithKeys(fn($line) => [$line->line_number => 'Line ' . $line->line_number]);
         $materialsOptions = $maintenances->pluck('name', 'name');
 
         // Prepare issues array for Alpine
         $issues = $report->issues->map(function ($issue) {
+            $name = $issue->maintenance?->name ?? '[Deleted Maintenance]';
+            if ($issue->maintenance?->deleted_at) {
+                $name;
+            }
+
             return [
-                'material' => $issue->maintenance->name ?? '',
+                'material' => $name,
                 'description' => $issue->remarks,
                 'minutes' => $issue->minutes,
             ];
@@ -416,8 +465,8 @@ public function view($id)
 
         // In edit()
         $qcRejectsFlat = $report->lineQcRejects->map(fn($reject) => [
-            'defect'   => $reject->defect->defect_name,
-            'category' => $reject->defect->category,
+            'defect'   => $reject->defect?->defect_name ?? '[Deleted Defect]',
+            'category' => $reject->defect?->category ?? '',
             'qty'      => $reject->quantity,
         ])->toArray();
 
@@ -567,40 +616,62 @@ public function view($id)
         }
         $report->update(['total_downtime' => $totalMinutes]);
 
-       // --- Re-sync Line QC Rejects ---
-$report->lineQcRejects()->delete();
-$newQcRejects = [];
+        // --- Sync Line QC Rejects intelligently ---
+        $existingRejects = $report->lineQcRejects()->with('defect')->get()->keyBy('id');
 
-$qcDefects   = $request->input('qc_defect', []);
-$qcCategories = $request->input('qc_category', []);
-$qcQtys      = $request->input('qc_qty', []);
+        $qcDefects    = $request->input('qc_defect', []);
+        $qcCategories = $request->input('qc_category', []);
+        $qcQtys       = $request->input('qc_qty', []);
 
-foreach ($qcDefects as $index => $defectName) {
-    if (!$defectName) continue;
+        $newQcRejects = [];
 
-    $category = $qcCategories[$index] ?? null;
-    $qty      = (int) ($qcQtys[$index] ?? 0);
+        foreach ($qcDefects as $index => $defectName) {
+            if (!$defectName) continue;
 
-    // Find matching defect by name (and optionally category)
-    $defect = \App\Models\Defect::where('defect_name', $defectName)
+            $category = $qcCategories[$index] ?? null;
+            $qty      = (int) ($qcQtys[$index] ?? 0);
+
+            // Find defect (include trashed)
+            $defect = \App\Models\Defect::withTrashed()
+                ->where('defect_name', $defectName)
                 ->when($category, fn($q) => $q->where('category', $category))
                 ->first();
 
-    if ($defect) {
-        \App\Models\LineQcReject::create([
-            'production_reports_id' => $report->id,
-            'defects_id'            => $defect->id,
-            'quantity'              => $qty,
-        ]);
+            if ($defect) {
+                // Check if this reject already exists
+                $existing = $report->lineQcRejects()
+                    ->where('defects_id', $defect->id)
+                    ->first();
 
-        $newQcRejects[] = [
-            'category' => $category,
-            'defect'   => $defectName,
-            'quantity' => $qty,
-        ];
-    }
-}
+                if ($existing) {
+                    // Update quantity if needed
+                    $existing->update(['quantity' => $qty]);
+                } else {
+                    // Create new one
+                    \App\Models\LineQcReject::create([
+                        'production_reports_id' => $report->id,
+                        'defects_id'            => $defect->id,
+                        'quantity'              => $qty,
+                    ]);
+                }
 
+                $newQcRejects[] = [
+                    'category' => $category,
+                    'defect'   => $defectName,
+                    'quantity' => $qty,
+                ];
+            }
+        }
+
+        // Optionally: remove rejects that were not resubmitted
+        // (only if you want "missing in form" = "deleted")
+        $keepDefectIds = collect($qcDefects)->filter()->map(function($name) use ($qcCategories) {
+            return \App\Models\Defect::withTrashed()->where('defect_name', $name)->value('id');
+        })->filter()->toArray();
+
+        $report->lineQcRejects()
+            ->whereNotIn('defects_id', $keepDefectIds)
+            ->delete();
 
         // Compare for change history logging
         $newFields = $report->fresh()->only(array_keys($validated)); // includes new total_sample ✅
@@ -677,10 +748,47 @@ foreach ($qcDefects as $index => $defectName) {
             'user_agent' => request()->userAgent(),
             'context'    => [
                 // Format the production_date to "September 28, 2025"
-                'report'  =>  ' Daily Production Report' . '-' . $report->production_date->format('F j, Y')
+                'report'  =>  ' Daily Production Report' . ' - ' . $report->production_date->format('F j, Y')
             ],
         ]);
 
         return $pdf->stream('Production - ' . $report->production_date->format('F j, Y') . '.pdf');
     }
+    public function void(Request $request, ProductionReport $report)
+    {
+        // Prevent voiding if already voided
+        if ($report->latestStatus?->status === 'Voided') {
+            return redirect()->route('report.view', $report->id)
+                ->with('error', 'This report has already been voided and cannot be restored.');
+        }
+
+        $request->validate([
+            'remarks' => 'required|string|max:255',
+        ]);
+
+        // Create new status
+        $report->statuses()->create([
+            'user_id' => auth()->id(),
+            'status'  => 'Voided',
+            'remarks' => $request->remarks,
+        ]);
+
+        // Audit log
+        AuditLog::create([
+            'user_id'   => Auth::id(),
+            'event'     => 'report_void',
+            'ip_address'=> request()->ip(),
+            'context'   => [
+                'sku'     => $report->standard?->description,
+                'line'    => $report->line,
+                'remarks' => $request->remarks, // include void reason
+            ],
+        ]);
+
+        return redirect()->route('report.view', $report->id)
+            ->with('success', 'Report has been voided successfully. This action cannot be undone.');
+    }
+
+
+
 }

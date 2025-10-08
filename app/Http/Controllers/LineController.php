@@ -196,7 +196,7 @@ class LineController extends Controller
         // ------------------------------
         // 2) Fetch analytics data
         // ------------------------------
-        $analytics = \App\Models\LineEfficiencyAnalytics::query()
+        $analytics = LineEfficiencyAnalytics::query()
             ->whereMonth('production_date', $monthNumber)
             ->whereYear('production_date', $year)
             ->when($line, fn($q) => $q->where('line', $line))
@@ -486,7 +486,7 @@ class LineController extends Controller
 
         // Group by month (1–12)
         $reportsByMonth = $reports->groupBy(function ($report) {
-            return (int) \Carbon\Carbon::parse($report->production_date)->format('n');
+            return (int) Carbon::parse($report->production_date)->format('n');
         });
 
         // Always build 12 months
@@ -515,7 +515,7 @@ class LineController extends Controller
 
                     // === Compute LE (daily highest avg)
                     $dailyGroups = $lineReports->groupBy(fn($r) =>
-                        \Carbon\Carbon::parse($r->production_date)->format('Y-m-d')
+                        Carbon::parse($r->production_date)->format('Y-m-d')
                     );
 
                     $dailyLEs = [];
@@ -529,11 +529,11 @@ class LineController extends Controller
 
                     // === OPL/EPL Minutes → %
                     $repIds   = $lineReports->pluck('id');
-                    $oplMins  = \App\Models\ProductionIssues::whereIn('production_reports_id', $repIds)
+                    $oplMins  = ProductionIssues::whereIn('production_reports_id', $repIds)
                         ->whereHas('maintenance', fn($q) => $q->where('type', 'OPL'))
                         ->sum('minutes');
 
-                    $eplMins  = \App\Models\ProductionIssues::whereIn('production_reports_id', $repIds)
+                    $eplMins  = ProductionIssues::whereIn('production_reports_id', $repIds)
                         ->whereHas('maintenance', fn($q) => $q->where('type', 'EPL'))
                         ->sum('minutes');
 

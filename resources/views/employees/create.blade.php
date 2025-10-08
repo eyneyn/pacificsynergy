@@ -9,40 +9,43 @@
         <h1 class="text-xl font-bold text-[#23527c]">New Employee</h1>
     </div>
 
+    {{-- 🔔 Modal Alerts (Success, Error, Validation) --}}
+    <x-alert-message />
+
     <div class="border-t border-b border-gray-200 mb-4 mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
         {{-- Sidebar --}}
         <div class="col-span-1 p-8 text-center">
             {{-- Profile Image Upload --}}
-<form action="{{ route('employees.store') }}" method="POST" enctype="multipart/form-data">
-@csrf
-<div class="relative w-40 h-40 mx-auto mb-4 overflow-hidden border border-gray-300 rounded">
+            <form action="{{ route('employees.store') }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            <div class="relative w-40 h-40 mx-auto mb-4 overflow-hidden border border-gray-300 rounded">
 
-    <img id="photoPreview"
-         src="{{ asset('storage/profile/default.jpg') }}"
-         onerror="this.onerror=null;this.src='{{ asset('img/default.jpg') }}';"
-         alt="Profile Photo"
-         class="object-cover w-full h-full" />
+                <img id="photoPreview"
+                    src="{{ asset('storage/profile/default.jpg') }}"
+                    onerror="this.onerror=null;this.src='{{ asset('img/default.jpg') }}';"
+                    alt="Profile Photo"
+                    class="object-cover w-full h-full" />
 
-    {{-- Pencil Icon Trigger --}}
-    <label for="photo"
-           class="absolute bottom-2 right-2 bg-white p-1 rounded-full shadow hover:bg-gray-100 cursor-pointer">
-        <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.25 2.25 0 113.182 3.182L6.75 20.25H3v-3.75L16.732 3.732z" />
-        </svg>
-    </label>
+                {{-- Pencil Icon Trigger --}}
+                <label for="photo"
+                    class="absolute bottom-2 right-2 bg-white p-1 rounded-full shadow hover:bg-gray-100 cursor-pointer">
+                    <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.25 2.25 0 113.182 3.182L6.75 20.25H3v-3.75L16.732 3.732z" />
+                    </svg>
+                </label>
 
-    <input type="file" name="photo" id="photo" accept="image/*" class="hidden">
-</div>
+                <input type="file" name="photo" id="photo" accept="image/*" class="hidden">
+            </div>
 
-<label for="photo" class="text-sm text-blue-600 hover:underline cursor-pointer">
-    Upload Profile Picture
-</label>
+            <label for="photo" class="text-sm text-blue-600 hover:underline cursor-pointer">
+                Upload Profile Picture
+            </label>
 
-@error('photo')
-    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-@enderror
-<p id="photoError" class="text-red-500 text-sm mt-1 hidden"></p>
+            @error('photo')
+                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+            @enderror
+            <p id="photoError" class="text-red-500 text-sm mt-1 hidden"></p>
 
             {{-- Sidebar Navigation --}}
             <nav class="mt-6 space-y-2 text-left">
@@ -97,10 +100,10 @@
 
                         {{-- Phone Number --}}
                         <div>
-                            <label class="block mb-1 text-sm font-medium text-[#23527c]">Phone Number <span class="text-red-500">*</span></label>
+                            <label class="block mb-1 text-sm font-medium text-[#23527c]">Phone Number </label>
                             <input type="text" name="phone_number" value="{{ old('phone_number') }}"
                                 class="w-full px-3 py-2 text-sm focus:outline-none focus:shadow-lg
-                                {{ $errors->has('phone_number') ? 'border-red-500 border' : 'border border-gray-300 focus:border-blue-500' }}" required/>
+                                {{ $errors->has('phone_number') ? 'border-red-500 border' : 'border border-gray-300 focus:border-blue-500' }}"/>
                             @error('phone_number')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror

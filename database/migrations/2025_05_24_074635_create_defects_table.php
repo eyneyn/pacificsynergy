@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('defect_name');
             $table->enum('category', ['Caps', 'Bottle', 'Label', 'LDPE Shrinkfilm']);
-            $table->text('description')->nullable();
+            $table->text('description');
             $table->timestamps();
             $table->softDeletes(); // 👈 adds deleted_at column
         });

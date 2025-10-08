@@ -6,6 +6,10 @@
     <div class="mb-4 flex items-center justify-between">
         <h1 class="text-xl font-bold text-[#23527c]">Edit Product Standard</h1>
     </div>
+
+    {{-- 🔔 Modal Alerts (Success, Error, Validation) --}}
+    <x-alert-message />
+
     <!-- Product Standard Form Card -->
     <div class="border-t border-b border-gray-200 px-20 py-10 mb-6">
         <div>
@@ -20,8 +24,8 @@
                             <label class="text-[#23527c] font-bold w-40 text-right mr-8" for="description">Description:</label>
                             <div class="flex-1">
                                 <input type="text" name="description" id="description"
-                                    value="{{ old('description', $standard->description) }}" readonly
-                                    class="w-full text-sm border border-gray-300 bg-white px-3 py-1 pr-8 focus:border-[#2d326b] focus:ring focus:ring-[#2d326b] focus:ring-0 transition focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400 cursor-not-allowed">
+                                    value="{{ old('description', $standard->description) }}" required
+                                    class="w-full text-sm border border-gray-300 bg-white px-3 py-1 pr-8 focus:border-[#2d326b] focus:ring focus:ring-[#2d326b] focus:ring-0 transition focus:border-blue-500 focus:shadow-lg focus:outline-none placeholder-gray-400">
                                 @error('description')
                                     <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                                 @enderror

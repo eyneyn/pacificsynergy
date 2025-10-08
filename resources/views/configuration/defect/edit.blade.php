@@ -7,6 +7,9 @@
         <h1 class="text-xl font-bold text-[#23527c]">Edit Defect</h1>
     </div>
 
+    {{-- 🔔 Modal Alerts (Success, Error, Validation) --}}
+    <x-alert-message />
+
     <!-- Defect Edit Form -->
     <div class="border-t border-b border-gray-200 px-20 py-10 mb-6">
 
