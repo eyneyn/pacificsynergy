@@ -1,13 +1,17 @@
 # Stage 1: Build PHP dependencies
 FROM php:8.3-fpm-alpine AS build
 
-# Install system dependencies
+# Install system dependencies (including freetype, jpeg, png for GD)
 RUN apk add --no-cache \
     git unzip curl bash icu-dev oniguruma-dev libzip-dev \
-    nodejs npm build-base linux-headers autoconf
+    nodejs npm build-base linux-headers autoconf \
+    freetype-dev libpng-dev libjpeg-turbo-dev
 
-# Install PHP extensions
-RUN docker-php-ext-install pdo pdo_mysql intl mbstring zip opcache
+# Install PHP extensions (with gd)
+RUN docker-php-ext-configure gd \
+        --with-freetype \
+        --with-jpeg \
+    && docker-php-ext-install pdo pdo_mysql intl mbstring zip opcache gd
 
 # Copy app files
 WORKDIR /var/www
@@ -26,7 +30,7 @@ FROM php:8.3-fpm-alpine
 WORKDIR /var/www
 
 # Install runtime dependencies
-RUN apk add --no-cache bash icu libzip oniguruma
+RUN apk add --no-cache bash icu libzip oniguruma freetype libpng libjpeg-turbo
 
 # Copy extensions and vendor from builder
 COPY --from=build /usr/local/lib/php/extensions /usr/local/lib/php/extensions
